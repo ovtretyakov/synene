@@ -33,11 +33,6 @@ class FootballLeague(FootballSaveMixin, League):
 
     objects = FootballManager()
 
-    @classmethod
-    def get_or_create(cls, slug, **kwargs):
-        kwargs.pop('sport',None)
-        kwargs['sport']=Football.objects.get()
-        return super(FootballLeague, cls).get_or_create(slug=slug, **kwargs)
 
     class Meta:
         proxy = True

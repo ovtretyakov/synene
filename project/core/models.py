@@ -33,7 +33,7 @@ class Mergable(object):
         ''' Merge current object to dst object '''
         if dst==None or self==dst:
             return
-        if self.load_source.reliability <= dst.load_source.reliability:
+        if self.load_source.reliability < dst.load_source.reliability:
             dst.load_source = self.load_source
             dst.change_data(self)
         self.merge_related(dst)
@@ -146,7 +146,6 @@ class Loadable(Mergable, models.Model):
             source_obj.init_object(obj)
         return obj
 
-
     def confirm(self, load_source):
         ''' Confirm object '''
         if not load_source:
@@ -165,8 +164,6 @@ class Loadable(Mergable, models.Model):
             is_changed = True
         if is_changed:
             self.save()
-
-
 
 ###################################################################
 class ObjectLoadSource(models.Model):
@@ -298,6 +295,13 @@ class Country(Loadable):
     def __str__(self):
         return self.name    
 
+    def delete_object(self):
+        ''' Delete country '''
+        # 1. Block load source
+        load_source = CountryLoadSource.objects.filter(country_obj=self).update(status=ObjectLoadSource.DELETED, country_obj=None)
+        # 1. Delete object
+        self.delete()
+
     def merge_related(self, dst):
         for league in League.objects.filter(country=self):
             league.change_country(dst)
@@ -375,6 +379,13 @@ class League(SaveSlugCountryMixin, Loadable):
         league = League(slug=slug, name=name, team_type=team_type, sport=sport, country=country)
         league._create(**kwargs)
         return league
+
+    def delete_object(self):
+        ''' Delete league '''
+        # 1. Block load source
+        load_source = LeagueLoadSource.objects.filter(league=self).update(status=ObjectLoadSource.DELETED, league=None)
+        # 1. Delete object
+        self.delete()
 
     def merge_related(self, dst):
         for season in Season.objects.filter(league=self):
@@ -573,6 +584,13 @@ class Team(SaveSlugCountryMixin, Loadable):
         team._create(**kwargs)
         return team
 
+    def delete_object(self):
+        ''' Delete league '''
+        # 1. Block load source
+        load_source = TeamLoadSource.objects.filter(team=self).update(status=ObjectLoadSource.DELETED, team=None)
+        # 1. Delete object
+        self.delete()
+
     def merge_related(self, dst):
         for match in Match.objects.filter(team_h=self):
             match.change_team_h(dst)
@@ -670,8 +688,14 @@ class Referee(SaveSlugCountryMixin, Loadable):
         referee._create(**kwargs)
         return referee
 
+    def delete_object(self):
+        ''' Delete referee '''
+        # 1. Block load source
+        load_source = RefereeLoadSource.objects.filter(referee=self).update(status=ObjectLoadSource.DELETED, referee=None)
+        # 1. Delete object
+        self.delete()
+
     def merge_related(self, dst):
-        #!!! TODO: process other related objects
         MatchReferee.change_referee(self, dst)
         RefereeLoadSource.objects.filter(referee=self).update(referee=dst) 
 
@@ -718,8 +742,8 @@ class Match(Mergable, models.Model):
     DRAW = 'd'
     LOOSE = 'l'
 
-    COMTETITOR_HOME = 'h'
-    COMTETITOR_AWAY = 'a'
+    COMPETITOR_HOME = 'h'
+    COMPETITOR_AWAY = 'a'
 
     STATUS_CHOICES = (
         (FINISHED, 'Finished'),
@@ -753,7 +777,6 @@ class Match(Mergable, models.Model):
 
     def __str__(self):
         return '%s - %s' % (self.team_h.name, self.team_a.name)
-
 
     @classmethod
     def get_object(cls, league=None, team_h=None, team_a=None, match_date=None, **kwargs):
@@ -875,8 +898,27 @@ class Match(Mergable, models.Model):
             self.team_a.set_membership(season=season, load_source=load_source)
 
     def merge_related(self, dst):
-        #!!! TODO: process other related objects
+        for match_stat in MatchStats.objects.filter(match=self):
+            match_stat.change_match(dst)
+        from betting.models import Odd
+        for odd in Odd.objects.filter(match=self):
+            odd.change_match(dst)
         MatchReferee.change_match(self, dst)
+
+    def add_stat(self, stat_type, competitor, period, value, load_source):
+        match_stat, updated = MatchStats.create_or_update(match=self, stat_type=stat_type, competitor=competitor, 
+                                                          period=period, value=value, load_source=load_source)
+        if updated and stat_type==MatchStats.GOALS and period in(0,1,2,):
+            #score (match or one of the half) was changed
+            scores = ['']*6
+            for stat in MatchStats.objects.filter(match=self, stat_type=stat_type, period__in=[0,1,2,]):
+                i = 0 if stat.competitor == Match.COMPETITOR_HOME else 1
+                j = stat.period*2 + i
+                scores[j] = stat.value
+            score = '%s:%s (%s:%s,%s:%s)' % tuple(scores)
+            self.score = score
+            self.save()
+        return match_stat
 
 ###################################################################
 class MatchReferee(models.Model):
@@ -950,8 +992,8 @@ class MatchStats(Mergable, models.Model):
     )
 
     COMPETITOR_CHOICES = (
-        (Match.COMTETITOR_HOME, 'Home team'),
-        (Match.COMTETITOR_AWAY, 'Away team'),
+        (Match.COMPETITOR_HOME, 'Home team'),
+        (Match.COMPETITOR_AWAY, 'Away team'),
     )
 
     match = models.ForeignKey(Match, on_delete=models.CASCADE, verbose_name='Match')
@@ -969,4 +1011,58 @@ class MatchStats(Mergable, models.Model):
     def __str__(self):
         return '%s %s(%s): %s' % (self.competitor, self.stat_type, self.period, self.value)
 
+    @classmethod
+    def get_object(cls, match=None, stat_type=None, competitor=None, period=None, **kwargs):
+        try:
+            obj = cls.objects.get(match=match, stat_type=stat_type, competitor=competitor, period=period)
+        except cls.DoesNotExist:
+            obj = None
+        return obj
 
+    @classmethod
+    def create_or_update(cls, match, stat_type, competitor, period, value, load_source):
+        '''Do not call directly!'''
+        if value==None:
+            raise ValueError('Missing stat value')
+        match_stat = cls.get_object(match=match, stat_type=stat_type, competitor=competitor, period=period)
+        if match_stat:
+            if (value != match_stat.value and
+                load_source and (not match_stat.load_source or 
+                                 load_source.reliability <= match_stat.load_source.reliability)
+                ):
+                match_stat.value = value
+                match_stat.load_source = load_source
+                match_stat.save()
+                updated = True
+            elif (value == match_stat.value and
+                  load_source and (not match_stat.load_source or 
+                                  load_source.reliability < match_stat.load_source.reliability)
+                  ):
+                match_stat.load_source = load_source
+                match_stat.save()
+                updated = True
+            else:
+                updated = False
+        else:
+            match_stat = cls.objects.create(match=match, stat_type=stat_type, competitor=competitor, period=period, value=value, load_source=load_source)
+            updated = True
+        return match_stat, updated
+
+    def change_match(self, match_dst):
+        '''Change match'''
+        if match_dst == None or match_dst == self.match:
+            return
+        #find match destination
+        match_stat_dst = MatchStats.get_object(match=match_dst, stat_type=self.stat_type, competitor=self.competitor, period=self.period)
+        if match_stat_dst:
+            self.merge_to(match_stat_dst)
+        else:
+            self.match = match_dst
+            self.save()
+
+    def change_data(self, src):
+        self.value = src.value
+        self.save()
+
+    def merge_related(self, dst):
+        pass

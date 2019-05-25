@@ -4,7 +4,6 @@ from django.test import TestCase
 from django.db.utils import IntegrityError
 
 from core.factories import get_sport, get_country, get_team
-
 from core.models import (
     Loadable, ObjectLoadSource,
     Sport, 
@@ -13,11 +12,12 @@ from core.models import (
     TeamType, 
     League, LeagueLoadSource, 
     Season,
-    Team,
+    Team, TeamLoadSource,
     TeamMembership,
-    Referee,
-    Match, MatchReferee,
+    Referee, RefereeLoadSource,
+    Match, MatchReferee, MatchStats,
     )
+from betting.models import BetType, ValueType, Odd 
 
 
 def prepare_data(obj):
@@ -251,6 +251,16 @@ class CountryModelTest(TestCase):
                                             )
         self.assertEquals(referee_dst_2.pk, referee_dst_2_pk)
 
+    #######################################################################
+    def test_country_delete(self):
+        country = Country.get_or_create('test_delete_country', self.load_source_1)
+        country_pk = country.pk
+        country_load_source = CountryLoadSource.objects.get(country_obj=country)
+        country.delete_object()
+        self.assertFalse(Country.objects.filter(pk=country_pk).exists(), 'Country was deleted')
+        country_load_source.refresh_from_db()
+        self.assertEquals(country_load_source.status, ObjectLoadSource.DELETED)
+        self.assertIsNone(country_load_source.country_obj)
 
 #######################################################################################
 ######  League
@@ -370,7 +380,6 @@ class LeagueModelTest(TestCase):
         #already confirmed -  change load_source with lower reliability
         new_league.confirm(self.load_source_1)
         self.assertEquals(new_league.load_source, self.load_source_1)
-
 
     #######################################################################
     def test_league_merge(self):
@@ -504,7 +513,40 @@ class LeagueModelTest(TestCase):
         self.assertTrue(TeamMembership.objects.filter(team=team1,season=season).exists())
         self.assertTrue(TeamMembership.objects.filter(team=team2,season=season).exists())
 
-
+    #######################################################################
+    def test_league_delete(self):
+        team1 = Team.get_or_create(
+            name='team league_delete 1', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        team2 = Team.get_or_create(
+            name='team league_delete 2', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        league = League.get_or_create(name='test_delete_league 1', 
+                                          sport=self.sport, 
+                                          load_source=self.load_source_1,
+                                          )
+        league_pk = league.pk
+        league_load_source = LeagueLoadSource.objects.get(league=league)
+        match = Match.get_or_create(
+                                league=league, team_h=team1, team_a=team2, 
+                                match_date=date(2017,10,1), 
+                                load_source=self.load_source_1
+                                )
+        match_pk = match.pk
+        season = Season.get_or_create(league, 
+                                       start_date=date(2017,6,1), 
+                                       end_date=date(2018,5,1), 
+                                       load_source=self.load_source_2)
+        season_pk = season.pk
+        league.delete_object()
+        self.assertFalse(League.objects.filter(pk=league_pk).exists(), 'League was deleted')
+        self.assertFalse(Match.objects.filter(pk=match_pk).exists(), 'League was deleted')
+        self.assertFalse(Season.objects.filter(pk=season_pk).exists(), 'League was deleted')
+        league_load_source.refresh_from_db()
+        self.assertEquals(league_load_source.status, ObjectLoadSource.DELETED)
+        self.assertIsNone(league_load_source.league)
 
 #######################################################################################
 ######  Season
@@ -829,7 +871,30 @@ class TeamModelTest(TestCase):
         self.assertFalse(exists_team2)
         self.assertFalse(exists_team3)
         self.assertTrue(exists_team4)
-
+    #######################################################################
+    def test_team_delete(self):
+        team1 = Team.get_or_create(
+            name='team team_delete 1', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        team1_pk = team1.pk
+        team_load_source = TeamLoadSource.objects.get(team=team1)
+        team2 = Team.get_or_create(
+            name='team team_delete 2', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        match = Match.get_or_create(
+                                league=self.league, team_h=team1, team_a=team2, 
+                                match_date=date(2017,10,1), 
+                                load_source=self.load_source_1
+                                )
+        match_pk = match.pk
+        team1.delete_object()
+        self.assertFalse(Team.objects.filter(pk=team1_pk).exists(), 'Team was deleted')
+        self.assertFalse(Match.objects.filter(pk=match_pk).exists(), 'Team was deleted')
+        team_load_source.refresh_from_db()
+        self.assertEquals(team_load_source.status, ObjectLoadSource.DELETED)
+        self.assertIsNone(team_load_source.team)
 
 #######################################################################################
 ######  Match
@@ -949,6 +1014,22 @@ class MatchModelTest(TestCase):
                                 load_source=self.load_source_1,
                                 )
         match21_pk = match21.pk
+        stat = match21.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+                               period=0, value=2, load_source=self.load_source_2)
+        odd = Odd.objects.create(match = match21,
+                                   bet_type = BetType.objects.get(slug=BetType.WDL),
+                                   bookie = self.load_source,
+                                   value_type = ValueType.objects.get(slug=ValueType.CORNER),
+                                   period = 0,
+                                   yes = 'Y',
+                                   team = Match.COMPETITOR_HOME,
+                                   param = '',
+                                   odd_value = 1.5,
+                                   status = Odd.WAITING,
+                                   result = Odd.UNKNOWN,
+                                   result_value = 0,
+                                   load_source = self.load_source_2, 
+                                   )
         match22 = Match.get_or_create(
                                 league=league_new, team_h=self.team1, team_a=self.team2, 
                                 match_date=date(2015,6,1),
@@ -962,6 +1043,10 @@ class MatchModelTest(TestCase):
             match21 = Match.objects.get(pk=match21_pk)
         match22 = Match.objects.get(pk=match22_pk)
         self.assertEquals(match22.status, Match.FINISHED)
+        stat.refresh_from_db()
+        self.assertEquals(stat.match, match22)
+        odd.refresh_from_db()
+        self.assertEquals(odd.match, match22)
 
     #######################################################################
     def test_match_set_referee(self):
@@ -991,6 +1076,42 @@ class MatchModelTest(TestCase):
         match.set_referee(referee2, load_source=self.load_source_1)
         match_referee = MatchReferee.objects.get(match=match)
         self.assertEquals(match_referee.referee, referee2)
+    #######################################################################
+    def test_match_add_stat(self):
+        match_date=date(2016,10,10)
+        match = Match.get_or_create(
+                                    league=self.league, team_h=self.team1, team_a=self.team2, 
+                                    match_date=match_date, 
+                                    load_source=self.load_source_2
+                                    )
+        stat1 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+                               period=0, value=2, load_source=self.load_source_2)
+        stat2 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+                               period=0, value=1, load_source=self.load_source_2)
+        stat3 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+                               period=1, value=1, load_source=self.load_source_2)
+        stat4 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+                               period=1, value=0, load_source=self.load_source_2)
+        stat5 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+                               period=2, value=1, load_source=self.load_source_2)
+        stat6 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+                               period=2, value=1, load_source=self.load_source_2)
+        match.refresh_from_db()
+        self.assertEquals(match.score, '2:1 (1:0,1:1)')
+
+        stat7 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+                               period=2, value=11, load_source=self.load_source_3)
+        #not changed
+        match.refresh_from_db()
+        self.assertEquals(match.score, '2:1 (1:0,1:1)')
+
+        stat8 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+                               period=0, value=3, load_source=self.load_source_2)
+        stat9 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+                               period=2, value=2, load_source=self.load_source_2)
+        #changed
+        match.refresh_from_db()
+        self.assertEquals(match.score, '3:1 (1:0,2:1)')
 
 
 #######################################################################################
@@ -1044,4 +1165,76 @@ class RefereeModelTest(TestCase):
         match_referee = MatchReferee.objects.get(match=match)
         self.assertEquals(match_referee.referee, referee2)
         self.assertEquals(match_referee.load_source, self.load_source_2)
+
+    #######################################################################
+    def test_referee_delete(self):
+        referee = Referee.get_or_create(name='referee test_referee_delete',
+                                         sport=self.football,
+                                         country=self.country, 
+                                         load_source=self.load_source_1
+                                         )
+        referee_pk = referee.pk
+        referee_load_source = RefereeLoadSource.objects.get(referee=referee)
+        referee.delete_object()
+        self.assertFalse(Referee.objects.filter(pk=referee_pk).exists(), 'Referee was deleted')
+        referee_load_source.refresh_from_db()
+        self.assertEquals(referee_load_source.status, ObjectLoadSource.DELETED)
+        self.assertIsNone(referee_load_source.referee)
+
+#######################################################################################
+######  MatchStats
+#######################################################################################
+class MatchStatsModelTest(TestCase):
+    def setUp(self):
+        prepare_data(self)
+        self.league = League.get_or_create(name='test_matchstat_model_league',
+                                            sport=self.football,
+                                            country=self.country, 
+                                            load_source=self.load_source_2
+                                            )
+        self.team1 = Team.get_or_create(
+            name='matchstat_modal_team 1', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        self.team2 = Team.get_or_create(
+            name='matchstat_modal_team 2', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        self.match = Match.get_or_create(
+                               league=self.league, team_h=self.team1, team_a=self.team2, 
+                                match_date=date(2016,6,2), 
+                                load_source=self.load_source_1
+                                )
+
+    #######################################################################
+    def test_matchstats_change_match(self):
+        match2 = Match.objects.create(league=self.league, team_h=self.team1, team_a=self.team2, 
+                              match_date=date(2016,6,5), 
+                              load_source=self.load_source_2)
+        stat11 = self.match.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=0, value='1', load_source=self.load_source_2)
+        stat11_pk = stat11.pk
+        stat12 = self.match.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=1, value='1', load_source=self.load_source_2)
+        stat12_pk = stat12.pk
+        stat21 = match2.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=0, value='2', load_source=self.load_source_2)
+        stat21_pk = stat21.pk
+        stat22 = match2.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=1, value='2', load_source=self.load_source_1)
+        stat22_pk = stat22.pk
+        stat23 = match2.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=2, value='2', load_source=self.load_source_2)
+        stat23_pk = stat23.pk
+        # 1
+        stat21.change_match(self.match)
+        stat11.refresh_from_db()
+        self.assertEquals(stat11.value, '1')
+        with self.assertRaises(MatchStats.DoesNotExist):
+            stat = MatchStats.objects.get(pk=stat21_pk)
+        # 2
+        stat22.change_match(self.match)
+        stat12.refresh_from_db()
+        self.assertEquals(stat12.value, '2')
+        with self.assertRaises(MatchStats.DoesNotExist):
+            stat = MatchStats.objects.get(pk=stat22_pk)
+        # 3
+        stat23.change_match(self.match)
+        stat23.refresh_from_db()
+        self.assertEquals(stat23.match, self.match)
 
