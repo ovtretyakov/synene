@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.forms import ValidationError
 
-from core.models import LoadSource, Match
+from core.models import Mergable, LoadSource, Match
 from .mixins import WDLParamClean
 
 ###################################################################
@@ -71,7 +71,7 @@ class OddBookieConfig(models.Model):
 
 
 ###################################################################
-class Odd(models.Model):
+class Odd(Mergable, models.Model):
 
     #Status
     WAITING  = 'w'
@@ -137,6 +137,14 @@ class Odd(models.Model):
 
     def __str__(self):
         return f'M{self.match},BT{self.bet_type},BO{self.bookie},VT{self.value_type},PE{self.period},Y{self.yes},T{self.team},PA{self.param}'
+
+    @classmethod
+    def get_object(cls, match=None,bet_type=None,bookie=None,value_type=None,period=None,yes=None,team=None,param=None, **kwargs):
+        try:
+            obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+        except cls.DoesNotExist:
+            obj = None
+        return obj
 
     @classmethod
     def add(cls, match, bet_type_slug, value_type_slug, load_source, bookie=None, 
@@ -256,6 +264,29 @@ class Odd(models.Model):
             self.bet_type = own_bet_type
         super(Odd, self).save(*args, **kwargs)
 
+    def change_match(self, match_dst):
+        '''Change match'''
+        if match_dst == None or match_dst == self.match:
+            return
+        odd_dst = Odd.get_object(match=match_dst,
+                    bet_type=self.bet_type,bookie=self.bookie,value_type=self.value_type,period=self.period,yes=self.yes,team=self.team,param=self.param)
+        if odd_dst:
+            self.merge_to(odd_dst)
+        else:
+            self.match = match_dst
+            self.save()
+
+    def change_data(self, src):
+        self.odd_value = src.odd_value
+        self.status = src.status
+        self.result = src.result
+        self.result_value = src.result_value
+        self.odd_update = src.odd_update
+        self.result_update = src.result_update
+        self.save()
+
+    def merge_related(self, dst):
+        pass
 
 ###################################################################
 class OddWDL(WDLParamClean, Odd):
