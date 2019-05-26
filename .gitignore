@@ -5,8 +5,8 @@ __pycache__/
 *$py.class
 
 # settings
-settings/local.py
-settings/test.py
+.config/settings/local.py
+.config/settings/test.py
 
 # sqlite
 db.sqlite3
