@@ -26,7 +26,7 @@ DATABASES = {
         'NAME': 'dev_synene',
         'USER': 'synene_handler',
         'PASSWORD': 'dummy',
-        'HOST': '127.0.0.1',
+        'HOST': '192.168.1.11',
         'PORT': '5432',
     }
 }
