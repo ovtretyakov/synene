@@ -33,11 +33,10 @@ class FootballLeagueModelTest(TestCase):
     def test_get_or_create(self):
         football = get_football()
         russia = get_country('rus')
-        league_slug = 'league-get-or-create'
-        league_new = FootballLeague.get_or_create(league_slug, country=russia, name='League get or create', 
+        league_new = FootballLeague.get_or_create(country=russia, name='League get or create', 
                                                   load_source=self.load_source)
         self.assertEquals(league_new.sport, football)
-        league_get = FootballLeague.get_or_create(league_slug, country=russia, name='League get or create',
+        league_get = FootballLeague.get_or_create(country=russia, name='League get or create',
                                                   load_source=self.load_source)
         self.assertEquals(league_new, league_get)
 
