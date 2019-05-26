@@ -1,4 +1,4 @@
-from .mixins import FootballSaveMixin
+from .mixins import FootballSaveMixin, FootballGetOrCreateMixin
 from .managers import FootballManager, FootballSportManager
 
 from core.models import (
@@ -29,22 +29,17 @@ class FootballSource(FootballSaveMixin, LoadSource):
 
 
 ###################################################################
-class FootballLeague(FootballSaveMixin, League):
+class FootballLeague(FootballGetOrCreateMixin, FootballSaveMixin, League):
 
     objects = FootballManager()
 
-    @classmethod
-    def get_or_create(cls, slug, **kwargs):
-        kwargs.pop('sport',None)
-        kwargs['sport']=Football.objects.get()
-        return super(FootballLeague, cls).get_or_create(slug=slug, **kwargs)
 
     class Meta:
         proxy = True
 
 
 ###################################################################
-class FootballTeam(FootballSaveMixin, Team):
+class FootballTeam(FootballGetOrCreateMixin, FootballSaveMixin, Team):
 
     objects = FootballManager()
 
@@ -53,7 +48,7 @@ class FootballTeam(FootballSaveMixin, Team):
 
 
 ###################################################################
-class FootballReferee(FootballSaveMixin, Referee):
+class FootballReferee(FootballGetOrCreateMixin, FootballSaveMixin, Referee):
 
     objects = FootballManager()
 
