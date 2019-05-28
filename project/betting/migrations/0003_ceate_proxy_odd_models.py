@@ -54,12 +54,12 @@ class Migration(migrations.Migration):
                                )
         BetType.objects.create(slug='total_both_halves_over', 
                                name='Total Both Halves Over',
-                               description='Total of goals in both halves greate than parameter\nperiod=0\nteam=h,a,empty-any\nparam=half-integer: 0.5,1.5,2.5,...',
+                               description='Total of goals in both halves greate than parameter\nperiod=0\nteam=h,a,empty-both\nparam=half-integer: 0.5,1.5,2.5,...',
                                handler='OddTotalBothHalvesOver'
                                )
         BetType.objects.create(slug='total_both_halves_under', 
                                name='Total Both Halves Under',
-                               description='Total of goals in both halves less than parameter\nperiod=0\nteam=h,a,empty-any\nparam=half-integer: 0.5,1.5,2.5,...',
+                               description='Total of goals in both halves less than parameter\nperiod=0\nteam=h,a,empty-both\nparam=half-integer: 0.5,1.5,2.5,...',
                                handler='OddTotalBothHalvesUnder'
                                )
         BetType.objects.create(slug='total_over_minutes', 

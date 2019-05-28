@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal, DecimalException
 
 from core.utils import get_int
 
@@ -47,12 +48,113 @@ class ScoreListParam(object):
                 raise ValueError('Invalid odd param. Should be list of scores (1:0 or 1:0,1:1,0:1): %s' % param)
         return param_
 
+class PositiveIntegerParam(object):
+    @classmethod
+    def clean_param(cls, param):
+        param_ = param.strip()
+        if param_ == None or param_ == '':
+            raise ValueError('Invalid odd param (must not be empty)')
+        try:
+            i = Decimal(param_)
+        except (ValueError, DecimalException):
+            raise ValueError('Invalid odd param. Should be integer: %s' % param)
+        if i != round(i):
+            raise ValueError('Invalid odd param. Should be integer: %s' % param)
+        if i <= 0:
+            raise ValueError('Invalid odd param. Should be positive integer: %s' % param)
+        return param_
+
+class IntegerListParam(object):
+    @classmethod
+    def clean_param(cls, param):
+        param_ = param.replace(' ','')
+        if param_ == None: param_ = ''
+        for value in param_.split(','):
+            if value == '':
+                raise ValueError('Invalid odd param (must not be empty)')
+            try:
+                i = Decimal(value)
+            except (ValueError, DecimalException):
+                raise ValueError('Invalid odd param. Should be list of values (1 or 0,1,2): %s' % param)
+            if i != round(i):
+                raise ValueError('Invalid odd param. Should be list of values (1 or 0,1,2): %s' % param)
+        return param_
+
+class IntegerListOrEmptyParam(object):
+    @classmethod
+    def clean_param(cls, param):
+        param_ = param.replace(' ','')
+        if param_ == None: param_ = ''
+        for value in param_.split(','):
+            try:
+                i = Decimal(value)
+            except (ValueError, DecimalException):
+                raise ValueError('Invalid odd param. Should be list of values (1 or 0,1,2): %s' % param)
+            if i != round(i):
+                raise ValueError('Invalid odd param. Should be list of values (1 or 0,1,2): %s' % param)
+        return param_
+
 class EvenOddParam(object):
     @classmethod
     def clean_param(cls, param):
         param_ = param.strip().lower()
         if not param_ or param_ not in('even','odd',):
             raise ValueError('Invalid odd param (should be "even" or "odd"): %s' % param)
+        return param_
+
+class TotalParam(object):
+    @classmethod
+    def clean_param(cls, param):
+        param_ = param.strip()
+        if param == None:
+            raise ValueError('Invalid odd param (empty total value)')
+        try:
+            param_ = Decimal(param_.replace(',','.'))
+        except (ValueError, DecimalException):
+            raise ValueError('Invalid odd param (cannot be used as "total" parameter): %s' % param)
+        if param_ <= 0:
+            raise ValueError('Invalid odd param (must be a positive number): %s' % param)
+        if int(4*param_) != 4*param_:
+            raise ValueError('Invalid odd param (cannot be used as "total" parameter): %s' % param)
+        if param_ == 0:
+            param_ = '0'
+        else:
+            param_ = '{0:.2f}'.format(param_)
+        return param_
+
+class HandicapParam(object):
+    @classmethod
+    def clean_param(cls, param):
+        param_ = param.strip()
+        if param == None:
+            raise ValueError('Invalid odd param (empty handicap value)')
+        try:
+            param_ = Decimal(param_.replace(',','.').replace(chr(int('0x2013',16)),'-'))
+        except (ValueError, DecimalException):
+            raise ValueError('Invalid odd param (cannot be used as "handicap" parameter): %s' % param)
+        if int(4*param_) != 4*param_:
+            raise ValueError('Invalid odd param (cannot be used as "handicap" parameter): %s' % param)
+        if param_ == 0:
+            param_ = '0'
+        else:
+            param_ = '{0:+.2f}'.format(param_)
+        return param_
+
+class HalfIntegerParam(object):
+    @classmethod
+    def clean_param(cls, param):
+        param_ = param.strip()
+        if param == None:
+            raise ValueError('Invalid odd param (empty param)')
+        try:
+            param_ = Decimal(param_.replace(',','.'))
+        except (ValueError, DecimalException):
+            raise ValueError('Invalid odd param (should be "half-integer"): %s' % param)
+        if param_ <= 0:
+            raise ValueError('Invalid odd param (must be a positive number): %s' % param)
+        if int(param_) == param_ or int(2*param_) != 2*param_:
+            raise ValueError('Invalid odd param (should be "half-integer"): %s' % param)
+        param_ = '{0:.1f}'.format(param_)
         return param_
 
 ###################################################################
@@ -109,6 +211,17 @@ class OnlyEmptyTeam(object):
             raise ValueError('Invalid team param (should be empty team): %s' % team)
         return team
 
+###################################################################
+# yes or no
+###################################################################
+class OnlyYes(object):
+    @classmethod
+    def clean_yes(cls, yes):
+        if yes in('y',): yes = yes.upper()
+        elif yes.lower() == 'yes': yes = 'Y'
+        if not yes in('Y',):
+            raise ValueError('Invalid yes-no param (should by "Y"): %s' % yes)
+        return yes
 
 ###################################################################
 # result
