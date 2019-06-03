@@ -242,6 +242,9 @@ class LoadSource(models.Model):
     error_text = models.CharField('Error text', max_length=255, null=True, blank=True)
     last_update = models.DateTimeField('Last update', null=True, blank=True)
     load_date = models.DateField('Load date', null=True, blank=True)
+    min_odd = models.DecimalField('Min odd', max_digits=10, decimal_places=3, default=1.1)
+    max_odd = models.DecimalField('Max odd', max_digits=10, decimal_places=3, default=10)
+    error_limit = models.IntegerField('Error limit', default=10)
 
     class Meta:
         constraints = [
@@ -251,6 +254,8 @@ class LoadSource(models.Model):
     def __str__(self):
         return self.name
 
+    def lock(self):
+        obj = LoadSource.objects.select_for_update().get(pk=self.pk)
 
 ###################################################################
 class Country(Loadable):
