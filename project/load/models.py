@@ -5,13 +5,14 @@ import logging
 from django.db import models, transaction
 from django.utils import timezone
 
-from core.models import LoadSource
+from core.models import Sport, LoadSource, League, Team, Match, MatchStats
 from .exceptions import LoadError
+from .helpers import MatchDetail
 
 logger = logging.getLogger(__name__)
 
 ###################################################################
-class CommonHandler(LoadSource):
+class CommonHandler(MatchDetail, LoadSource):
 
     class Meta:
         proxy = True
@@ -23,10 +24,17 @@ class CommonHandler(LoadSource):
             load_date = self.load_date if self.load_date else default_date
         return load_date
 
+    def get_sport(self):
+        return Sport.objects.get(slug=Sport.FOOTBALL)
+
     def clear_contents(self):
         self.source_session = None
         self.load_continue = False
+        self.match_date = None
         self.league_name = None
+        self.team_h = None
+        self.team_a = None
+        self.match = None
         self.match_name = None
         self.file_name = None
         self.context = None
@@ -152,16 +160,28 @@ class CommonHandler(LoadSource):
                 else:
                     self.load_date = load_date
                     self.save()
+            self.match_date = load_date
         except Exception as e:
             self.handle_exception(e)
             raise LoadError
 
 
-    def start_or_skip_league(self, league_name, season_name='NA'):
+    def start_or_skip_league(self, league_name, country='', season_name='NA'):
         try:
             with transaction.atomic():
                 self.lock()
                 do_action = self._start_or_skip_league(league_name, season_name=season_name)
+                if do_action:
+                    self.league = League.get_or_create(
+                                                sport=self.get_sport(),
+                                                name=league_name,
+                                                country=country,
+                                                load_source=self)
+                    if not self.league:
+                        logger.info('Skip league ' + league_name)
+                        do_action = False
+                        self.source_detail_league.status=SourceDetail.FINISHED
+                        self.source_detail_league.save()
         except Exception as e:
             self.handle_exception(e)
             raise LoadError
@@ -181,27 +201,109 @@ class CommonHandler(LoadSource):
             self.source_detail_league = None
 
 
-    def start_or_skip_match(self, match_date, match_name):
+    def start_or_skip_match(self, name_h, name_a, match_status=Match.FINISHED, match_date=None,
+                                referee=None, forecast_w=0, forecast_d=0, forecast_l=0):
         try:
+            if not match_date:
+                match_date = self.match_date
             with transaction.atomic():
                 self.lock()
-                do_action = self._start_or_skip_match(match_date, match_name)
+                self.team_h = Team.get_or_create(
+                                        sport=self.get_sport(),
+                                        name=name_h,
+                                        country=self.league.country,
+                                        load_source=self)
+                self.team_a = Team.get_or_create(
+                                        sport=self.get_sport(),
+                                        name=name_a,
+                                        country=self.league.country,
+                                        load_source=self)
+                do_action = (self.team_h != None and self.team_a != None)
+                if do_action:
+                    self.match = Match.get_or_create(
+                                        league=self.league,
+                                        team_h=self.team_h,
+                                        team_a=self.team_a,
+                                        match_date=match_date,
+                                        load_source=self, 
+                                        status=match_status)
+                    do_action = self._start_or_skip_match(
+                                        match_date=match_date, 
+                                        match_name=str(self.match))
+                if do_action:
+                    self.clear_match_context(
+                                        referee=referee,
+                                        forecast_w=forecast_w, forecast_d=forecast_d, forecast_l=forecast_l,
+                                        name_h=name_h, name_a=name_a)
         except Exception as e:
             self.handle_exception(e)
             raise LoadError
         return do_action
 
+    def _save_statistic(self, stat_type, competitor, period, value):
+        self.match.add_stat(stat_type, competitor, period, value, self)
+
+
+    def _save_competitor_data(self, competitor, data):
+        for p in range(0,3):
+            if data._goals[p] != None:
+                self._save_statistic(MatchStats.GOALS, competitor, p, data._goals[p])
+            if data._xG[p] != None:
+                self._save_statistic(MatchStats.XG, competitor, p, data._xG[p])
+            if data._y_cards[p] != None:
+                self._save_statistic(MatchStats.YCARD, competitor, p, data._y_cards[p])
+            if data._r_cards[p] != None:
+                self._save_statistic(MatchStats.RCARD, competitor, p, data._r_cards[p])
+            if data._penalties[p] != None:
+                self._save_statistic(MatchStats.PENALTY, competitor, p, data._penalties[p])
+        for k in sorted(data.get_empty_detail().keys()):
+            if data._goals_minutes != None:
+                self._save_statistic(MatchStats.GOALS_MINUTE, competitor, k, data._goals_minutes[k])
+            if data._xG_minutes != None:
+                self._save_statistic(MatchStats.XG_MINUTE, competitor, k, data._xG_minutes[k])
+            if data._y_cards_minutes != None:
+                self._save_statistic(MatchStats.YCARD_MINUTE, competitor, k, data._y_cards_minutes[k])
+            if data._r_cards_minutes != None:
+                self._save_statistic(MatchStats.RCARD_MINUTE, competitor, k, data._r_cards_minutes[k])
+        if data.goal_time != None:
+            value = ','.join(str(t) for t in data.goal_time)
+            self._save_statistic(MatchStats.GOAL_TIME, competitor, 0, value)
+        if data.shots != None:
+            self._save_statistic(MatchStats.SHOTS, competitor, 0, data.shots)
+        if data.shots_on_target != None:
+            self._save_statistic(MatchStats.SHOTS_ON_TARGET, competitor, 0, data.shots_on_target)
+        if data.deep != None:
+            self._save_statistic(MatchStats.DEEP, competitor, 0, data.deep)
+        if data.ppda != None:
+            self._save_statistic(MatchStats.PPDA, competitor, 0, data.ppda)
+        if data.corners != None:
+            self._save_statistic(MatchStats.CORNERS, competitor, 0, data.corners)
+        if data.fouls != None:
+            self._save_statistic(MatchStats.FOULS, competitor, 0, data.fouls)
+        if data.free_kicks != None:
+            self._save_statistic(MatchStats.FREE_KICKS, competitor, 0, data.free_kicks)
+        if data.offsides != None:
+            self._save_statistic(MatchStats.OFFSIDES, competitor, 0, data.offsides)
+        if data.possession != None:
+            self._save_statistic(MatchStats.POSSESSION, competitor, 0, data.possession)
+
 
     def finish_match(self):
+        self
         try:
             with transaction.atomic():
                 self.lock()
                 if self.source_detail_match:
+                    if self.referee: 
+                        self.match.set_referee(self.referee, self)
+                    self._save_competitor_data(Match.COMPETITOR_HOME, self.h)
+                    self._save_competitor_data(Match.COMPETITOR_AWAY, self.a)
                     self.source_detail_match.refresh_from_db()
                     self.source_detail_match.status=SourceDetail.FINISHED
                     self.source_detail_match.save()
         except Exception as e:
             self.handle_exception(e)
+            raise LoadError
         finally:
             self.source_detail_match = None
 

@@ -16,8 +16,15 @@ class SaveSlugCountryMixin(object):
             self.slug = slugify(self.name)
         if not self.country_id:
             self.country = unknown_country
-        if self.country == unknown_country and not self.slug.endswith('newteam'):
-            self.slug += ('_' + str(random.randint(1,1000000000)) + 'newteam')
+        if self.country == unknown_country and self.load_status == Loadable.UNCONFIRMED:
+            #add suffix "newteam"
+            if not self.slug.endswith('newteam'):
+                self.slug += ('_' + str(random.randint(1,1000000000)) + 'newteam')
+        if self.load_status == Loadable.CONFIRMED and self.slug.endswith('newteam'):
+            #remove suffix "newteam" if any
+            i = self.slug.rfind('_')
+            if i>=0:
+                self.slug = self.slug[:i]
         super(SaveSlugCountryMixin, self).save(*args, **kwargs)
 
 ###################################################################
@@ -112,7 +119,10 @@ class Loadable(Mergable, models.Model):
                                                        country=country, 
                                                        slug=slug, 
                                                        load_source=load_source)
-            obj = cls.objects.get(object=source_obj)
+            if source_obj.status==ObjectLoadSource.DELETED:
+                obj = None
+            else:
+                obj = cls.objects.get(object=source_obj)
             found = True
         except load_source_class.DoesNotExist:
             obj = None
@@ -122,16 +132,12 @@ class Loadable(Mergable, models.Model):
             # get object from main table 
             obj = cls.get_object(**kwargs)
 
-        if not obj:
-            #Can't find main object
-            #Create it
-            # obj = cls.objects.create(**kwargs, load_status=Loadable.UNCONFIRMED, created=timezone.now())
-            obj = cls.create(**kwargs)
+            if not obj:
+                #Can't find main object
+                #Create it
+                # obj = cls.objects.create(**kwargs, load_status=Loadable.UNCONFIRMED, created=timezone.now())
+                obj = cls.create(**kwargs)
 
-        if found:
-            source_obj.selected = timezone.now()
-            source_obj.save()
-        else:
             #Create new row in table <real object name>LoadSource
             source_obj = load_source_class.objects.create(
                             slug = slug,
@@ -144,6 +150,11 @@ class Loadable(Mergable, models.Model):
                             selected = timezone.now()
                             )
             source_obj.init_object(obj)
+
+        else:
+            if obj:
+                source_obj.selected = timezone.now()
+                source_obj.save()
         return obj
 
     def confirm(self, load_source):
@@ -366,6 +377,9 @@ class League(SaveSlugCountryMixin, Loadable):
     def __str__(self):
         return self.name        
 
+    def __repr__(self):
+        return ','.join((str(self.pk),str(self.sport),str(self.country),self.slug))        
+
     @classmethod
     def get_object_load_source_class(cls):
         return LeagueLoadSource
@@ -569,6 +583,9 @@ class Team(SaveSlugCountryMixin, Loadable):
 
     def __str__(self):
         return self.name        
+
+    def __repr__(self):
+        return ','.join((str(self.pk),str(self.sport),str(self.country),self.slug))        
 
     @classmethod
     def get_object_load_source_class(cls):
@@ -783,6 +800,11 @@ class Match(Mergable, models.Model):
     def __str__(self):
         return '%s - %s' % (self.team_h.name, self.team_a.name)
 
+    def __repr__(self):
+        return '%s,%s,%s,%s(%s) - %s(%s)' % (
+            self.pk, str(self.league), self.match_date, 
+            self.team_h.name, self.team_h.pk, self.team_a.name, self.team_a.pk)        
+
     @classmethod
     def get_object(cls, league=None, team_h=None, team_a=None, match_date=None, **kwargs):
         try:
@@ -839,18 +861,7 @@ class Match(Mergable, models.Model):
         return match
 
     def set_referee(self, referee, load_source=None):
-        try:
-            match_referee = MatchReferee.objects.get(match=self)
-        except MatchReferee.DoesNotExist:
-            match_referee = None
-        if match_referee:
-            if load_source and (not match_referee.load_source or
-                                load_source.reliability <= match_referee.load_source.reliability):
-                match_referee.referee = referee
-                match_referee.load_source = load_source
-                match_referee.save()
-        else:
-            match_referee = MatchReferee.objects.create(match=self, referee=referee, load_source=load_source)
+        MatchReferee.create_or_update(self, referee, load_source)
 
     def change_league(self, league_dst):
         '''Change match league'''
@@ -881,7 +892,7 @@ class Match(Mergable, models.Model):
         if team_dst == None or team_dst == self.team_a:
             return
         #find match destination
-        match_dst = Match.get_object(league=self.league, team_h=self.team_a, team_a=team_dst, match_date=self.match_date)
+        match_dst = Match.get_object(league=self.league, team_h=self.team_h, team_a=team_dst, match_date=self.match_date)
         if match_dst:
             self.merge_to(match_dst)
         else:
@@ -890,6 +901,8 @@ class Match(Mergable, models.Model):
 
     def change_data(self, src):
         self.status = src.status
+        self.score = src.score
+        self.result = src.result
         self.save()
 
     def set_season(self, season=None, load_source=None):
@@ -950,6 +963,43 @@ class MatchReferee(models.Model):
         for mr in MatchReferee.objects.filter(match=match_from):
             match_to.set_referee(mr.referee, load_source=mr.load_source)
 
+    @classmethod
+    def get_object(cls, match=None, **kwargs):
+        try:
+            obj = cls.objects.get(match=match)
+        except cls.DoesNotExist:
+            obj = None
+        return obj
+
+    @classmethod
+    def create_or_update(cls, match, referee, load_source):
+        '''Do not call directly!'''
+        if referee==None:
+            raise ValueError('Missing referee')
+        match_referee = cls.get_object(match=match)
+        if match_referee:
+            if (referee != match_referee.referee and
+                load_source and (not match_referee.load_source or 
+                                 load_source.reliability <= match_referee.load_source.reliability)
+                ):
+                match_referee.referee = referee
+                match_referee.load_source = load_source
+                match_referee.save()
+                updated = True
+            elif (referee == match_referee.referee and
+                  load_source and (not match_referee.load_source or 
+                                  load_source.reliability < match_referee.load_source.reliability)
+                  ):
+                match_referee.load_source = load_source
+                match_referee.save()
+                updated = True
+            else:
+                updated = False
+        else:
+            match_referee = cls.objects.create(match=match, referee=referee, load_source=load_source)
+            updated = True
+        return match_referee, updated
+
 
 ###################################################################
 class MatchStats(Mergable, models.Model):
@@ -968,7 +1018,7 @@ class MatchStats(Mergable, models.Model):
     SHOTS_ON_TARGET = 'sot'
     DEEP = 'd'
     PPDA = 'ppda'
-    CORENERS = 'c'
+    CORNERS = 'c'
     FOULS = 'f'
     FREE_KICKS = 'fk'
     OFFSIDES = 'o'
@@ -989,7 +1039,7 @@ class MatchStats(Mergable, models.Model):
         (SHOTS_ON_TARGET, 'Shots on target'),
         (DEEP, 'Deep passes'),    #Passes completed within an estimated 20 yards of goal (crosses excluded)
         (PPDA, 'PPDA'),           #Passes allowed per defensive action in the opposition half
-        (CORENERS, 'Corners'),
+        (CORNERS, 'Corners'),
         (FOULS, 'Fouls'),
         (FREE_KICKS, 'Free kicks'),
         (OFFSIDES, 'Offsides'),
