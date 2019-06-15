@@ -241,3 +241,5 @@ SOCIALACCOUNT_ADAPTER = "project.users.adapters.SocialAccountAdapter"
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+#site source files
+SOURCE_DIR = ROOT_DIR.path("source")

@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 from django.db import models
+from django.db import connection
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.defaultfilters import slugify
@@ -78,7 +79,7 @@ class Loadable(Mergable, models.Model):
     @classmethod
     def get_object(cls, sport=None, country=None, slug=None, **kwargs):
         try:
-            obj = cls.objects.get(sport=sport, country=country, slug=slug)
+            obj = cls.objects.select_related('load_source').get(sport=sport, country=country, slug=slug)
         except cls.DoesNotExist:
             obj = None
         return obj
@@ -274,11 +275,12 @@ class Country(Loadable):
     slug = models.SlugField(unique=True)
     code = models.CharField('Code', max_length=100)
     name = models.CharField('Country', max_length=100)
+    nationality = models.CharField('Nationality', max_length=100, null=True, blank=True)
 
     @classmethod
     def get_object(cls, slug=None, **kwargs):
         try:
-            obj = cls.objects.get(slug=slug)
+            obj = cls.objects.select_related('load_source').get(slug=slug)
         except cls.DoesNotExist:
             obj = None
         return obj
@@ -808,7 +810,7 @@ class Match(Mergable, models.Model):
     @classmethod
     def get_object(cls, league=None, team_h=None, team_a=None, match_date=None, **kwargs):
         try:
-            obj = cls.objects.get(league=league, team_h=team_h, team_a=team_a, match_date=match_date)
+            obj = cls.objects.select_related('load_source').get(league=league, team_h=team_h, team_a=team_a, match_date=match_date)
         except cls.DoesNotExist:
             obj = None
         if not obj and match_date:
@@ -966,7 +968,7 @@ class MatchReferee(models.Model):
     @classmethod
     def get_object(cls, match=None, **kwargs):
         try:
-            obj = cls.objects.get(match=match)
+            obj = cls.objects.select_related('load_source').get(match=match)
         except cls.DoesNotExist:
             obj = None
         return obj
@@ -1069,7 +1071,8 @@ class MatchStats(Mergable, models.Model):
     @classmethod
     def get_object(cls, match=None, stat_type=None, competitor=None, period=None, **kwargs):
         try:
-            obj = cls.objects.get(match=match, stat_type=stat_type, competitor=competitor, period=period)
+            obj = cls.objects.select_related('load_source').get(
+                match=match, stat_type=stat_type, competitor=competitor, period=period)
         except cls.DoesNotExist:
             obj = None
         return obj
@@ -1079,28 +1082,35 @@ class MatchStats(Mergable, models.Model):
         '''Do not call directly!'''
         if value==None:
             raise ValueError('Missing stat value')
-        match_stat = cls.get_object(match=match, stat_type=stat_type, competitor=competitor, period=period)
-        if match_stat:
-            if (value != match_stat.value and
-                load_source and (not match_stat.load_source or 
-                                 load_source.reliability <= match_stat.load_source.reliability)
-                ):
-                match_stat.value = value
-                match_stat.load_source = load_source
-                match_stat.save()
-                updated = True
-            elif (value == match_stat.value and
-                  load_source and (not match_stat.load_source or 
-                                  load_source.reliability < match_stat.load_source.reliability)
-                  ):
-                match_stat.load_source = load_source
-                match_stat.save()
-                updated = True
-            else:
-                updated = False
-        else:
-            match_stat = cls.objects.create(match=match, stat_type=stat_type, competitor=competitor, period=period, value=value, load_source=load_source)
-            updated = True
+
+        with connection.cursor() as cursor:
+            cursor.callproc('add_stat', [match.pk, stat_type, competitor, period, str(value), load_source.pk])
+            results = cursor.fetchone()
+        updated = results[0]
+        match_stat = MatchStats.objects.get(pk=results[1])
+
+        # match_stat = cls.get_object(match=match, stat_type=stat_type, competitor=competitor, period=period)
+        # if match_stat:
+        #     if (value != match_stat.value and
+        #         load_source and (not match_stat.load_source or 
+        #                          load_source.reliability <= match_stat.load_source.reliability)
+        #         ):
+        #         match_stat.value = value
+        #         match_stat.load_source = load_source
+        #         match_stat.save()
+        #         updated = True
+        #     elif (value == match_stat.value and
+        #           load_source and (not match_stat.load_source or 
+        #                           load_source.reliability < match_stat.load_source.reliability)
+        #           ):
+        #         match_stat.load_source = load_source
+        #         match_stat.save()
+        #         updated = True
+        #     else:
+        #         updated = False
+        # else:
+        #     match_stat = cls.objects.create(match=match, stat_type=stat_type, competitor=competitor, period=period, value=value, load_source=load_source)
+        #     updated = True
         return match_stat, updated
 
     def change_match(self, match_dst):

@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, date, timedelta
 
 from django.test import TestCase
@@ -5,13 +6,15 @@ from django.utils import timezone
 
 from core.models import Sport, TeamType, Country, League, Team, Match, MatchStats
 from load.models import (
-                        CommonHandler, 
                         SourceSession, 
                         SourceDetail, 
                         ErrorLog,
                         SourceDetailLeague,
                         SourceDetailMatch)
-from load.exceptions import LoadError
+from load.exceptions import LoadError, TooMamyErrors
+from load.handlers.espn import ESPNHandler
+from load.handlers.understat import UnderstatHandler
+from load.handlers.football_data import FootballDataHandler
 
 
 def prepare_data(obj):
@@ -20,7 +23,7 @@ def prepare_data(obj):
     obj.team_type = TeamType.objects.get(slug=TeamType.REGULAR)
     obj.russia = Country.objects.get(slug='rus')
     obj.country = obj.russia
-    obj.handler = CommonHandler.objects.get(slug=CommonHandler.SRC_ESPN)
+    obj.handler = ESPNHandler.get()
 
 
 #######################################################################################
@@ -41,14 +44,33 @@ class CommonHandlerModelTest(TestCase):
                                                 status = SourceSession.ERROR,
                                                 match_cnt = 0,
                                                 err_cnt = 0)
+        
+        handler.is_error=True
+        handler.error_text='error_text should be removed'
+
+        #create test file
+        #it should be deleted while start_load
+        fname = handler.get_handler_dir().path('cache').path('test_start_load.html')
+        file = open(fname, 'wb')
+        file.write('test'.encode())
+        file.close()
+
         result = handler.start_load()
         self.assertTrue(result)
+        self.assertFalse(handler.is_error)
+        self.assertEquals(handler.error_text,'')
         self.assertFalse(handler.load_continue, 'Start new session')
         self.assertNotEquals(handler.source_session, old_session)
         source_session_pk = handler.source_session.pk
         self.assertEquals(handler.source_session.status, SourceSession.IN_PROCESS)
         old_session.refresh_from_db()
         self.assertEquals(old_session.status, SourceSession.INTERRUPTED)
+
+        #test deleted files
+        cache_dir = handler.get_handler_dir().path('cache')
+        files = [f for f in os.listdir(cache_dir)]
+        self.assertFalse(files, 'files must be deleted')
+
         #
         result = handler.start_load()
         self.assertTrue(result)
@@ -69,7 +91,7 @@ class CommonHandlerModelTest(TestCase):
         handler.handle_exception('msg8')
         handler.handle_exception('msg9')
         self.assertEquals(handler.source_session.status, SourceSession.IN_PROCESS)
-        with self.assertRaises(LoadError):
+        with self.assertRaises(TooMamyErrors):
             handler.handle_exception('msg10')
         count_errors = ErrorLog.objects.filter(source_session=handler.source_session).count()
         self.assertEquals(count_errors, 10)
@@ -242,9 +264,9 @@ class CommonHandlerModelTest(TestCase):
 
     #######################################################################
     def test_common_handler_save_match_stat(self):
-        handler1 = CommonHandler.objects.get(slug=CommonHandler.SRC_ESPN)
-        handler2 = CommonHandler.objects.get(slug=CommonHandler.SRC_UNDERSTAT)
-        handler3 = CommonHandler.objects.get(slug=CommonHandler.SRC_FOOTBALL_DATA)
+        handler1 = ESPNHandler.get()
+        handler2 = UnderstatHandler.get()
+        handler3 = FootballDataHandler.get()
         detail_slug = 'match_stat_league_detail'
         league_name = 'match_stat_league_1'
         name_h = 'match_stat_team_h'
@@ -625,7 +647,6 @@ class CommonHandlerModelTest(TestCase):
         self.assertEquals(stat.load_source, handler1)
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.POSSESSION,competitor=Match.COMPETITOR_AWAY,period=0)
         self.assertEquals(stat.value, '59')
-
 
 
 

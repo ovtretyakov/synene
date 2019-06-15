@@ -1,13 +1,18 @@
+import os
+import time
 from datetime import datetime, date, timedelta
 import traceback
 import logging
+import requests
 
 from django.db import models, transaction
 from django.utils import timezone
+from django.conf import settings
 
-from core.models import Sport, LoadSource, League, Team, Match, MatchStats
-from .exceptions import LoadError
+from core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats
+from .exceptions import LoadError, TooMamyErrors
 from .helpers import MatchDetail
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +29,58 @@ class CommonHandler(MatchDetail, LoadSource):
             load_date = self.load_date if self.load_date else default_date
         return load_date
 
-    def get_sport(self):
+    @classmethod
+    def get_sport(cls):
         return Sport.objects.get(slug=Sport.FOOTBALL)
+
+    @classmethod
+    def get_handler_dir(cls):
+        return settings.SOURCE_DIR
+
+    def get_request(self, url):
+        is_error = True
+        for i in range(1,5):
+            try:
+                time.sleep(1)
+                r = requests.get(url)
+                break
+            except requests.exceptions.RequestException as e:
+                if i == 4: 
+                    logger.error(type(self).__name__ + ': RequestException while getting url "%s"' % url) 
+                    raise e
+                else:
+                    logger.warning(type(self).__name__ + ': can not get "%s" %s' % (url, i)) 
+                time.sleep(5*i)
+        return r
+
+    def get_html(self, file_name, url=None, get_from_file=False, is_debug_path=True):
+        ''' Get html from url or saved file
+            
+            Parameters:
+            file_name     - file name (save to or load from)
+            url           - 
+            get_from_file - get from url or from file 
+            is_debug_path - if get from file - where file is placed (in debug or saved directory)
+        '''
+        hpath = self.get_handler_dir()
+        if get_from_file:
+            if is_debug_path:
+                hpath = hpath.path('debug')
+            else:
+                hpath = hpath.path('cache')
+            fname = hpath.path(file_name)
+            html = open(fname, 'rb').read()
+        else:
+            fname = hpath.path('cache').path(file_name)
+            r = self.get_request(url)
+            html = r.text
+            file = open(fname, 'wb')
+            file.write(html.encode())
+            file.close()
+        self.file_name = fname
+        return html
+
+
 
     def clear_contents(self):
         self.source_session = None
@@ -42,7 +97,8 @@ class CommonHandler(MatchDetail, LoadSource):
         self.source_detail_league = None
         self.source_detail_match = None
 
-    def handle_exception(self, e):
+    def handle_exception(self, e, raise_finish_error=True):
+        logger.error(type(self).__name__ + ':')
         logger.exception(e)
         if self.source_session:
             try:
@@ -60,7 +116,7 @@ class CommonHandler(MatchDetail, LoadSource):
                             error_time = timezone.now(),
                             league_name = self.league_name,
                             match_name = self.match_name,
-                            file_name = self.match_name,
+                            file_name = self.file_name,
                             source_detail = self.source_detail)
         if self.source_session:
             #check error count
@@ -73,8 +129,8 @@ class CommonHandler(MatchDetail, LoadSource):
                     self.source_session.status = SourceSession.ERROR
                     finish_loading = True
                 self.source_session.save()
-            if finish_loading:
-                raise LoadError
+            if finish_loading and raise_finish_error:
+                raise TooMamyErrors
 
     def _start_or_skip_league(self, league_name, season_name='NA'):
         try:
@@ -151,13 +207,13 @@ class CommonHandler(MatchDetail, LoadSource):
         self.source_detail = source_detail
 
 
-    def set_load_date(self, load_date):
+    def set_load_date(self, load_date, is_set_main=False):
         try:
             with transaction.atomic():
                 self.lock()
                 if self.source_detail:
                     self.source_detail.set_load_date(load_date)
-                else:
+                if not self.source_detail or is_set_main:
                     self.load_date = load_date
                     self.save()
             self.match_date = load_date
@@ -166,30 +222,63 @@ class CommonHandler(MatchDetail, LoadSource):
             raise LoadError
 
 
-    def start_or_skip_league(self, league_name, country='', season_name='NA'):
+    def start_or_skip_league(self, league_name, country=None, season_name='NA'):
         try:
             with transaction.atomic():
                 self.lock()
                 do_action = self._start_or_skip_league(league_name, season_name=season_name)
                 if do_action:
+
+                    if not country:
+                        #try to find country from league name
+                        league_upper = league_name.upper()
+                        if not (league_upper.find('WORLD') >= 0):
+                            i = 0
+                            for c in Country.objects.raw(
+                                        "SELECT * FROM core_country WHERE %s LIKE '%%' || UPPER(nationality) || '%%'",
+                                        [league_upper]):
+                                country = c
+                                i += 1
+                                if i >= 2:
+                                    break
+                            if i > 1:
+                                country = None
+
                     self.league = League.get_or_create(
                                                 sport=self.get_sport(),
                                                 name=league_name,
                                                 country=country,
                                                 load_source=self)
                     if not self.league:
-                        logger.info('Skip league ' + league_name)
+                        logger.info(type(self).__name__ + ': Skip league ' + league_name)
                         do_action = False
                         self.source_detail_league.status=SourceDetail.FINISHED
                         self.source_detail_league.save()
+                    else:
+                        logger.info(type(self).__name__ + ': Start league ' + league_name)
         except Exception as e:
             self.handle_exception(e)
             raise LoadError
         return do_action
 
 
+    def create_league_session(self, start_date, end_date, load_source, name=None):
+        try:
+            with transaction.atomic():
+                self.lock()
+                if self.league:
+                    season = self.league.get_or_create_season(start_date, end_date, self, name)
+                    logger.debug(type(self).__name__ + ':' + 
+                        ' Create or update session %s - %s(%s to %s)' % 
+                        (self.league.name, name, start_date, end_date))
+        except Exception as e:
+            self.handle_exception(e)
+            raise LoadError('Error creating session')
+
+
     def finish_league(self):
         try:
+            logger.info(type(self).__name__ + ': Finish league ' + str(self.league_name))
             with transaction.atomic():
                 self.lock()
                 if self.source_detail_league:
@@ -325,6 +414,7 @@ class CommonHandler(MatchDetail, LoadSource):
                 if self.source_detail:
                     self.source_detail.refresh_from_db()
                     self.source_detail.status=SourceDetail.FINISHED
+                    self.source_detail.last_update=timezone.now()
                     self.source_detail.save()
         except Exception as e:
             self.handle_exception(e)
@@ -345,6 +435,15 @@ class CommonHandler(MatchDetail, LoadSource):
 
         '''
         self.clear_contents()
+        
+        #delete all cached files
+        cache_dir = self.get_handler_dir().path('cache')
+        for f in os.listdir(cache_dir):
+            file_for_deleting = cache_dir.path(f)
+            if os.path.isfile(file_for_deleting):
+                os.remove(file_for_deleting)
+        
+        #start session
         try:
             with transaction.atomic():
                 self.lock()
@@ -355,6 +454,10 @@ class CommonHandler(MatchDetail, LoadSource):
                         SourceDetailLeague.objects.filter(source_detail=detail).delete()
                 if detail_slug:
                     self._start_detail(detail_slug)
+                self.is_error = False
+                self.error_text = ''
+                self.last_update = timezone.now()
+                self.save()
             result = True
         except Exception as e:
             result = False
@@ -372,11 +475,14 @@ class CommonHandler(MatchDetail, LoadSource):
                 self.lock()
                 if self.source_session:
                     self.source_session.finish()
+                self.last_update = timezone.now()
+                self.save()
+                details=SourceDetail.objects.filter(load_source=self, status=SourceDetail.IN_PROCESS)
+                details.update(status=SourceDetail.FINISHED, last_update=timezone.now())
         except Exception as e:
             self.handle_exception(e)
         finally:
             self.clear_contents()
-
 
 
 ###################################################################
@@ -426,10 +532,10 @@ class SourceSession(models.Model):
                 source_session.save()
                 msg = 'Interrupt old session "%s" (%s)' % (str(load_source), 
                                                            source_session.start_time.strftime("%d.%m.%Y, %H:%M:%S"))
-                logger.warning(msg)
+                logger.warning(cls.__name__ + ': ' + msg)
                 source_session = None
             else:
-                logger.debug('Continue processing old session "%s" (%s)' % 
+                logger.debug(cls.__name__ + ': Continue processing old session "%s" (%s)' % 
                     (str(load_source), source_session.start_time.strftime("%d.%m.%Y %H:%M:%S")) )
 
         if not source_session:
@@ -439,7 +545,7 @@ class SourceSession(models.Model):
                                                             status = SourceSession.IN_PROCESS,
                                                             match_cnt = 0,
                                                             err_cnt = 0)
-            logger.info('Create new session "%s"'% str(load_source) )
+            logger.info(cls.__name__ + ': Create new session "%s"'% str(load_source) )
             load_continue = False
         return source_session, load_continue
 
