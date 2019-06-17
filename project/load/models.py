@@ -422,7 +422,7 @@ class CommonHandler(MatchDetail, LoadSource):
             self.source_detail = None
 
 
-    def start_load(self, detail_slug=None):
+    def start_load(self, detail_slug=None, is_debug=False):
         '''
         Start loading data
 
@@ -437,11 +437,12 @@ class CommonHandler(MatchDetail, LoadSource):
         self.clear_contents()
         
         #delete all cached files
-        cache_dir = self.get_handler_dir().path('cache')
-        for f in os.listdir(cache_dir):
-            file_for_deleting = cache_dir.path(f)
-            if os.path.isfile(file_for_deleting):
-                os.remove(file_for_deleting)
+        if not is_debug:
+            cache_dir = self.get_handler_dir().path('cache')
+            for f in os.listdir(cache_dir):
+                file_for_deleting = cache_dir.path(f)
+                if os.path.isfile(file_for_deleting):
+                    os.remove(file_for_deleting)
         
         #start session
         try:

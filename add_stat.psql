@@ -76,7 +76,7 @@ BEGIN;
             END IF;
 
         ELSE
-            INSERT INTO core_loadsource(match_id, stat_type, competitor, period, value, load_source_id)
+            INSERT INTO core_matchstats(match_id, stat_type, competitor, period, value, load_source_id)
                 VALUES(piMatch, pcStatType, pcCompetitor, piPeriod, pcValue, piLoadSource)
                 RETURNING id iNTO liStatID
             ;

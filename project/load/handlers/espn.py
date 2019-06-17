@@ -46,11 +46,11 @@ class ESPNHandler(CommonHandler):
         '''Main method to load site''' 
 
         try:
-            self.start_load('Main handler')
+            self.start_load('Main handler', is_debug=is_debug)
 
             if is_debug and not start_date:
                 get_from_file = True
-            if get_from_file:
+            if not get_from_file:
                 dat = start_date if start_date else self.DEBUG_DATE
             else:
                 dat = self.get_load_date()
@@ -115,7 +115,8 @@ class ESPNHandler(CommonHandler):
                     end_date   = max([e['endDate'] for e in calendar_entries])
                 start_date=datetime.strptime(start_date[:10], "%Y-%m-%d").date()
                 end_date=datetime.strptime(end_date[:10], "%Y-%m-%d").date()
-                season_name = score['season']['year']
+                # season_name = score['season']['year']
+                season_name = None
                 self.create_league_session(start_date, end_date, self, name=season_name)
                 events = score['events']
                 for event in events:

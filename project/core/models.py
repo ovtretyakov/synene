@@ -608,6 +608,17 @@ class Team(SaveSlugCountryMixin, Loadable):
         team._create(**kwargs)
         return team
 
+    def get_season(self, match_date):
+        try:
+            membership = TeamMembership.objects.get(
+                                        team=self, 
+                                        season__start_date__lte=match_date,
+                                        season__end_date__gte=match_date)
+            season = membership.season
+        except TeamMembership.DoesNotExist:
+            season = None
+        return season
+
     def delete_object(self):
         ''' Delete league '''
         # 1. Block load source
@@ -937,8 +948,34 @@ class Match(Mergable, models.Model):
                 scores[j] = stat.value
             score = '%s:%s (%s:%s,%s:%s)' % tuple(scores)
             self.score = score
+
+            if scores[0]:
+                score_h = int(scores[0])
+            else:
+                score_h = None
+            if scores[1]:
+                score_a = int(scores[1])
+            else:
+                score_a = None
+            if score_h == None or score_a == None:
+                self.result = None
+            elif score_h > score_a:
+                self.result = Match.WIN
+            elif score_h < score_a:
+                self.result = Match.LOOSE
+            else:
+                self.result = Match.DRAW
+
             self.save()
         return match_stat
+
+    def get_stat(self, stat_type, competitor, period):
+        match_stat = MatchStats.get_object(match=self, stat_type=stat_type, competitor=competitor, period=period)
+        if match_stat:
+            value = match_stat.value
+        else:
+            value = None
+        return value
 
 ###################################################################
 class MatchReferee(models.Model):
