@@ -62,7 +62,7 @@ BEGIN;
 
                 UPDATE core_matchstats
                     SET value = pcValue,
-                        load_source = piLoadSource
+                        load_source_id = piLoadSource
                     WHERE id = liStatID
                 ;
                 liUpdated := 1;
@@ -73,7 +73,7 @@ BEGIN;
                 THEN
 
                 UPDATE core_matchstats
-                    SET load_source = piLoadSource
+                    SET load_source_id = piLoadSource
                     WHERE id = liStatID
                 ;
                 liUpdated := 1;

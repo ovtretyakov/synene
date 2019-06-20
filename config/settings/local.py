@@ -111,6 +111,7 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'formatter': 'simple',
             'filename': 'synene.log',    
+            'encoding': 'utf8',
         },
         'file_sql': {
             'level': 'DEBUG',

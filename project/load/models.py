@@ -268,9 +268,8 @@ class CommonHandler(MatchDetail, LoadSource):
                 self.lock()
                 if self.league:
                     season = self.league.get_or_create_season(start_date, end_date, self, name)
-                    logger.debug(type(self).__name__ + ':' + 
-                        ' Create or update session %s - %s(%s to %s)' % 
-                        (self.league.name, name, start_date, end_date))
+                    msg = ' Create or update session %s - %s(%s to %s)' % (str(self.league.name), name, start_date, end_date)
+                    logger.debug(type(self).__name__ + ': ' + msg)
         except Exception as e:
             self.handle_exception(e)
             raise LoadError('Error creating session')
@@ -278,10 +277,10 @@ class CommonHandler(MatchDetail, LoadSource):
 
     def finish_league(self):
         try:
-            logger.info(type(self).__name__ + ': Finish league ' + str(self.league_name))
             with transaction.atomic():
                 self.lock()
                 if self.source_detail_league:
+                    logger.info(type(self).__name__ + ': Finish league ' + self.source_detail_league.league_name)
                     self.source_detail_league.status=SourceDetail.FINISHED
                     self.source_detail_league.save()
         except Exception as e:
