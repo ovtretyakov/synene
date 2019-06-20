@@ -1,0 +1,28 @@
+{% load widget_tweaks %}
+
+  <div class="modal-header">
+    <h3 class="modal-title">{% block title %}Modal Dialog{% endblock title %}</h3>
+
+    {% block modal-header %}
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    {% endblock %}
+
+  </div>
+
+  <div class="modal-body">
+
+    {% block modal-body %}
+    {% endblock modal-body %}
+
+
+  </div>
+
+  <div class="modal-footer">
+    {% block modal-footer %}
+      <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{% block button-close %}Close{% endblock button-close %}</button>
+    {% endblock modal-footer %}
+
+  </div>
+</form>

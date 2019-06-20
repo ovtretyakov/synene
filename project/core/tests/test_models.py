@@ -367,13 +367,18 @@ class LeagueModelTest(TestCase):
 
     #######################################################################
     def test_league_confirm(self):
-        new_league = Country.get_or_create('test_confirm_league', self.load_source_1)
+        league_slug = 'test_confirm_league'
+        new_league = League.get_or_create(name=league_slug, load_source=self.load_source_1, sport=self.sport)
         self.assertEquals(new_league.load_status, Loadable.UNCONFIRMED)
         self.assertEquals(new_league.load_source, self.load_source_1)
+        self.assertNotEquals(new_league.slug, league_slug)
+        self.assertTrue(new_league.slug.startswith(league_slug))
+        self.assertTrue(new_league.slug.endswith('newteam'))
         #confirm with change load_source
         new_league.confirm(self.load_source_2)
         self.assertEquals(new_league.load_status, Loadable.CONFIRMED)
         self.assertEquals(new_league.load_source, self.load_source_2)
+        self.assertEquals(new_league.slug, league_slug)
         #already confirmed - can't change load_source with higher reliability
         new_league.confirm(self.load_source_3)
         self.assertEquals(new_league.load_source, self.load_source_2)
@@ -547,6 +552,13 @@ class LeagueModelTest(TestCase):
         league_load_source.refresh_from_db()
         self.assertEquals(league_load_source.status, ObjectLoadSource.DELETED)
         self.assertIsNone(league_load_source.league)
+        #get deleted league
+        deleted_league = League.get_or_create(
+                                            name='test_delete_league 1', 
+                                            sport=self.sport, 
+                                            load_source=self.load_source_1)
+        self.assertIsNone(deleted_league)
+
 
 #######################################################################################
 ######  Season
@@ -812,8 +824,50 @@ class TeamModelTest(TestCase):
         self.assertEquals(team1, team2)
 
     #######################################################################
+    def test_team_confirm(self):
+        #team1
+        team_slug_1 = 'test_confirm_team_1'
+        team1 = Team.get_or_create(
+                                name=team_slug_1, 
+                                team_type=self.team_type, 
+                                sport=self.sport, 
+                                load_source=self.load_source_2)
+        self.assertEquals(team1.load_status, Loadable.UNCONFIRMED)
+        self.assertEquals(team1.load_source, self.load_source_2)
+        self.assertNotEquals(team1.slug, team_slug_1)
+        self.assertTrue(team1.slug.startswith(team_slug_1))
+        self.assertTrue(team1.slug.endswith('newteam'))
+        #confirm 
+        team1.confirm(self.load_source_1)
+        self.assertEquals(team1.load_status, Loadable.CONFIRMED)
+        self.assertEquals(team1.load_source, self.load_source_1)
+        self.assertEquals(team1.slug, team_slug_1)
+
+        #team2
+        team_slug_2 = 'test_confirm_team_2'
+        team2 = Team.get_or_create(
+                                name=team_slug_2, 
+                                team_type=self.team_type, 
+                                sport=self.sport, 
+                                load_source=self.load_source_2)
+        self.assertEquals(team2.load_status, Loadable.UNCONFIRMED)
+        self.assertEquals(team2.load_source, self.load_source_2)
+        self.assertNotEquals(team2.slug, team_slug_2)
+        self.assertTrue(team2.slug.startswith(team_slug_2))
+        self.assertTrue(team2.slug.endswith('newteam'))
+        #change country
+        team2.country = self.russia
+        team2.save()
+        #confirm 
+        team2.confirm(self.load_source_1)
+        self.assertEquals(team2.load_status, Loadable.CONFIRMED)
+        self.assertEquals(team2.load_source, self.load_source_1)
+        self.assertEquals(team2.slug, team_slug_2)
+
+    #######################################################################
     def test_team_merge(self):
         match_date=date(2016,10,1)
+        match_date2=date(2016,11,1)
         season = self.league.get_or_create_season(start_date=date(2016,6,1), 
                                                  end_date=date(2017,5,1), 
                                                  load_source=self.load_source_1)
@@ -840,15 +894,23 @@ class TeamModelTest(TestCase):
         match1 = Match.get_or_create(
                                 league=self.league, team_h=team1, team_a=team2, 
                                 match_date=match_date, 
-                                load_source=self.load_source_2
-                                )
+                                load_source=self.load_source_2)
         match1_pk = match1.pk
         match2 = Match.get_or_create(
                                 league=self.league, team_h=team3, team_a=team2, 
                                 match_date=match_date, 
-                                load_source=self.load_source_2
-                                )
+                                load_source=self.load_source_2)
         match2_pk = match2.pk
+        match3 = Match.get_or_create(
+                                league=self.league, team_h=team2, team_a=team1, 
+                                match_date=match_date2, 
+                                load_source=self.load_source_2)
+        match3_pk = match3.pk
+        match4 = Match.get_or_create(
+                                league=self.league, team_h=team2, team_a=team3, 
+                                match_date=match_date2, 
+                                load_source=self.load_source_2)
+        match4_pk = match4.pk
 
         #test 1
         team3.merge_to(team1)
@@ -856,6 +918,8 @@ class TeamModelTest(TestCase):
             team3 = Team.objects.get(pk=team3_pk)
         with self.assertRaises(Match.DoesNotExist):
             match2 = Match.objects.get(pk=match2_pk)
+        with self.assertRaises(Match.DoesNotExist):
+            match4 = Match.objects.get(pk=match4_pk)
 
         #test 2
         team2.merge_to(team4)
@@ -1013,8 +1077,10 @@ class MatchModelTest(TestCase):
                                 status=Match.FINISHED,
                                 load_source=self.load_source_1,
                                 )
+        match21.score='2:1'
+        match21.save()
         match21_pk = match21.pk
-        stat = match21.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+        stat = match21.add_stat(stat_type=MatchStats.YCARD, competitor=Match.COMPETITOR_HOME, 
                                period=0, value=2, load_source=self.load_source_2)
         odd = Odd.objects.create(match = match21,
                                    bet_type = BetType.objects.get(slug=BetType.WDL),
@@ -1036,13 +1102,17 @@ class MatchModelTest(TestCase):
                                 status=Match.CANCELLED,
                                 load_source=self.load_source_2,
                                 )
+        match22.score='2:2'
+        match22.save()
         match22_pk = match22.pk
         match21.change_league(league_new)
         with self.assertRaises(Match.DoesNotExist):
             #match21 doesn't exist: it merges to match22
             match21 = Match.objects.get(pk=match21_pk)
         match22 = Match.objects.get(pk=match22_pk)
+        self.assertEquals(match22.load_source, self.load_source_1)
         self.assertEquals(match22.status, Match.FINISHED)
+        self.assertEquals(match22.score, '2:1')
         stat.refresh_from_db()
         self.assertEquals(stat.match, match22)
         odd.refresh_from_db()
