@@ -210,8 +210,7 @@ class MatchTeamDetail(object):
         elif minute <= 45: ret = 45
         elif minute <= 60: ret = 60
         elif minute <= 75: ret = 75
-        elif minute <= 90: ret = 90
-        else: ret = 120
+        else: ret = 90
         return ret
 
     def set_detail(self, goals=None, xG=None, y_cards=None, r_cards=None, penalties=None):

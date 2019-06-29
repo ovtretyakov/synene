@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<base href="https://understat.com/">
+		<title>Manchester United 2 - 1 Leicester (August 10 2018) | EPL | 2018/2019 | xG | Understat.com</title>
+        <meta charset="UTF-8" />
+		<meta name="description" content="Manchester United 2 - 1 Leicester. Check out detailed player statistic, goals, assists, key passes, xG, shot map, xGplot.">
+		<meta name="Keywords" content="Manchester United, Leicester, EPL, 2018/2019, (August 10 2018), xG, expected goals, shot map"> 
+			<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+	<link rel="manifest" href="manifest.json">
+	<link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
+	<meta name="apple-mobile-web-app-title" content="understat">
+	<meta name="application-name" content="understat">
+	<meta name="theme-color" content="#ffffff">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">
+	<link href="css/main.css?v=2.8" rel="stylesheet" media="screen">
+    </head>
+    <body class="theme-dark">
+		<script>
+			var THEME = localStorage.getItem("theme") || 'DARK';
+			document.body.className = "theme-" + THEME.toLowerCase();
+		</script>
+        	<div class="wrapper">
+		<header id="header" class="clearfix">
+			<div class="header-wrapper">
+					<span class="block-match-result">
+		<a href="https://understat.com/team/Manchester_United/2018">Manchester United</a> 2 - 1<a href="https://understat.com/team/Leicester/2018">Leicester</a>
+	</span>
+				<nav class="m-navigation-main">
+					<ul class="h-inner">
+						<li class="player-search">
+							<input class="typeahead" type="search" placeholder="Find player by name" />
+							<span class="icon"><i class="fa fa-search"></i></span>
+						</li>
+						<li>
+							<a class="link-icon" href="" title="Main page">
+								<i class="fas fa-home" aria-hidden="true"></i>
+							</a>
+						</li>
+						<li>
+							<a class="link-icon" href="office" title="Personal cabinet">
+								<i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+							</a>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+		
+		<div class="preloader">
+			<div class="preloader-container">
+				<div class="circ1"><div></div></div>
+				<div class="circ2"><div></div></div>
+				<div class="circ3"><div></div></div>
+				<div class="circ4"><div></div></div>
+			</div>
+		</div>
+		
+		<div id="table-preloader" class="preloader table-preloader is-hide">
+			<div class="preloader-container">
+				<div class="circ1"><div></div></div>
+				<div class="circ2"><div></div></div>
+				<div class="circ3"><div></div></div>
+				<div class="circ4"><div></div></div>
+			</div>
+		</div>
+		
+		<input id="themes-switch" type="checkbox" name="themes-switch" checked>
+		<label for="themes-switch" title="Change theme"></label>
+		
+		<div class="page-wrapper">
+										<div class="promotion">
+				<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7470116180195095" data-ad-slot="2199699885" data-ad-format="auto" data-full-width-responsive="true"></ins>
+			</div>
+										<ul class="breadcrumb">
+	<li><a href="https://understat.com/">Home</a></li>
+	<li><a href="league/EPL/2018">EPL</a></li>
+	<li>Aug 10 2018</li>
+</ul>
+			<div class="block">
+	<div class="block-content">
+		<div class="block-match">
+			<div class="filters">
+	<div class="filter">
+		<input id="scheme1" type="radio" name="scheme" value="field" checked />
+		<label for="scheme1">Field</label>
+		<input id="scheme2" type="radio" name="scheme" value="chart" />
+		<label for="scheme2">Timing chart</label>
+		<input id="scheme3" type="radio" name="scheme" value="stats" />
+		<label for="scheme3">Stats</label>
+	</div>
+</div>
+
+<div class="scheme-block" data-scheme="field">
+	<canvas id="field"></canvas>
+	<div id="note" style="display:none;"></div>
+</div>
+
+<div class="scheme-block is-hide" data-scheme="chart">
+	<div class="chart-container">
+		<canvas id="chart"></canvas>
+	</div>
+	<div class="chartjs-tooltip is-hide team-home"></div>
+	<div class="chartjs-tooltip is-hide team-away"></div>
+</div>
+
+<div class="scheme-block is-hide" data-scheme="stats">
+		<div class="progress-bar teams-titles">
+		<div class="progress-title">TEAMS</div>
+		<div class="progress-home progress-over" style="width: 50%">
+			<div class="progress-value">Manchester United</div>
+		</div>
+		<div class="progress-away" style="width: 50%; left: 50%">
+			<div class="progress-value">Leicester</div>
+		</div>
+	</div>
+	
+	<div class="progress-bar">
+		<div class="progress-title">CHANCES</div>
+		<div class="progress-home" style="width: 28%" title="28%">
+			<div class="progress-value">28<small>%</small></div>
+		</div>
+		<div class="progress-draw" style="width: 33%; left: 28%" title="33%">
+			<div class="progress-value">33<small>%</small></div>
+		</div>
+		<div class="progress-away" style="width: 39%" title="39%">
+			<div class="progress-value">39<small>%</small></div>
+		</div>
+	</div>
+	
+	<div class="progress-bar">
+		<div class="progress-title">GOALS</div>
+		<div class="progress-home progress-over" style="width: 66.666666666667%" title="67%">
+			<div class="progress-value">2</div>
+		</div>
+		<div class="progress-away" style="width: 33.333333333333%; left: 66.666666666667%" title="33%">
+			<div class="progress-value">1</div>
+		</div>
+	</div>
+	
+	<div class="progress-bar">
+		<div class="progress-title">xG</div>
+		<div class="progress-home" style="width: 46.549173849801%" title="47%">
+			<div class="progress-value">1<span class="progress-value-decimal">.51</span></div>
+		</div>
+		<div class="progress-away progress-over" style="width: 53.450826150199%; left: 46.549173849801%" title="53%">
+			<div class="progress-value">1<span class="progress-value-decimal">.74</span></div>
+		</div>
+	</div>
+		
+	<div class="progress-bar">
+		<div class="progress-title">SHOTS</div>
+		<div class="progress-home" style="width: 38.095238095238%"  title="38%">
+			<div class="progress-value">8</div>
+		</div>
+		<div class="progress-away progress-over" style="width: 61.904761904762%; left: 38.095238095238%" title="62%">
+			<div class="progress-value">13</div>
+		</div>
+	</div>
+		
+	<div class="progress-bar">
+		<div class="progress-title">SHOTS ON TARGET</div>
+		<div class="progress-home progress-over" style="width: 60%" title="60%">
+			<div class="progress-value">6</div>
+		</div>
+		<div class="progress-away" style="width: 40%; left: 60%" title="40%">
+			<div class="progress-value">4</div>
+		</div>
+	</div>
+	
+	<div class="progress-bar">
+		<div class="progress-title" title="Passes completed within an estimated 20 yards of goal (crosses excluded)">DEEP</div>
+		<div class="progress-home" style="width: 23.076923076923%" title="23%">
+			<div class="progress-value">3</div>
+		</div>
+		<div class="progress-away progress-over" style="width: 76.923076923077%; left: 23.076923076923%" title="77%">
+			<div class="progress-value">10</div>
+		</div>
+	</div>
+		
+	<div class="progress-bar">
+		<div class="progress-title" title="Passes allowed per defensive action in the opposition half">PPDA</div>
+		<div class="progress-home" style="width: 41.991514867301%" title="42%">
+			<div class="progress-value">15<span class="progress-value-decimal">.83</span></div>
+		</div>
+		<div class="progress-away progress-over" style="width: 58.008485132699%; left: 41.991514867301%" title="58%">
+			<div class="progress-value">11<span class="progress-value-decimal">.46</span></div>
+		</div>
+	</div>
+	
+	<div class="progress-bar">
+		<div class="progress-title" title="Expected points">xPTS</div>
+		<div class="progress-home" style="width: 43.820392890552%" title="44%">
+			<div class="progress-value">1<span class="progress-value-decimal">.17</span></div>
+		</div>
+		<div class="progress-away progress-over" style="width: 56.179607109448%; left: 43.820392890552%" title="56%">
+			<div class="progress-value">1<span class="progress-value-decimal">.50</span></div>
+		</div>
+	</div>
+</div>
+<script>
+	var shotsData 	= JSON.parse('\x7B\x22h\x22\x3A\x5B\x7B\x22id\x22\x3A\x22232811\x22,\x22minute\x22\x3A\x221\x22,\x22result\x22\x3A\x22BlockedShot\x22,\x22X\x22\x3A\x220.8630000305175781\x22,\x22Y\x22\x3A\x220.710999984741211\x22,\x22xG\x22\x3A\x220.03996211290359497\x22,\x22player\x22\x3A\x22Alexis\x20S\x5Cu00e1nchez\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x22498\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Luke\x20Shaw\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232812\x22,\x22minute\x22\x3A\x222\x22,\x22result\x22\x3A\x22Goal\x22,\x22X\x22\x3A\x220.885\x22,\x22Y\x22\x3A\x220.5\x22,\x22xG\x22\x3A\x220.7611688375473022\x22,\x22player\x22\x3A\x22Paul\x20Pogba\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x221740\x22,\x22situation\x22\x3A\x22Penalty\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3Anull,\x22lastAction\x22\x3A\x22Standard\x22\x7D,\x7B\x22id\x22\x3A\x22232818\x22,\x22minute\x22\x3A\x2239\x22,\x22result\x22\x3A\x22SavedShot\x22,\x22X\x22\x3A\x220.7240000152587891\x22,\x22Y\x22\x3A\x220.655\x22,\x22xG\x22\x3A\x220.018395768478512764\x22,\x22player\x22\x3A\x22Paul\x20Pogba\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x221740\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Alexis\x20S\x5Cu00e1nchez\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232819\x22,\x22minute\x22\x3A\x2240\x22,\x22result\x22\x3A\x22SavedShot\x22,\x22X\x22\x3A\x220.88\x22,\x22Y\x22\x3A\x220.6530000305175782\x22,\x22xG\x22\x3A\x220.08121494203805923\x22,\x22player\x22\x3A\x22Luke\x20Shaw\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x221006\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Juan\x20Mata\x22,\x22lastAction\x22\x3A\x22Chipped\x22\x7D,\x7B\x22id\x22\x3A\x22232821\x22,\x22minute\x22\x3A\x2255\x22,\x22result\x22\x3A\x22SavedShot\x22,\x22X\x22\x3A\x220.7809999847412109\x22,\x22Y\x22\x3A\x220.33\x22,\x22xG\x22\x3A\x220.028308825567364693\x22,\x22player\x22\x3A\x22Matteo\x20Darmian\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x22557\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Alexis\x20S\x5Cu00e1nchez\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232822\x22,\x22minute\x22\x3A\x2264\x22,\x22result\x22\x3A\x22MissedShots\x22,\x22X\x22\x3A\x220.8130000305175781\x22,\x22Y\x22\x3A\x220.4759999847412109\x22,\x22xG\x22\x3A\x220.07612571865320206\x22,\x22player\x22\x3A\x22Juan\x20Mata\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x22554\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22LeftFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Alexis\x20S\x5Cu00e1nchez\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232825\x22,\x22minute\x22\x3A\x2277\x22,\x22result\x22\x3A\x22SavedShot\x22,\x22X\x22\x3A\x220.8880000305175781\x22,\x22Y\x22\x3A\x220.45\x22,\x22xG\x22\x3A\x220.42012929916381836\x22,\x22player\x22\x3A\x22Romelu\x20Lukaku\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x22594\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22LeftFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Alexis\x20S\x5Cu00e1nchez\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232826\x22,\x22minute\x22\x3A\x2282\x22,\x22result\x22\x3A\x22Goal\x22,\x22X\x22\x3A\x220.95\x22,\x22Y\x22\x3A\x220.6469999694824219\x22,\x22xG\x22\x3A\x220.08839321881532669\x22,\x22player\x22\x3A\x22Luke\x20Shaw\x22,\x22h_a\x22\x3A\x22h\x22,\x22player_id\x22\x3A\x221006\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22LeftFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Juan\x20Mata\x22,\x22lastAction\x22\x3A\x22Chipped\x22\x7D\x5D,\x22a\x22\x3A\x5B\x7B\x22id\x22\x3A\x22232813\x22,\x22minute\x22\x3A\x2214\x22,\x22result\x22\x3A\x22SavedShot\x22,\x22X\x22\x3A\x220.755\x22,\x22Y\x22\x3A\x220.5320000076293945\x22,\x22xG\x22\x3A\x220.022416438907384872\x22,\x22player\x22\x3A\x22Wilfred\x20Ndidi\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x225545\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3Anull,\x22lastAction\x22\x3A\x22None\x22\x7D,\x7B\x22id\x22\x3A\x22232814\x22,\x22minute\x22\x3A\x2224\x22,\x22result\x22\x3A\x22BlockedShot\x22,\x22X\x22\x3A\x220.7809999847412109\x22,\x22Y\x22\x3A\x220.3529999923706055\x22,\x22xG\x22\x3A\x220.02415047399699688\x22,\x22player\x22\x3A\x22Wilfred\x20Ndidi\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x225545\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22James\x20Maddison\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232815\x22,\x22minute\x22\x3A\x2228\x22,\x22result\x22\x3A\x22SavedShot\x22,\x22X\x22\x3A\x220.8880000305175781\x22,\x22Y\x22\x3A\x220.4\x22,\x22xG\x22\x3A\x220.08854089677333832\x22,\x22player\x22\x3A\x22James\x20Maddison\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x226818\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Ricardo\x20Pereira\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232816\x22,\x22minute\x22\x3A\x2228\x22,\x22result\x22\x3A\x22BlockedShot\x22,\x22X\x22\x3A\x220.715\x22,\x22Y\x22\x3A\x220.4909999847412109\x22,\x22xG\x22\x3A\x220.01378240343183279\x22,\x22player\x22\x3A\x22Ricardo\x20Pereira\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x223303\x22,\x22situation\x22\x3A\x22FromCorner\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3Anull,\x22lastAction\x22\x3A\x22None\x22\x7D,\x7B\x22id\x22\x3A\x22232817\x22,\x22minute\x22\x3A\x2231\x22,\x22result\x22\x3A\x22BlockedShot\x22,\x22X\x22\x3A\x220.7290000152587891\x22,\x22Y\x22\x3A\x220.5029999923706054\x22,\x22xG\x22\x3A\x220.05116378888487816\x22,\x22player\x22\x3A\x22James\x20Maddison\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x226818\x22,\x22situation\x22\x3A\x22DirectFreekick\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3Anull,\x22lastAction\x22\x3A\x22Standard\x22\x7D,\x7B\x22id\x22\x3A\x22232820\x22,\x22minute\x22\x3A\x2249\x22,\x22result\x22\x3A\x22BlockedShot\x22,\x22X\x22\x3A\x220.785\x22,\x22Y\x22\x3A\x220.3220000076293945\x22,\x22xG\x22\x3A\x220.024298327043652534\x22,\x22player\x22\x3A\x22Kelechi\x20Iheanacho\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22620\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22LeftFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Daniel\x20Amartey\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232823\x22,\x22minute\x22\x3A\x2274\x22,\x22result\x22\x3A\x22SavedShot\x22,\x22X\x22\x3A\x220.9269999694824219\x22,\x22Y\x22\x3A\x220.4620000076293945\x22,\x22xG\x22\x3A\x220.11196519434452057\x22,\x22player\x22\x3A\x22Demarai\x20Gray\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22762\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Jamie\x20Vardy\x22,\x22lastAction\x22\x3A\x22Cross\x22\x7D,\x7B\x22id\x22\x3A\x22232824\x22,\x22minute\x22\x3A\x2276\x22,\x22result\x22\x3A\x22MissedShots\x22,\x22X\x22\x3A\x220.7240000152587891\x22,\x22Y\x22\x3A\x220.6120000076293945\x22,\x22xG\x22\x3A\x220.013329952023923397\x22,\x22player\x22\x3A\x22Demarai\x20Gray\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22762\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3Anull,\x22lastAction\x22\x3A\x22None\x22\x7D,\x7B\x22id\x22\x3A\x22232827\x22,\x22minute\x22\x3A\x2288\x22,\x22result\x22\x3A\x22BlockedShot\x22,\x22X\x22\x3A\x220.8080000305175781\x22,\x22Y\x22\x3A\x220.47900001525878905\x22,\x22xG\x22\x3A\x220.057485245168209076\x22,\x22player\x22\x3A\x22Kelechi\x20Iheanacho\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22620\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22LeftFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Wilfred\x20Ndidi\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232828\x22,\x22minute\x22\x3A\x2289\x22,\x22result\x22\x3A\x22BlockedShot\x22,\x22X\x22\x3A\x220.7609999847412109\x22,\x22Y\x22\x3A\x220.5790000152587891\x22,\x22xG\x22\x3A\x220.019286030903458595\x22,\x22player\x22\x3A\x22Demarai\x20Gray\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22762\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Ben\x20Chilwell\x22,\x22lastAction\x22\x3A\x22Pass\x22\x7D,\x7B\x22id\x22\x3A\x22232829\x22,\x22minute\x22\x3A\x2290\x22,\x22result\x22\x3A\x22MissedShots\x22,\x22X\x22\x3A\x220.8959999847412109\x22,\x22Y\x22\x3A\x220.5270000076293946\x22,\x22xG\x22\x3A\x220.28438204526901245\x22,\x22player\x22\x3A\x22Jamie\x20Vardy\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22755\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22RightFoot\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Ricardo\x20Pereira\x22,\x22lastAction\x22\x3A\x22Chipped\x22\x7D,\x7B\x22id\x22\x3A\x22232830\x22,\x22minute\x22\x3A\x2291\x22,\x22result\x22\x3A\x22Goal\x22,\x22X\x22\x3A\x220.99\x22,\x22Y\x22\x3A\x220.53\x22,\x22xG\x22\x3A\x220.9466182589530945\x22,\x22player\x22\x3A\x22Jamie\x20Vardy\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22755\x22,\x22situation\x22\x3A\x22OpenPlay\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22Head\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3Anull,\x22lastAction\x22\x3A\x22None\x22\x7D,\x7B\x22id\x22\x3A\x22232831\x22,\x22minute\x22\x3A\x2294\x22,\x22result\x22\x3A\x22MissedShots\x22,\x22X\x22\x3A\x220.9159999847412109\x22,\x22Y\x22\x3A\x220.5420000076293945\x22,\x22xG\x22\x3A\x220.08071506768465042\x22,\x22player\x22\x3A\x22Kasper\x20Schmeichel\x22,\x22h_a\x22\x3A\x22a\x22,\x22player_id\x22\x3A\x22745\x22,\x22situation\x22\x3A\x22FromCorner\x22,\x22season\x22\x3A\x222018\x22,\x22shotType\x22\x3A\x22Head\x22,\x22match_id\x22\x3A\x229197\x22,\x22h_team\x22\x3A\x22Manchester\x20United\x22,\x22a_team\x22\x3A\x22Leicester\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22player_assisted\x22\x3A\x22Ben\x20Chilwell\x22,\x22lastAction\x22\x3A\x22Cross\x22\x7D\x5D\x7D'),
+		match_info 	= JSON.parse('\x7B\x22id\x22\x3A\x229197\x22,\x22fid\x22\x3A\x221284746\x22,\x22h\x22\x3A\x2289\x22,\x22a\x22\x3A\x2275\x22,\x22date\x22\x3A\x222018\x2D08\x2D10\x2022\x3A00\x3A00\x22,\x22league_id\x22\x3A\x221\x22,\x22season\x22\x3A\x222018\x22,\x22h_goals\x22\x3A\x222\x22,\x22a_goals\x22\x3A\x221\x22,\x22team_h\x22\x3A\x22Manchester\x20United\x22,\x22team_a\x22\x3A\x22Leicester\x22,\x22h_xg\x22\x3A\x221.5137\x22,\x22a_xg\x22\x3A\x221.73813\x22,\x22h_w\x22\x3A\x220.2812\x22,\x22h_d\x22\x3A\x220.3275\x22,\x22h_l\x22\x3A\x220.3913\x22,\x22league\x22\x3A\x22EPL\x22,\x22h_shot\x22\x3A\x228\x22,\x22a_shot\x22\x3A\x2213\x22,\x22h_shotOnTarget\x22\x3A\x226\x22,\x22a_shotOnTarget\x22\x3A\x224\x22,\x22h_deep\x22\x3A\x223\x22,\x22a_deep\x22\x3A\x2210\x22,\x22a_ppda\x22\x3A\x2211.4615\x22,\x22h_ppda\x22\x3A\x2215.8333\x22\x7D');
+</script>		</div>
+	</div>
+	<div class="roster roster-home">
+	<h3><a href="https://understat.com/team/Manchester_United/2018">Manchester United</a></h3>
+	<div class="players">
+										<label class="player" data-id="546" for="player_546">
+								<span class="player-check"></span>
+								<span class="player-position">GK</span>
+				<div class="player-name-container">
+	<span class="player-name">David de Gea</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="557" for="player_557">
+								<span class="player-check" title="1 Shot">
+					<input id="player_557" type="checkbox" name="playersChecked[]" value="557" />
+					<label for="player_557"></label>
+				</span>
+								<span class="player-position">DR</span>
+				<div class="player-name-container">
+	<span class="player-name">Matteo Darmian</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="6080" for="player_6080">
+								<span class="player-check"></span>
+								<span class="player-position">DC</span>
+				<div class="player-name-container">
+	<span class="player-name">Victor Lindelöf</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="1739" for="player_1739">
+								<span class="player-check"></span>
+								<span class="player-position">DC</span>
+				<div class="player-name-container">
+	<span class="player-name">Eric Bailly</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="1006" for="player_1006">
+								<span class="player-check" title="2 Shots">
+					<input id="player_1006" type="checkbox" name="playersChecked[]" value="1006" />
+					<label for="player_1006"></label>
+				</span>
+								<span class="player-position">DL</span>
+				<div class="player-name-container">
+	<span class="player-name">Luke Shaw</span>
+</div>
+<span class="player-goals">
+											<span class="goal" title="Goal"></span>
+																	</span>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="1740" for="player_1740">
+								<span class="player-check" title="2 Shots">
+					<input id="player_1740" type="checkbox" name="playersChecked[]" value="1740" />
+					<label for="player_1740"></label>
+				</span>
+								<span class="player-position">MC</span>
+				<div class="player-name-container">
+	<span class="player-name">Paul Pogba</span>
+</div>
+<span class="player-goals">
+											<span class="goal" title="Goal"></span>
+																	</span>
+<span class="player-time">
+	85'
+</span>			</label>
+									<label class="player" data-id="630" for="player_630">
+								<span class="player-check"></span>
+								<span class="player-position">Sub</span>
+				<i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="substitution"></i>
+				<div class="player-name-container">
+	<span class="player-name">Marouane Fellaini</span>
+</div>
+<span class="player-time">
+	5'
+</span>			</label>
+														<label class="player" data-id="6817" for="player_6817">
+								<span class="player-check"></span>
+								<span class="player-position">MC</span>
+				<div class="player-name-container">
+	<span class="player-name">Fred</span>
+</div>
+<span class="player-cards">
+		<i class="fas fa-square yellow-card" aria-hidden="true" title="Yellow card"></i>
+		</span>
+<span class="player-time">
+	77'
+</span>			</label>
+									<label class="player" data-id="5560" for="player_5560">
+								<span class="player-check"></span>
+								<span class="player-position">Sub</span>
+				<i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="substitution"></i>
+				<div class="player-name-container">
+	<span class="player-name">Scott McTominay</span>
+</div>
+<span class="player-time">
+	13'
+</span>			</label>
+														<label class="player" data-id="922" for="player_922">
+								<span class="player-check"></span>
+								<span class="player-position">MC</span>
+				<div class="player-name-container">
+	<span class="player-name">Andreas Pereira</span>
+</div>
+<span class="player-cards">
+		<i class="fas fa-square yellow-card" aria-hidden="true" title="Yellow card"></i>
+		</span>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="554" for="player_554">
+								<span class="player-check" title="1 Shot">
+					<input id="player_554" type="checkbox" name="playersChecked[]" value="554" />
+					<label for="player_554"></label>
+				</span>
+								<span class="player-position">FWR</span>
+				<div class="player-name-container">
+	<span class="player-name">Juan Mata</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="556" for="player_556">
+								<span class="player-check"></span>
+								<span class="player-position">FW</span>
+				<div class="player-name-container">
+	<span class="player-name">Marcus Rashford</span>
+</div>
+<span class="player-time">
+	68'
+</span>			</label>
+									<label class="player" data-id="594" for="player_594">
+								<span class="player-check" title="1 Shot">
+					<input id="player_594" type="checkbox" name="playersChecked[]" value="594" />
+					<label for="player_594"></label>
+				</span>
+								<span class="player-position">Sub</span>
+				<i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="substitution"></i>
+				<div class="player-name-container">
+	<span class="player-name">Romelu Lukaku</span>
+</div>
+<span class="player-time">
+	22'
+</span>			</label>
+														<label class="player" data-id="498" for="player_498">
+								<span class="player-check" title="1 Shot">
+					<input id="player_498" type="checkbox" name="playersChecked[]" value="498" />
+					<label for="player_498"></label>
+				</span>
+								<span class="player-position">FWL</span>
+				<div class="player-name-container">
+	<span class="player-name">Alexis Sánchez</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+																</div>
+</div>	<div class="roster roster-away">
+	<h3><a href="https://understat.com/team/Leicester/2018">Leicester</a></h3>
+	<div class="players">
+										<label class="player" data-id="745" for="player_745">
+								<span class="player-check" title="1 Shot">
+					<input id="player_745" type="checkbox" name="playersChecked[]" value="745" />
+					<label for="player_745"></label>
+				</span>
+								<span class="player-position">GK</span>
+				<div class="player-name-container">
+	<span class="player-name">Kasper Schmeichel</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="759" for="player_759">
+								<span class="player-check"></span>
+								<span class="player-position">DR</span>
+				<div class="player-name-container">
+	<span class="player-name">Daniel Amartey</span>
+</div>
+<span class="player-cards">
+		<i class="fas fa-square yellow-card" aria-hidden="true" title="Yellow card"></i>
+		</span>
+<span class="player-time">
+	64'
+</span>			</label>
+									<label class="player" data-id="3276" for="player_3276">
+								<span class="player-check"></span>
+								<span class="player-position">Sub</span>
+				<i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="substitution"></i>
+				<div class="player-name-container">
+	<span class="player-name">Rachid Ghezzal</span>
+</div>
+<span class="player-time">
+	26'
+</span>			</label>
+														<label class="player" data-id="748" for="player_748">
+								<span class="player-check"></span>
+								<span class="player-position">DC</span>
+				<div class="player-name-container">
+	<span class="player-name">Wes Morgan</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="1687" for="player_1687">
+								<span class="player-check"></span>
+								<span class="player-position">DC</span>
+				<div class="player-name-container">
+	<span class="player-name">Harry Maguire</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="782" for="player_782">
+								<span class="player-check"></span>
+								<span class="player-position">DL</span>
+				<div class="player-name-container">
+	<span class="player-name">Ben Chilwell</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="5545" for="player_5545">
+								<span class="player-check" title="2 Shots">
+					<input id="player_5545" type="checkbox" name="playersChecked[]" value="5545" />
+					<label for="player_5545"></label>
+				</span>
+								<span class="player-position">DMC</span>
+				<div class="player-name-container">
+	<span class="player-name">Wilfred Ndidi</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="6464" for="player_6464">
+								<span class="player-check"></span>
+								<span class="player-position">DMC</span>
+				<div class="player-name-container">
+	<span class="player-name">Adrien Silva</span>
+</div>
+<span class="player-time">
+	81'
+</span>			</label>
+									<label class="player" data-id="2065" for="player_2065">
+								<span class="player-check"></span>
+								<span class="player-position">Sub</span>
+				<i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="substitution"></i>
+				<div class="player-name-container">
+	<span class="player-name">Vicente Iborra</span>
+</div>
+<span class="player-time">
+	9'
+</span>			</label>
+														<label class="player" data-id="3303" for="player_3303">
+								<span class="player-check" title="1 Shot">
+					<input id="player_3303" type="checkbox" name="playersChecked[]" value="3303" />
+					<label for="player_3303"></label>
+				</span>
+								<span class="player-position">AMR</span>
+				<div class="player-name-container">
+	<span class="player-name">Ricardo Pereira</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="6818" for="player_6818">
+								<span class="player-check" title="2 Shots">
+					<input id="player_6818" type="checkbox" name="playersChecked[]" value="6818" />
+					<label for="player_6818"></label>
+				</span>
+								<span class="player-position">AMC</span>
+				<div class="player-name-container">
+	<span class="player-name">James Maddison</span>
+</div>
+<span class="player-time">
+	64'
+</span>			</label>
+									<label class="player" data-id="755" for="player_755">
+								<span class="player-check" title="2 Shots">
+					<input id="player_755" type="checkbox" name="playersChecked[]" value="755" />
+					<label for="player_755"></label>
+				</span>
+								<span class="player-position">Sub</span>
+				<i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="substitution"></i>
+				<div class="player-name-container">
+	<span class="player-name">Jamie Vardy</span>
+</div>
+<span class="player-goals">
+											<span class="goal" title="Goal"></span>
+																	</span>
+<span class="player-time">
+	26'
+</span>			</label>
+														<label class="player" data-id="762" for="player_762">
+								<span class="player-check" title="3 Shots">
+					<input id="player_762" type="checkbox" name="playersChecked[]" value="762" />
+					<label for="player_762"></label>
+				</span>
+								<span class="player-position">AML</span>
+				<div class="player-name-container">
+	<span class="player-name">Demarai Gray</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+														<label class="player" data-id="620" for="player_620">
+								<span class="player-check" title="2 Shots">
+					<input id="player_620" type="checkbox" name="playersChecked[]" value="620" />
+					<label for="player_620"></label>
+				</span>
+								<span class="player-position">FW</span>
+				<div class="player-name-container">
+	<span class="player-name">Kelechi Iheanacho</span>
+</div>
+<span class="player-time">
+	90'
+</span>			</label>
+																</div>
+</div></div>
+<div class="block">
+	<div class="timiline-block">
+				<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+									<div class="timeline-row">
+																			<a class="player-name" href="https://understat.com/player/1740">Paul Pogba</a> <span class="match-score">1 - 0</span> <i class="fas fa-futbol penalty" aria-hidden="true" title="Penalty"></i>
+											</div>
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">2'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">50'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+									<div class="timeline-row">
+												<i class="fas fa-square yellow-card" aria-hidden="true" title="Yellow card"></i> <a class="player-name" href="https://understat.com/player/759">Daniel Amartey</a>
+											</div>
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/6817">Fred</a> <i class="fas fa-square yellow-card" aria-hidden="true" title="Yellow card"></i>
+											</div>
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">53'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">64'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/759">Daniel Amartey</a> <i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="Substitution"></i> <a class="player-name" href="https://understat.com/player/3276">Rachid Ghezzal</a>
+											</div>
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/6818">James Maddison</a> <i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="Substitution"></i> <a class="player-name" href="https://understat.com/player/755">Jamie Vardy</a>
+											</div>
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/922">Andreas Pereira</a> <i class="fas fa-square yellow-card" aria-hidden="true" title="Yellow card"></i>
+											</div>
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/556">Marcus Rashford</a> <i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="Substitution"></i> <a class="player-name" href="https://understat.com/player/594">Romelu Lukaku</a>
+											</div>
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">68'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/6817">Fred</a> <i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="Substitution"></i> <a class="player-name" href="https://understat.com/player/5560">Scott McTominay</a>
+											</div>
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">77'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">81'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/6464">Adrien Silva</a> <i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="Substitution"></i> <a class="player-name" href="https://understat.com/player/2065">Vicente Iborra</a>
+											</div>
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+									<div class="timeline-row">
+																			<a class="player-name" href="https://understat.com/player/1006">Luke Shaw</a> <span class="match-score">2 - 0</span> <i class="fas fa-futbol" aria-hidden="true" title="Goal"></i>
+											</div>
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">82'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+									<div class="timeline-row">
+												<a class="player-name" href="https://understat.com/player/1740">Paul Pogba</a> <i class="fas fa-exchange-alt player-substitution" aria-hidden="true" title="Substitution"></i> <a class="player-name" href="https://understat.com/player/630">Marouane Fellaini</a>
+											</div>
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">85'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+							</div>
+		</div>
+	</div>
+		<div class="timiline-container">
+		<div class="timeline-left">
+			<div class="timeline-block block-home">
+							</div>
+		</div>
+		<div class="timeline-minute">
+			<span class="minute-value">91'</span>
+		</div>
+		<div class="timeline-right">
+			<div class="timeline-block block-away">
+									<div class="timeline-row">
+																			<i class="fas fa-futbol" aria-hidden="true" title="Goal"></i> <span class="match-score">2 - 1</span> <a class="player-name" href="https://understat.com/player/755">Jamie Vardy</a>
+											</div>
+							</div>
+		</div>
+	</div>
+	</div></div>
+<div class="block">
+	<div class="block-content">
+		<div class="filters">
+	<div class="filter">
+		<input id="team-home" type="radio" name="team" value="h" checked />
+		<label for="team-home">Manchester United</label>
+		<input id="team-away" type="radio" name="team" value="a" />
+		<label for="team-away">Leicester</label>
+	</div>
+</div>
+<div id="match-rosters" class="rosters margin-top"></div>
+
+<script>
+	var rostersData	= JSON.parse('\x7B\x22h\x22\x3A\x7B\x22258793\x22\x3A\x7B\x22id\x22\x3A\x22258793\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22546\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22GK\x22,\x22player\x22\x3A\x22David\x20de\x20Gea\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220\x22,\x22xGBuildup\x22\x3A\x220\x22,\x22positionOrder\x22\x3A\x221\x22\x7D,\x22258794\x22\x3A\x7B\x22id\x22\x3A\x22258794\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x221\x22,\x22xG\x22\x3A\x220.028308825567364693\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22557\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22DR\x22,\x22player\x22\x3A\x22Matteo\x20Darmian\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.10952376574277878\x22,\x22xGBuildup\x22\x3A\x220.08121494203805923\x22,\x22positionOrder\x22\x3A\x222\x22\x7D,\x22258795\x22\x3A\x7B\x22id\x22\x3A\x22258795\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x226080\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22DC\x22,\x22player\x22\x3A\x22Victor\x20Lindel\x5Cu00f6f\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.03996211290359497\x22,\x22xGBuildup\x22\x3A\x220.03996211290359497\x22,\x22positionOrder\x22\x3A\x223\x22\x7D,\x22258796\x22\x3A\x7B\x22id\x22\x3A\x22258796\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x221739\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22DC\x22,\x22player\x22\x3A\x22Eric\x20Bailly\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.07612571865320206\x22,\x22xGBuildup\x22\x3A\x220.07612571865320206\x22,\x22positionOrder\x22\x3A\x223\x22\x7D,\x22258797\x22\x3A\x7B\x22id\x22\x3A\x22258797\x22,\x22goals\x22\x3A\x221\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x222\x22,\x22xG\x22\x3A\x220.16960816085338593\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x221006\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22DL\x22,\x22player\x22\x3A\x22Luke\x20Shaw\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x221\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.03996211290359497\x22,\x22xGChain\x22\x3A\x220.2095702737569809\x22,\x22xGBuildup\x22\x3A\x220.03996211290359497\x22,\x22positionOrder\x22\x3A\x224\x22\x7D,\x22258800\x22\x3A\x7B\x22id\x22\x3A\x22258800\x22,\x22goals\x22\x3A\x221\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x222\x22,\x22xG\x22\x3A\x220.779564619064331\x22,\x22time\x22\x3A\x2285\x22,\x22player_id\x22\x3A\x221740\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22MC\x22,\x22player\x22\x3A\x22Paul\x20Pogba\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x22258804\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.3324005901813507\x22,\x22xGBuildup\x22\x3A\x220.3140048086643219\x22,\x22positionOrder\x22\x3A\x229\x22\x7D,\x22258798\x22\x3A\x7B\x22id\x22\x3A\x22258798\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2277\x22,\x22player_id\x22\x3A\x226817\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22MC\x22,\x22player\x22\x3A\x22Fred\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x221\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x22258806\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.1211770549416542\x22,\x22xGBuildup\x22\x3A\x220.1211770549416542\x22,\x22positionOrder\x22\x3A\x229\x22\x7D,\x22258799\x22\x3A\x7B\x22id\x22\x3A\x22258799\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22922\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22MC\x22,\x22player\x22\x3A\x22Andreas\x20Pereira\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x221\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.13448359072208405\x22,\x22xGBuildup\x22\x3A\x220.13448359072208405\x22,\x22positionOrder\x22\x3A\x229\x22\x7D,\x22258801\x22\x3A\x7B\x22id\x22\x3A\x22258801\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x221\x22,\x22xG\x22\x3A\x220.07612571865320206\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22554\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22FWR\x22,\x22player\x22\x3A\x22Juan\x20Mata\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x222\x22,\x22assists\x22\x3A\x221\x22,\x22xA\x22\x3A\x220.16960816085338593\x22,\x22xGChain\x22\x3A\x220.27404269576072693\x22,\x22xGBuildup\x22\x3A\x220.19791698455810547\x22,\x22positionOrder\x22\x3A\x2214\x22\x7D,\x22258802\x22\x3A\x7B\x22id\x22\x3A\x22258802\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2268\x22,\x22player_id\x22\x3A\x22556\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22FW\x22,\x22player\x22\x3A\x22Marcus\x20Rashford\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x22258805\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.1573406606912613\x22,\x22xGBuildup\x22\x3A\x220.1573406606912613\x22,\x22positionOrder\x22\x3A\x2215\x22\x7D,\x22258803\x22\x3A\x7B\x22id\x22\x3A\x22258803\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x221\x22,\x22xG\x22\x3A\x220.03996211290359497\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22498\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22FWL\x22,\x22player\x22\x3A\x22Alexis\x20S\x5Cu00e1nchez\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x224\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.5429596304893494\x22,\x22xGChain\x22\x3A\x220.6713149547576904\x22,\x22xGBuildup\x22\x3A\x220.11670204252004623\x22,\x22positionOrder\x22\x3A\x2216\x22\x7D,\x22258806\x22\x3A\x7B\x22id\x22\x3A\x22258806\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2213\x22,\x22player_id\x22\x3A\x225560\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22Sub\x22,\x22player\x22\x3A\x22Scott\x20McTominay\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x22258798\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.08839321881532669\x22,\x22xGBuildup\x22\x3A\x220.08839321881532669\x22,\x22positionOrder\x22\x3A\x2217\x22\x7D,\x22258804\x22\x3A\x7B\x22id\x22\x3A\x22258804\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x225\x22,\x22player_id\x22\x3A\x22630\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22Sub\x22,\x22player\x22\x3A\x22Marouane\x20Fellaini\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x22258800\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220\x22,\x22xGBuildup\x22\x3A\x220\x22,\x22positionOrder\x22\x3A\x2217\x22\x7D,\x22258805\x22\x3A\x7B\x22id\x22\x3A\x22258805\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x221\x22,\x22xG\x22\x3A\x220.42012929916381836\x22,\x22time\x22\x3A\x2222\x22,\x22player_id\x22\x3A\x22594\x22,\x22team_id\x22\x3A\x2289\x22,\x22position\x22\x3A\x22Sub\x22,\x22player\x22\x3A\x22Romelu\x20Lukaku\x22,\x22h_a\x22\x3A\x22h\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x22258802\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.42012929916381836\x22,\x22xGBuildup\x22\x3A\x220\x22,\x22positionOrder\x22\x3A\x2217\x22\x7D\x7D,\x22a\x22\x3A\x7B\x22258807\x22\x3A\x7B\x22id\x22\x3A\x22258807\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x221\x22,\x22xG\x22\x3A\x220.08071506768465042\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22745\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22GK\x22,\x22player\x22\x3A\x22Kasper\x20Schmeichel\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.10593404620885849\x22,\x22xGBuildup\x22\x3A\x220.10593404620885849\x22,\x22positionOrder\x22\x3A\x221\x22\x7D,\x22258808\x22\x3A\x7B\x22id\x22\x3A\x22258808\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2264\x22,\x22player_id\x22\x3A\x22759\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22DR\x22,\x22player\x22\x3A\x22Daniel\x20Amartey\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x221\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x22258818\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x221\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.024298327043652534\x22,\x22xGChain\x22\x3A\x220.048448801040649414\x22,\x22xGBuildup\x22\x3A\x220.048448801040649414\x22,\x22positionOrder\x22\x3A\x222\x22\x7D,\x22258809\x22\x3A\x7B\x22id\x22\x3A\x22258809\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22748\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22DC\x22,\x22player\x22\x3A\x22Wes\x20Morgan\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.024298327043652534\x22,\x22xGBuildup\x22\x3A\x220.024298327043652534\x22,\x22positionOrder\x22\x3A\x223\x22\x7D,\x22258810\x22\x3A\x7B\x22id\x22\x3A\x22258810\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x221687\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22DC\x22,\x22player\x22\x3A\x22Harry\x20Maguire\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.024298327043652534\x22,\x22xGBuildup\x22\x3A\x220.024298327043652534\x22,\x22positionOrder\x22\x3A\x223\x22\x7D,\x22258811\x22\x3A\x7B\x22id\x22\x3A\x22258811\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22782\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22DL\x22,\x22player\x22\x3A\x22Ben\x20Chilwell\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x223\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.10000110417604446\x22,\x22xGChain\x22\x3A\x220.057485245168209076\x22,\x22xGBuildup\x22\x3A\x220.057485245168209076\x22,\x22positionOrder\x22\x3A\x224\x22\x7D,\x22258812\x22\x3A\x7B\x22id\x22\x3A\x22258812\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x222\x22,\x22xG\x22\x3A\x220.0465669147670269\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x225545\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22DMC\x22,\x22player\x22\x3A\x22Wilfred\x20Ndidi\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x221\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.057485245168209076\x22,\x22xGChain\x22\x3A\x220.10405215620994568\x22,\x22xGBuildup\x22\x3A\x220.057485245168209076\x22,\x22positionOrder\x22\x3A\x227\x22\x7D,\x22258813\x22\x3A\x7B\x22id\x22\x3A\x22258813\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2281\x22,\x22player_id\x22\x3A\x226464\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22DMC\x22,\x22player\x22\x3A\x22Adrien\x20Silva\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x22258819\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.061778753995895386\x22,\x22xGBuildup\x22\x3A\x220.061778753995895386\x22,\x22positionOrder\x22\x3A\x227\x22\x7D,\x22258814\x22\x3A\x7B\x22id\x22\x3A\x22258814\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x221\x22,\x22xG\x22\x3A\x220.01378240343183279\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x223303\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22AMR\x22,\x22player\x22\x3A\x22Ricardo\x20Pereira\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x222\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.3729229271411896\x22,\x22xGChain\x22\x3A\x221.2794491052627563\x22,\x22xGBuildup\x22\x3A\x220.9950670599937439\x22,\x22positionOrder\x22\x3A\x2211\x22\x7D,\x22258815\x22\x3A\x7B\x22id\x22\x3A\x22258815\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x222\x22,\x22xG\x22\x3A\x220.13970468938350677\x22,\x22time\x22\x3A\x2264\x22,\x22player_id\x22\x3A\x226818\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22AMC\x22,\x22player\x22\x3A\x22James\x20Maddison\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x22258820\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x221\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.02415047399699688\x22,\x22xGChain\x22\x3A\x220.11269136518239975\x22,\x22xGBuildup\x22\x3A\x220\x22,\x22positionOrder\x22\x3A\x2212\x22\x7D,\x22258816\x22\x3A\x7B\x22id\x22\x3A\x22258816\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x223\x22,\x22xG\x22\x3A\x220.1445811688899994\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22762\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22AML\x22,\x22player\x22\x3A\x22Demarai\x20Gray\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.22636474668979645\x22,\x22xGBuildup\x22\x3A\x220.08178357034921646\x22,\x22positionOrder\x22\x3A\x2213\x22\x7D,\x22258817\x22\x3A\x7B\x22id\x22\x3A\x22258817\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x222\x22,\x22xG\x22\x3A\x220.08178357034921646\x22,\x22time\x22\x3A\x2290\x22,\x22player_id\x22\x3A\x22620\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22FW\x22,\x22player\x22\x3A\x22Kelechi\x20Iheanacho\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x220\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.3661656081676483\x22,\x22xGBuildup\x22\x3A\x220.28438204526901245\x22,\x22positionOrder\x22\x3A\x2215\x22\x7D,\x22258820\x22\x3A\x7B\x22id\x22\x3A\x22258820\x22,\x22goals\x22\x3A\x221\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x222\x22,\x22xG\x22\x3A\x221.231000304222107\x22,\x22time\x22\x3A\x2226\x22,\x22player_id\x22\x3A\x22755\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22Sub\x22,\x22player\x22\x3A\x22Jamie\x20Vardy\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x22258815\x22,\x22key_passes\x22\x3A\x221\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220.11196519434452057\x22,\x22xGChain\x22\x3A\x221.3429654836654663\x22,\x22xGBuildup\x22\x3A\x220\x22,\x22positionOrder\x22\x3A\x2217\x22\x7D,\x22258818\x22\x3A\x7B\x22id\x22\x3A\x22258818\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x2226\x22,\x22player_id\x22\x3A\x223276\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22Sub\x22,\x22player\x22\x3A\x22Rachid\x20Ghezzal\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x22258808\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.057485245168209076\x22,\x22xGBuildup\x22\x3A\x220.057485245168209076\x22,\x22positionOrder\x22\x3A\x2217\x22\x7D,\x22258819\x22\x3A\x7B\x22id\x22\x3A\x22258819\x22,\x22goals\x22\x3A\x220\x22,\x22own_goals\x22\x3A\x220\x22,\x22shots\x22\x3A\x220\x22,\x22xG\x22\x3A\x220\x22,\x22time\x22\x3A\x229\x22,\x22player_id\x22\x3A\x222065\x22,\x22team_id\x22\x3A\x2275\x22,\x22position\x22\x3A\x22Sub\x22,\x22player\x22\x3A\x22Vicente\x20Iborra\x22,\x22h_a\x22\x3A\x22a\x22,\x22yellow_card\x22\x3A\x220\x22,\x22red_card\x22\x3A\x220\x22,\x22roster_in\x22\x3A\x220\x22,\x22roster_out\x22\x3A\x22258813\x22,\x22key_passes\x22\x3A\x220\x22,\x22assists\x22\x3A\x220\x22,\x22xA\x22\x3A\x220\x22,\x22xGChain\x22\x3A\x220.057485245168209076\x22,\x22xGBuildup\x22\x3A\x220.057485245168209076\x22,\x22positionOrder\x22\x3A\x2217\x22\x7D\x7D\x7D');
+</script>	</div>
+</div>
+		</div>
+		
+		<div class="overlay is-hide"></div>
+		<div class="modal is-hide">
+			<div class="modal-header">
+				<div class="modal-title"></div>
+				<span class="modal-close"></span>
+			</div>
+			<div class="modal-body"></div>
+		</div>
+		
+		<div class="grass-container">
+			<div class="grass"></div>
+			<div class="grass"></div>
+		</div>
+		
+		<footer id="footer">
+			<div class="footer-wrapper">
+				<ul>
+										<li><a href="league/EPL">EPL</a></li>
+										<li><a href="league/La_liga">La liga</a></li>
+										<li><a href="league/Bundesliga">Bundesliga</a></li>
+										<li><a href="league/Serie_A">Serie A</a></li>
+										<li><a href="league/Ligue_1">Ligue 1</a></li>
+										<li><a href="league/RFPL">RFPL</a></li>
+									</ul>
+				<div><a href="mailto:support@understat.com">support@understat.com</a></div>
+				<div>&copy; understat 2017</div>
+			</div>
+		</footer>
+	</div>
+        		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" defer type="text/javascript"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+	<script>
+		WebFont.load({
+			google: {
+				families: ['Barlow:500', 'Anton']
+			},
+			active: function(){
+				flagFontsLoading = true;
+			}
+		});
+		var BASE_URL = 'https://understat.com/',
+			PROMOTION =  JSON.parse('\x7B\x22id\x22\x3A\x227\x22,\x22name\x22\x3A\x22adsense\x22,\x22template\x22\x3A\x22\x3Cins\x20class\x3D\x5C\x22adsbygoogle\x5C\x22\x20style\x3D\x5C\x22display\x3Ablock\x5C\x22\x20data\x2Dad\x2Dclient\x3D\x5C\x22ca\x2Dpub\x2D7470116180195095\x5C\x22\x20data\x2Dad\x2Dslot\x3D\x5C\x222199699885\x5C\x22\x20data\x2Dad\x2Dformat\x3D\x5C\x22auto\x5C\x22\x20data\x2Dfull\x2Dwidth\x2Dresponsive\x3D\x5C\x22true\x5C\x22\x3E\x3C\x5C\x2Fins\x3E\x22,\x22js\x22\x3A\x22\x28adsbygoogle\x20\x3D\x20window.adsbygoogle\x20\x7C\x7C\x20\x5B\x5D\x29.push\x28\x7B\x7D\x29\x3B\x22,\x22countries_list_type\x22\x3A\x22black\x22,\x22clicks\x22\x3A\x22130\x22\x7D') ;
+	</script>
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<script src="//code.jquery.com/jquery-1.12.4.js" defer type="text/javascript"></script>
+	<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js" defer type="text/javascript"></script>
+	<script src="js/jquery.iframetracker.min.js?v=2" defer type="text/javascript"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js" defer type="text/javascript"></script>
+	<script src="js/timsort.js?v=2" defer type="text/javascript"></script>
+	<script src="js/tooltip.js?v=2" defer type="text/javascript"></script>
+	<script src="js/pagination.js?v=2" defer type="text/javascript"></script>
+	<script src="js/select.js?v=2.1" defer type="text/javascript"></script>
+	<script src="js/jquery.mousewheel.js?v=2" defer type="text/javascript"></script>
+	<script src="js/modernizr.js?v=2" defer type="text/javascript"></script>
+	<script src="js/simplebar.js?v=2" defer type="text/javascript"></script>
+	<script src="js/typeahead.bundle.js?v=2" defer type="text/javascript"></script>
+	<script src="js/jTable.js?v=2.6" defer type="text/javascript"></script>
+	<script src="js/main.js?v=2.9" defer type="text/javascript"></script>
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+		ga('create', 'UA-101482034-1', 'auto');	
+		ga('send', 'pageview');
+		
+					window.onload = function() { (adsbygoogle = window.adsbygoogle || []).push({}); }
+			</script>
+
+	<script src="js/match.js?v=2.1" defer type="text/javascript"></script>
+    </body>
+</html>

@@ -6,8 +6,9 @@ from unittest import skip
 from django.test import TestCase
 
 from core.models import Country, League, Team, Match, MatchStats
-from load.handlers.espn import ESPNHandler
-
+from load.models import ErrorLog
+from load.handlers.espn import ESPNHandler 
+from load.handlers.understat import UnderstatHandler
 
 def prepare_data(obj):
     obj.handler = ESPNHandler.get()
@@ -37,7 +38,7 @@ class ESPNHandlerTest(TestCase):
         self.assertIsNotNone(Scotland)
         load_date = date(2019,2,2)
 
-        self.handler.process(is_debug=True, start_date=load_date)
+        self.handler.process(is_debug=True, get_from_file=True, start_date=load_date)
 
         #English Premier League
         premier_league = League.objects.get(name= 'English Premier League', load_source=self.handler)
@@ -388,7 +389,7 @@ class ESPNHandlerTest(TestCase):
         self.assertEquals(scottish_premiership.country, Scotland)
         scottish_premiership_season = scottish_premiership.get_season(load_date)
         self.assertEquals(scottish_premiership_season.start_date, date(2018,8,4))
-        self.assertEquals(scottish_premiership_season.end_date, date(2019,5,26))
+        self.assertEquals(scottish_premiership_season.end_date, date(2019,4,7))
         match_cnt = Match.objects.filter(league=scottish_premiership, match_date=load_date).count()
         self.assertEquals(match_cnt, 4)
         
@@ -500,8 +501,8 @@ class ESPNHandlerTest(TestCase):
         self.assertIsNotNone(Spain)
         load_date = date(2019,2,9)
 
-        self.handler.process(is_debug=True, start_date=load_date)
-        # self.handler.process(is_debug=True, start_date=load_date, is_debug_path=False)
+        # self.handler.process(is_debug=True, start_date=load_date)
+        self.handler.process(is_debug=True, get_from_file=True, start_date=load_date, is_debug_path=False)
 
         #Spanish Primera División
         la_liga = League.objects.get(name= 'Spanish Primera División', load_source=self.handler)
@@ -636,3 +637,586 @@ class ESPNHandlerTest(TestCase):
         self.assertEquals(html1.encode(), html3)
 
         os.remove(fname)
+
+
+
+#######################################################################################
+######  UnderstatHandler
+#######################################################################################
+class UnderstatHandlerTest(TestCase):
+
+    def setUp(self):
+        self.handler = UnderstatHandler.get()
+
+    #######################################################################
+    def test_understat_handler_get(self):
+        handler = UnderstatHandler.get()
+        self.assertEquals(handler.slug, UnderstatHandler.SRC_UNDERSTAT)
+
+
+    #######################################################################
+    def test_understat_process_degug_file(self):
+        UnknownCountry = Country.get_object('na')
+        self.assertIsNotNone(UnknownCountry)
+        load_date = date(2018, 8, 10)
+
+        source_session = self.handler.process(debug_level=2, get_from_file=True, start_date=load_date)        
+        self.assertIsNotNone(source_session)
+        error_count = ErrorLog.objects.filter(source_session=source_session).count()
+        self.assertEquals(error_count, 0)
+
+        #EPL
+        premier_league = League.objects.get(name= 'EPL', load_source=self.handler)
+        self.assertEquals(premier_league.name, 'EPL')
+        self.assertEquals(premier_league.country, UnknownCountry)
+        match_cnt = Match.objects.filter(league=premier_league, match_date=load_date).count()
+        self.assertEquals(match_cnt, 1)
+        
+        #Tottenham Hotspur - Newcastle United
+        Tottenham = Team.objects.get(name='Manchester United')
+        self.assertEquals(Tottenham.country, UnknownCountry)
+        Newcastle = Team.objects.get(name='Leicester')
+        self.assertEquals(Newcastle.country, UnknownCountry)
+        
+        match1 = Match.objects.get(
+                    league=premier_league,
+                    match_date=load_date,
+                    team_h=Tottenham,
+                    team_a=Newcastle)
+        self.assertEquals(str(match1), 'Manchester United - Leicester')
+        self.assertEquals(match1.score, '2:1 (1:0,1:1)')
+        self.assertEquals(match1.status, Match.FINISHED)
+        self.assertEquals(match1.result, Match.WIN)
+
+        #GOALS
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 0), '2')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 0), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 1), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 2), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 2), '1')
+        #YCARD
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 0), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 0), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 2), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 2), '1')
+        #RCARD
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 2), '0')
+        #PENALTY
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 2), '0')
+        #GOALS_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 15), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 90), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 90), '1')
+        #YCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 60), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 75), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #RCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #GOAL_TIME
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_HOME, 0), '3,83')
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_AWAY, 0), '90')
+        #SHOTS
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_HOME, 0), '8')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_AWAY, 0), '13')
+        #SHOTS_ON_TARGET
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_HOME, 0), '6')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_AWAY, 0), '4')
+        #CORNERS
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_AWAY, 0))
+        #FOULS
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0))
+        #POSSESSION
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0))
+        #XG
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 0), '1.512')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 0), '1.737')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 1), '0.9')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 1), '0.2')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 2), '0.612')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 2), '1.537')
+        #XG_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 15), '0.801')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 45), '0.099')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 60), '0.028')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 75), '0.076')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 90), '0.508')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 15), '0.022')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 30), '0.127')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 45), '0.051')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 60), '0.024')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 75), '0.112')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 90), '1.401')
+        #DEEP
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_HOME, 0), '3')
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_AWAY, 0), '10')
+        #PPDA
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_HOME, 0), '15.8333')
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_AWAY, 0), '11.4615')
+
+    #######################################################################
+    @skip("Skip load html")
+    def test_understat_process_site(self):
+        UnknownCountry = Country.get_object('na')
+        self.assertIsNotNone(UnknownCountry)
+        load_date = date(2019, 4, 27)
+
+        source_session = self.handler.process(debug_level=1, get_from_file=False, start_date=load_date)        
+        # source_session = self.handler.process(debug_level=1, get_from_file=True, is_debug_path=False, start_date=load_date)        
+        self.assertIsNotNone(source_session)
+        error_count = ErrorLog.objects.filter(source_session=source_session).count()
+        self.assertEquals(error_count, 0)
+
+        #EPL
+        premier_league = League.objects.get(name= 'EPL', load_source=self.handler)
+        self.assertEquals(premier_league.name, 'EPL')
+        self.assertEquals(premier_league.country, UnknownCountry)
+        match_cnt = Match.objects.filter(league=premier_league, match_date=load_date).count()
+        self.assertEquals(match_cnt, 6)
+        
+        #Southampton - Bournemouth
+        Southampton = Team.objects.get(name='Southampton')
+        self.assertEquals(Southampton.country, UnknownCountry)
+        Bournemouth = Team.objects.get(name='Bournemouth')
+        self.assertEquals(Bournemouth.country, UnknownCountry)
+        
+        match1 = Match.objects.get(
+                    league=premier_league,
+                    match_date=load_date,
+                    team_h=Southampton,
+                    team_a=Bournemouth)
+        self.assertEquals(str(match1), 'Southampton - Bournemouth')
+        self.assertEquals(match1.score, '3:3 (1:2,2:1)')
+        self.assertEquals(match1.status, Match.FINISHED)
+        self.assertEquals(match1.result, Match.DRAW)
+
+        #GOALS
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 0), '3')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 0), '3')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 1), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 1), '2')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 2), '2')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 2), '1')
+        #YCARD
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 0), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 0), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 1), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 2), '1')
+        #RCARD
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 2), '0')
+        #PENALTY
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 2), '0')
+        #GOALS_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 15), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 60), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 75), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 30), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 45), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 90), '1')
+        #YCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 30), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 45), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #RCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #GOAL_TIME
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_HOME, 0), '12,55,67')
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_AWAY, 0), '20,32,86')
+        #SHOTS
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_HOME, 0), '22')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_AWAY, 0), '9')
+        #SHOTS_ON_TARGET
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_HOME, 0), '7')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_AWAY, 0), '5')
+        #CORNERS
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_AWAY, 0))
+        #FOULS
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0))
+        #POSSESSION
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0))
+        #XG
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 0), '2.968')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 0), '2.63')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 1), '2.185')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 1), '1.047')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 2), '0.783')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 2), '1.583')
+        #XG_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 15), '1.083')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 30), '1.102')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 60), '0.643')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 75), '0.099')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 90), '0.041')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 30), '0.516')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 45), '0.531')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 60), '0.026')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 75), '0.035')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 90), '1.522')
+        #DEEP
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_HOME, 0), '9')
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_AWAY, 0), '4')
+        #PPDA
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_HOME, 0), '7.8')
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_AWAY, 0), '12.5')
+
+
+
+        ##### La Liga
+        la_liga = League.objects.get(name= 'La liga', load_source=self.handler)
+        self.assertEquals(la_liga.name, 'La liga')
+        self.assertEquals(la_liga.country, UnknownCountry)
+        match_cnt = Match.objects.filter(league=la_liga, match_date=load_date).count()
+        self.assertEquals(match_cnt, 4)
+        
+        #Atletico Madrid - Real Valladolid
+        atletico_madrid = Team.objects.get(name='Atletico Madrid')
+        self.assertEquals(atletico_madrid.country, UnknownCountry)
+        real_valladolid = Team.objects.get(name='Real Valladolid')
+        self.assertEquals(real_valladolid.country, UnknownCountry)
+        
+        match1 = Match.objects.get(
+                    league=la_liga,
+                    match_date=load_date,
+                    team_h=atletico_madrid,
+                    team_a=real_valladolid)
+        self.assertEquals(str(match1), 'Atletico Madrid - Real Valladolid')
+        self.assertEquals(match1.score, '1:0 (0:0,1:0)')
+        self.assertEquals(match1.status, Match.FINISHED)
+        self.assertEquals(match1.result, Match.WIN)
+
+        #GOALS
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 0), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 2), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 2), '0')
+        #YCARD
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 0), '4')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 0), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 1), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 1), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 2), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 2), '0')
+        #RCARD
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 2), '0')
+        #PENALTY
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 2), '0')
+        #GOALS_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 75), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #YCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 15), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 45), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 90), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #RCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #GOAL_TIME
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_HOME, 0), '66')
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_AWAY, 0), '')
+        #SHOTS
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_HOME, 0), '13')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_AWAY, 0), '13')
+        #SHOTS_ON_TARGET
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_HOME, 0), '1')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_AWAY, 0), '4')
+        #CORNERS
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_AWAY, 0))
+        #FOULS
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0))
+        #POSSESSION
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0))
+        #XG
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 0), '0.511')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 0), '0.588')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 1), '0.287')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 1), '0.081')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 2), '0.224')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 2), '0.507')
+        #XG_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 15), '0.097')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 30), '0.19')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 60), '0.113')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 75), '0.111')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 15), '0.041')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 30), '0.04')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 60), '0.013')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 75), '0.113')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 90), '0.381')
+        #DEEP
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_HOME, 0), '11')
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_AWAY, 0), '1')
+        #PPDA
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_HOME, 0), '5.875')
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_AWAY, 0), '12.0')
+
+
+        ##### Bundesliga
+        bundesliga = League.objects.get(name= 'Bundesliga', load_source=self.handler)
+        self.assertEquals(bundesliga.name, 'Bundesliga')
+        self.assertEquals(bundesliga.country, UnknownCountry)
+        match_cnt = Match.objects.filter(league=bundesliga, match_date=load_date).count()
+        self.assertEquals(match_cnt, 6)
+        
+        #Borussia Dortmund - Schalke 04
+        borussia_dortmund = Team.objects.get(name='Borussia Dortmund')
+        self.assertEquals(borussia_dortmund.country, UnknownCountry)
+        schalke_04 = Team.objects.get(name='Schalke 04')
+        self.assertEquals(schalke_04.country, UnknownCountry)
+        
+        match1 = Match.objects.get(
+                    league=bundesliga,
+                    match_date=load_date,
+                    team_h=borussia_dortmund,
+                    team_a=schalke_04)
+        self.assertEquals(str(match1), 'Borussia Dortmund - Schalke 04')
+        self.assertEquals(match1.score, '2:4 (1:2,1:2)')
+        self.assertEquals(match1.status, Match.FINISHED)
+        self.assertEquals(match1.result, Match.LOOSE)
+
+        #GOALS
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 0), '2')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 0), '4')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 1), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 1), '2')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_HOME, 2), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS, Match.COMPETITOR_AWAY, 2), '2')
+        #YCARD
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 0), '6')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 1), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD, Match.COMPETITOR_AWAY, 2), '4')
+        #RCARD
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 0), '2')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 2), '2')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 2), '0')
+        #PENALTY
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 0), '1')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 1), '1')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 2), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 2), '0')
+        #GOALS_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 15), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_HOME, 90), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 30), '2')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 75), '1')
+        self.assertEquals(match1.get_stat(MatchStats.GOALS_MINUTE, Match.COMPETITOR_AWAY, 90), '1')
+        #YCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '2')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '1')
+        self.assertEquals(match1.get_stat(MatchStats.YCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '2')
+        #RCARD_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 60), '1')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 75), '1')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_HOME, 90), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 15), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 30), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 45), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 60), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.RCARD_MINUTE, Match.COMPETITOR_AWAY, 90), '0')
+        #GOAL_TIME
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_HOME, 0), '14,85')
+        self.assertEquals(match1.get_stat(MatchStats.GOAL_TIME, Match.COMPETITOR_AWAY, 0), '18,28,62,86')
+        #SHOTS
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_HOME, 0), '8')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS, Match.COMPETITOR_AWAY, 0), '8')
+        #SHOTS_ON_TARGET
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_HOME, 0), '2')
+        self.assertEquals(match1.get_stat(MatchStats.SHOTS_ON_TARGET, Match.COMPETITOR_AWAY, 0), '4')
+        #CORNERS
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.CORNERS, Match.COMPETITOR_AWAY, 0))
+        #FOULS
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0))
+        #POSSESSION
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0))
+        #XG
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 0), '1.103')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 0), '1.124')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 1), '0.489')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 1), '0.887')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 2), '0.614')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 2), '0.237')
+        #XG_MINUTE
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 15), '0.306')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 30), '0.121')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 45), '0.062')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 60), '0.036')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 75), '0')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_HOME, 90), '0.578')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 15), '0.059')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 30), '0.785')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 45), '0.043')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 60), '0.073')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 75), '0.036')
+        self.assertEquals(match1.get_stat(MatchStats.XG_MINUTE, Match.COMPETITOR_AWAY, 90), '0.128')
+        #DEEP
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_HOME, 0), '4')
+        self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_AWAY, 0), '2')
+        #PPDA
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_HOME, 0), '10.2778')
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_AWAY, 0), '11.25')

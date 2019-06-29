@@ -107,17 +107,18 @@ class CommonHandler(MatchDetail, LoadSource):
             except SourceSession.DoesNotExist:
                 self.source_session = None
         #Save error
-        ErrorLog.objects.create(
-                            load_source = self,
-                            source_session = self.source_session,
-                            error_text = str(e)[:255],
-                            error_context = self.context,
-                            error_traceback = traceback.format_exc(),
-                            error_time = timezone.now(),
-                            league_name = self.league_name,
-                            match_name = self.match_name,
-                            file_name = self.file_name,
-                            source_detail = self.source_detail)
+        with transaction.atomic():
+            ErrorLog.objects.create(
+                                load_source = self,
+                                source_session = self.source_session,
+                                error_text = str(e)[:255],
+                                error_context = str(self.context),
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '' if not self.league_name else self.league_name[:100],
+                                match_name = '' if not self.match_name else self.match_name[:100],
+                                file_name = '' if not self.file_name else self.file_name[:100],
+                                source_detail = self.source_detail)
         if self.source_session:
             #check error count
             finish_loading = False
@@ -154,6 +155,7 @@ class CommonHandler(MatchDetail, LoadSource):
             self.source_detail.league_name = league_name
             self.source_detail.last_update = timezone.now()
             self.source_detail.save()
+            self.league_name = league_name
         return do_action
 
 
@@ -222,40 +224,45 @@ class CommonHandler(MatchDetail, LoadSource):
             raise LoadError
 
 
-    def start_or_skip_league(self, league_name, country=None, season_name='NA'):
+    def start_or_skip_league(self, league_name, country=None, season_name='NA', detail_slug=None):
         try:
             with transaction.atomic():
                 self.lock()
-                do_action = self._start_or_skip_league(league_name, season_name=season_name)
+
+                if not country:
+                    #try to find country from league name
+                    league_upper = league_name.upper()
+                    if not (league_upper.find('WORLD') >= 0):
+                        i = 0
+                        for c in Country.objects.raw(
+                                    "SELECT * FROM core_country WHERE %s LIKE '%%' || UPPER(nationality) || '%%'",
+                                    [league_upper]):
+                            country = c
+                            i += 1
+                            if i >= 2:
+                                break
+                        if i > 1:
+                            country = None
+
+                self.league = League.get_or_create(
+                                            sport=self.get_sport(),
+                                            name=league_name,
+                                            country=country,
+                                            load_source=self)
+
+                if not self.league:
+                    logger.info(type(self).__name__ + ': Skip league ' + league_name)
+                    do_action = False
+                else:
+                    do_action = True
+
                 if do_action:
+                    if detail_slug:
+                        self._start_detail(detail_slug)
+                    do_action = self._start_or_skip_league(league_name, season_name=season_name)
 
-                    if not country:
-                        #try to find country from league name
-                        league_upper = league_name.upper()
-                        if not (league_upper.find('WORLD') >= 0):
-                            i = 0
-                            for c in Country.objects.raw(
-                                        "SELECT * FROM core_country WHERE %s LIKE '%%' || UPPER(nationality) || '%%'",
-                                        [league_upper]):
-                                country = c
-                                i += 1
-                                if i >= 2:
-                                    break
-                            if i > 1:
-                                country = None
-
-                    self.league = League.get_or_create(
-                                                sport=self.get_sport(),
-                                                name=league_name,
-                                                country=country,
-                                                load_source=self)
-                    if not self.league:
-                        logger.info(type(self).__name__ + ': Skip league ' + league_name)
-                        do_action = False
-                        self.source_detail_league.status=SourceDetail.FINISHED
-                        self.source_detail_league.save()
-                    else:
-                        logger.info(type(self).__name__ + ': Start league ' + league_name)
+                if do_action:
+                    logger.info(type(self).__name__ + ': Start league ' + league_name)
         except Exception as e:
             self.handle_exception(e)
             raise LoadError
@@ -268,7 +275,7 @@ class CommonHandler(MatchDetail, LoadSource):
                 self.lock()
                 if self.league:
                     season = self.league.get_or_create_season(start_date, end_date, self, name)
-                    msg = ' Create or update session %s - %s(%s to %s)' % (str(self.league.name), name, start_date, end_date)
+                    msg = ' Create or update session %s - %s(%s to %s)' % (str(self.league.name), season.name, start_date, end_date)
                     logger.debug(type(self).__name__ + ': ' + msg)
         except Exception as e:
             self.handle_exception(e)
@@ -287,6 +294,7 @@ class CommonHandler(MatchDetail, LoadSource):
             self.handle_exception(e)
         finally:
             self.source_detail_league = None
+            self.league_name = None
 
 
     def start_or_skip_match(self, name_h, name_a, match_status=Match.FINISHED, match_date=None,

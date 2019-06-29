@@ -344,5 +344,5 @@ project/media/
 .pytest_cache/
 
 ### source files
-cache/*
+source/**/cache
 

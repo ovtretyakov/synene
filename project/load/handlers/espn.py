@@ -45,15 +45,19 @@ class ESPNHandler(CommonHandler):
     def process(self, is_debug=False, get_from_file=False, is_debug_path=True, start_date=None):
         '''Main method to load site''' 
 
+        source_session = None
         try:
             self.start_load('Main handler', is_debug=is_debug)
+            source_session = self.source_session
 
             if is_debug and not start_date:
                 get_from_file = True
-            if not get_from_file:
-                dat = start_date if start_date else self.DEBUG_DATE
+            if start_date:
+                dat = start_date
             else:
                 dat = self.get_load_date()
+            if not dat:
+                dat = date(2010, 1, 1)
             while dat <= timezone.now().date():
 
                 self.set_load_date(load_date=dat, is_set_main=True)
@@ -65,6 +69,7 @@ class ESPNHandler(CommonHandler):
             self.handle_exception(e, raise_finish_error=False)
         finally:
             self.finish_load()
+        return source_session
 
 
     def process_date(self, match_date, is_debug, get_from_file, is_debug_path):
@@ -79,7 +84,7 @@ class ESPNHandler(CommonHandler):
 
         url = 'http://www.espn.com/soccer/scoreboard/_/league/all/date/' + match_date.strftime('%Y%m%d')
         html = self.get_html(self.matches_file, url, get_from_file, is_debug_path)
-        self.context = 'html:\r' + str(html)
+        self.context = html
 
         soup = BeautifulSoup(html, 'html.parser')
         script_pattern = re.compile(r"(\{.+?\]\});")   #({...]});
@@ -87,13 +92,13 @@ class ESPNHandler(CommonHandler):
 
         #find script with "window.espn.scoreboardData"
         script = str(soup.find('script', string=re.compile("window.espn.scoreboardData")).string)
-        self.context = 'script:\r' + script
+        self.context = script
         matches_json = script_pattern.search(script)[1]
-        self.context = 'matches_json:\r' + matches_json
+        self.context = matches_json
         matches = json.loads(matches_json)
         scores = matches['scores']
         for score in scores:
-            self.context = 'score:\r' + str(score)
+            self.context = score
             league_json = score['leagues'][0]
 
             try:
@@ -120,7 +125,7 @@ class ESPNHandler(CommonHandler):
                 self.create_league_session(start_date, end_date, self, name=season_name)
                 events = score['events']
                 for event in events:
-                    self.context = 'event:\r' + str(event)
+                    self.context = event
                     # event_date = datetime.strptime(str(event['date'])[:10], '%Y-%m-%d').date()
                     competition = event['competitions'][0]
                     #is match finished
@@ -200,7 +205,7 @@ class ESPNHandler(CommonHandler):
                                                 possession=possession_a)
                             details = competition['details']
                             for detail in details:
-                                self.context = 'detail:\r' + str(detail)
+                                self.context = detail
                                 #"clock":{"displayValue":"65&amp;#39;","value":3885}
                                 time_row = detail['clock']['displayValue']
                                 minute = int(time_pattern.search(time_row)[1])
