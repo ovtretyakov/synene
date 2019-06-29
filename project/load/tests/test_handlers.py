@@ -710,9 +710,9 @@ class UnderstatHandlerTest(TestCase):
         self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_HOME, 2), '0')
         self.assertEquals(match1.get_stat(MatchStats.RCARD, Match.COMPETITOR_AWAY, 2), '0')
         #PENALTY
-        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 0), '1')
         self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 0), '0')
-        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 1), '1')
         self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 1), '0')
         self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_HOME, 2), '0')
         self.assertEquals(match1.get_stat(MatchStats.PENALTY, Match.COMPETITOR_AWAY, 2), '0')
