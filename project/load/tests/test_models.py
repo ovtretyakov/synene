@@ -386,9 +386,9 @@ class CommonHandlerModelTest(TestCase):
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.OFFSIDES,competitor=Match.COMPETITOR_AWAY,period=0)
         self.assertIsNone(stat)
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.POSSESSION,competitor=Match.COMPETITOR_HOME,period=0)
-        self.assertEquals(stat.value, '47')
+        self.assertEquals(stat.value, '47.000')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.POSSESSION,competitor=Match.COMPETITOR_AWAY,period=0)
-        self.assertEquals(stat.value, '53')
+        self.assertEquals(stat.value, '53.000')
 
         #prepare handler2
         handler3.finish_load()
@@ -418,8 +418,8 @@ class CommonHandlerModelTest(TestCase):
                         init_goals_times=True,
                         shots=12, shots_on_target=5,
                         fouls=8, corners=9)
-        handler2.h.add_event(12, goals=1)
-        handler2.h.add_event(46, goals=1)
+        handler2.h.add_event('12', goals=1)
+        handler2.h.add_event(46, goals='1')
         handler2.h.add_event(47, goals=1)
         handler2.h.add_event(50, y_cards=1)
         handler2.h.add_event(81, y_cards=1)
@@ -455,13 +455,13 @@ class CommonHandlerModelTest(TestCase):
         match.refresh_from_db()
         self.assertEquals(match.score, '3:4 (1:1,2:3)')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_HOME,period=0)
-        self.assertEquals(stat.value, '1.1')
+        self.assertEquals(stat.value, '1.100')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_AWAY,period=0)
-        self.assertEquals(stat.value, '1.2')
+        self.assertEquals(stat.value, '1.200')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_HOME,period=1)
-        self.assertEquals(stat.value, '1.1')
+        self.assertEquals(stat.value, '1.100')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_AWAY,period=1)
-        self.assertEquals(stat.value, '0')
+        self.assertEquals(stat.value, '0.000')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.YCARD,competitor=Match.COMPETITOR_HOME,period=0)
         self.assertEquals(stat.value, '3')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.YCARD,competitor=Match.COMPETITOR_AWAY,period=0)
@@ -491,9 +491,9 @@ class CommonHandlerModelTest(TestCase):
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.GOALS_MINUTE,competitor=Match.COMPETITOR_AWAY,period=75)
         self.assertEquals(stat.value, '3')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG_MINUTE,competitor=Match.COMPETITOR_HOME,period=30)
-        self.assertEquals(stat.value, '0.3')
+        self.assertEquals(stat.value, '0.300')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG_MINUTE,competitor=Match.COMPETITOR_AWAY,period=90)
-        self.assertEquals(stat.value, '0.7')
+        self.assertEquals(stat.value, '0.700')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.GOAL_TIME,competitor=Match.COMPETITOR_HOME,period=0)
         self.assertEquals(stat.value, '12,46,47')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.GOAL_TIME,competitor=Match.COMPETITOR_AWAY,period=0)
@@ -527,9 +527,9 @@ class CommonHandlerModelTest(TestCase):
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.OFFSIDES,competitor=Match.COMPETITOR_AWAY,period=0)
         self.assertIsNone(stat)
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.POSSESSION,competitor=Match.COMPETITOR_HOME,period=0)
-        self.assertEquals(stat.value, '47')
+        self.assertEquals(stat.value, '47.000')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.POSSESSION,competitor=Match.COMPETITOR_AWAY,period=0)
-        self.assertEquals(stat.value, '53')
+        self.assertEquals(stat.value, '53.000')
 
         #prepare handler1
         handler2.finish_load()
@@ -546,8 +546,8 @@ class CommonHandlerModelTest(TestCase):
         team1_a = handler1.team_a
         match1 = handler1.match
         #add football stats
-        handler1.h.set_stats(goals=5, goals_1st=3, goals_2nd=2, possession=41)
-        handler1.a.set_stats(goals=7, goals_1st=4, goals_2nd=3, possession=59)
+        handler1.h.set_stats(goals='5', goals_1st=3, goals_2nd=2, possession=41)
+        handler1.a.set_stats(goals=7, goals_1st='4', goals_2nd='3', possession='59')
         #save data and merge
         handler1.finish_match()
         league1.merge_to(league)
@@ -571,13 +571,13 @@ class CommonHandlerModelTest(TestCase):
         self.assertEquals(match.score, '5:7 (3:4,2:3)')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_HOME,period=0)
         self.assertEquals(stat.load_source, handler2)
-        self.assertEquals(stat.value, '1.1')
+        self.assertEquals(stat.value, '1.100')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_AWAY,period=0)
-        self.assertEquals(stat.value, '1.2')
+        self.assertEquals(stat.value, '1.200')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_HOME,period=1)
-        self.assertEquals(stat.value, '1.1')
+        self.assertEquals(stat.value, '1.100')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG,competitor=Match.COMPETITOR_AWAY,period=1)
-        self.assertEquals(stat.value, '0')
+        self.assertEquals(stat.value, '0.000')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.YCARD,competitor=Match.COMPETITOR_HOME,period=0)
         self.assertEquals(stat.value, '3')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.YCARD,competitor=Match.COMPETITOR_AWAY,period=0)
@@ -607,9 +607,9 @@ class CommonHandlerModelTest(TestCase):
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.GOALS_MINUTE,competitor=Match.COMPETITOR_AWAY,period=75)
         self.assertEquals(stat.value, '3')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG_MINUTE,competitor=Match.COMPETITOR_HOME,period=30)
-        self.assertEquals(stat.value, '0.3')
+        self.assertEquals(stat.value, '0.300')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.XG_MINUTE,competitor=Match.COMPETITOR_AWAY,period=90)
-        self.assertEquals(stat.value, '0.7')
+        self.assertEquals(stat.value, '0.700')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.GOAL_TIME,competitor=Match.COMPETITOR_HOME,period=0)
         self.assertEquals(stat.value, '12,46,47')
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.GOAL_TIME,competitor=Match.COMPETITOR_AWAY,period=0)
@@ -643,10 +643,170 @@ class CommonHandlerModelTest(TestCase):
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.OFFSIDES,competitor=Match.COMPETITOR_AWAY,period=0)
         self.assertIsNone(stat)
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.POSSESSION,competitor=Match.COMPETITOR_HOME,period=0)
-        self.assertEquals(stat.value, '41')
+        self.assertEquals(stat.value, '41.000')
         self.assertEquals(stat.load_source, handler1)
         stat = MatchStats.get_object(match=match,stat_type=MatchStats.POSSESSION,competitor=Match.COMPETITOR_AWAY,period=0)
-        self.assertEquals(stat.value, '59')
+        self.assertEquals(stat.value, '59.000')
 
+    #######################################################################
+    def test_handler_check_params(self):
+        handler1 = ESPNHandler.get()
+        detail_slug = 'match_stat_handler_check_detail'
+        league_name = 'match_stat_handler_check_league'
+        name_h = 'match_stat_handler_check_h'
+        name_a = 'match_stat_handler_check_a'
+        match_date = date(2018,3,1)
+        team_h = Team.get_or_create(
+            name=name_h, 
+            team_type=self.team_type, sport=self.sport, load_source=handler1)
+        self.assertEquals(team_h.load_source, handler1)
+        team_a = Team.get_or_create(
+            name=name_a, 
+            team_type=self.team_type, sport=self.sport, load_source=handler1)
+        league = League.get_or_create(
+                    name=league_name,
+                    sport=self.football,
+                    load_source=handler1)
 
+        self.assertTrue(handler1.start_load(detail_slug))
+        handler1.set_load_date(match_date)
+        self.assertTrue(handler1.start_or_skip_league(league_name))
+        self.assertTrue(handler1.start_or_skip_match(name_h, name_a))
 
+        #set_stats
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_stats(goals=2.5)
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_stats(goals=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_stats(goals='a')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_stats(goals_1st=2.5)
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_stats(goals_2nd=2.5)
+        with self.assertRaisesRegex(ValueError,'Invalid possession param'):
+            handler1.h.set_stats(possession='-1.3')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.set_stats(xG='-1.3')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.set_stats(xG='null')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.set_stats(xG_1st='null')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.set_stats(xG_2nd=-2.5)
+        with self.assertRaisesRegex(ValueError,'Invalid y_cards param'):
+            handler1.h.set_stats(y_cards='1.5')
+        with self.assertRaisesRegex(ValueError,'Invalid y_cards param'):
+            handler1.h.set_stats(y_cards_1st='-2')
+        with self.assertRaisesRegex(ValueError,'Invalid y_cards param'):
+            handler1.h.set_stats(y_cards_2nd=2.5)
+        with self.assertRaisesRegex(ValueError,'Invalid r_cards param'):
+            handler1.a.set_stats(r_cards=1.5)
+        with self.assertRaisesRegex(ValueError,'Invalid r_cards param'):
+            handler1.a.set_stats(r_cards_1st='null')
+        with self.assertRaisesRegex(ValueError,'Invalid r_cards param'):
+            handler1.a.set_stats(r_cards_2nd=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid penalties param'):
+            handler1.a.set_stats(penalties='null')
+        with self.assertRaisesRegex(ValueError,'Invalid penalties param'):
+            handler1.a.set_stats(penalties_1st='10.5')
+        with self.assertRaisesRegex(ValueError,'Invalid penalties param'):
+            handler1.a.set_stats(penalties_2nd='-10.5')
+        with self.assertRaisesRegex(ValueError,'Invalid shots param'):
+            handler1.a.set_stats(shots='25,4')
+        with self.assertRaisesRegex(ValueError,'Invalid shots_on_target param'):
+            handler1.a.set_stats(shots_on_target='null')
+        with self.assertRaisesRegex(ValueError,'Invalid deep param'):
+            handler1.a.set_stats(deep=1.3)
+        with self.assertRaisesRegex(ValueError,'Invalid ppda param'):
+            handler1.a.set_stats(ppda=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid corners param'):
+            handler1.a.set_stats(corners=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid fouls param'):
+            handler1.a.set_stats(fouls=2.5)
+        with self.assertRaisesRegex(ValueError,'Invalid free_kicks param'):
+            handler1.a.set_stats(free_kicks='2.5')
+        with self.assertRaisesRegex(ValueError,'Invalid offsides param'):
+            handler1.a.set_stats(offsides='-2.5')
+        with self.assertRaisesRegex(ValueError,'Invalid possession param'):
+            handler1.a.set_stats(possession='null')
+
+        #set_detail
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_detail(goals='1.2')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_detail(goals=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.set_detail(xG='-1')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.a.set_detail(xG='None')
+        with self.assertRaisesRegex(ValueError,'Invalid y_cards param'):
+            handler1.a.set_detail(y_cards=2.20)
+        with self.assertRaisesRegex(ValueError,'Invalid r_cards param'):
+            handler1.a.set_detail(r_cards='2,2')
+        with self.assertRaisesRegex(ValueError,'Invalid penalties param'):
+            handler1.a.set_detail(penalties='=1')
+
+        #set_half_detail
+        with self.assertRaisesRegex(ValueError,'Invalid half param'):
+            handler1.h.set_half_detail(3, goals='1')
+        with self.assertRaisesRegex(ValueError,'Invalid half param'):
+            handler1.h.set_half_detail('-2', goals='1')
+        with self.assertRaisesRegex(ValueError,'invalid literal for int'):
+            handler1.h.set_half_detail('null', goals='1')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_half_detail(2, goals='1.2')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_half_detail(2, goals=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.set_half_detail(2, xG='-1')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.a.set_half_detail(2, xG='None')
+        with self.assertRaisesRegex(ValueError,'Invalid y_cards param'):
+            handler1.a.set_half_detail(2, y_cards=2.20)
+        with self.assertRaisesRegex(ValueError,'Invalid r_cards param'):
+            handler1.a.set_half_detail(2, r_cards='2,2')
+        with self.assertRaisesRegex(ValueError,'Invalid penalties param'):
+            handler1.a.set_half_detail(2, penalties='=1')
+
+        #set_minute_detail
+        with self.assertRaisesRegex(ValueError,'Invalid minute param'):
+            handler1.h.set_minute_detail('-2', goals='1')
+        with self.assertRaisesRegex(ValueError,'Invalid minute param'):
+            handler1.h.set_minute_detail(None, goals='1')
+        with self.assertRaisesRegex(ValueError,'invalid literal for int'):
+            handler1.h.set_minute_detail('null', goals='1')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_minute_detail(2, goals='1.2')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.set_minute_detail(22, goals=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.set_minute_detail(2.5, xG='-1')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.a.set_minute_detail(12, xG='None')
+        with self.assertRaisesRegex(ValueError,'Invalid y_cards param'):
+            handler1.a.set_minute_detail(122, y_cards=2.20)
+        with self.assertRaisesRegex(ValueError,'Invalid r_cards param'):
+            handler1.a.set_minute_detail(21, r_cards='2,2')
+
+        #add_event
+        with self.assertRaisesRegex(ValueError,'Invalid minute param'):
+            handler1.h.add_event(None, goals='1')
+        with self.assertRaisesRegex(ValueError,'Invalid minute param'):
+            handler1.h.add_event('-2', goals='1')
+        with self.assertRaisesRegex(ValueError,'invalid literal for int'):
+            handler1.h.add_event('null', goals='1')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.add_event(2, goals='1.2')
+        with self.assertRaisesRegex(ValueError,'Invalid goals param'):
+            handler1.h.add_event(2, goals=-1)
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.h.add_event(2, xG='-1')
+        with self.assertRaisesRegex(ValueError,'Invalid xG param'):
+            handler1.a.add_event(2, xG='None')
+        with self.assertRaisesRegex(ValueError,'Invalid y_cards param'):
+            handler1.a.add_event(2, y_cards=2.20)
+        with self.assertRaisesRegex(ValueError,'Invalid r_cards param'):
+            handler1.a.add_event(2, r_cards='2,2')
+        with self.assertRaisesRegex(ValueError,'Invalid penalties param'):
+            handler1.a.add_event(2, penalties='=1')
