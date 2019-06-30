@@ -155,8 +155,8 @@ class ESPNHandlerTest(TestCase):
         self.assertEquals(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0), '6')
         self.assertEquals(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0), '6')
         #POSSESSION
-        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '71.6')
-        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '28.4')
+        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '71.600')
+        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '28.400')
 
         #Brighton & Hove Albion - Watford
         Brighton = Team.objects.get(name='Brighton & Hove Albion')
@@ -262,8 +262,8 @@ class ESPNHandlerTest(TestCase):
         self.assertEquals(match2.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0), '15')
         self.assertEquals(match2.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0), '10')
         #POSSESSION
-        self.assertEquals(match2.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '55.1')
-        self.assertEquals(match2.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '44.9')
+        self.assertEquals(match2.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '55.100')
+        self.assertEquals(match2.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '44.900')
 
         #German Bundesliga
         bundesliga = League.objects.get(name= 'German Bundesliga', load_source=self.handler)
@@ -379,8 +379,8 @@ class ESPNHandlerTest(TestCase):
         self.assertEquals(match3.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0), '10')
         self.assertEquals(match3.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0), '10')
         #POSSESSION
-        self.assertEquals(match3.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '37.9')
-        self.assertEquals(match3.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '62.1')
+        self.assertEquals(match3.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '37.900')
+        self.assertEquals(match3.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '62.100')
 
 
         #Scottish Premiership
@@ -490,8 +490,8 @@ class ESPNHandlerTest(TestCase):
         self.assertEquals(match4.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0), '16')
         self.assertEquals(match4.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0), '7')
         #POSSESSION
-        self.assertEquals(match4.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '31')
-        self.assertEquals(match4.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '69')
+        self.assertEquals(match4.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '31.000')
+        self.assertEquals(match4.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '69.000')
 
 
     #######################################################################
@@ -618,8 +618,8 @@ class ESPNHandlerTest(TestCase):
         self.assertEquals(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_HOME, 0), '21')
         self.assertEquals(match1.get_stat(MatchStats.FOULS, Match.COMPETITOR_AWAY, 0), '16')
         #POSSESSION
-        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '34.2')
-        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '65.8')
+        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_HOME, 0), '34.200')
+        self.assertEquals(match1.get_stat(MatchStats.POSSESSION, Match.COMPETITOR_AWAY, 0), '65.800')
 
 
     #######################################################################
@@ -776,8 +776,8 @@ class UnderstatHandlerTest(TestCase):
         #XG
         self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 0), '1.512')
         self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 0), '1.737')
-        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 1), '0.9')
-        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 1), '0.2')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 1), '0.900')
+        self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 1), '0.200')
         self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_HOME, 2), '0.612')
         self.assertEquals(match1.get_stat(MatchStats.XG, Match.COMPETITOR_AWAY, 2), '1.537')
         #XG_MINUTE
@@ -797,8 +797,8 @@ class UnderstatHandlerTest(TestCase):
         self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_HOME, 0), '3')
         self.assertEquals(match1.get_stat(MatchStats.DEEP, Match.COMPETITOR_AWAY, 0), '10')
         #PPDA
-        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_HOME, 0), '15.8333')
-        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_AWAY, 0), '11.4615')
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_HOME, 0), '15.833')
+        self.assertEquals(match1.get_stat(MatchStats.PPDA, Match.COMPETITOR_AWAY, 0), '11.461')
 
     #######################################################################
     @skip("Skip load html")
