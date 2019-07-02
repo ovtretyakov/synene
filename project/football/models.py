@@ -1,4 +1,4 @@
-from .mixins import FootballSaveMixin
+from .mixins import FootballSaveMixin, FootballGetOrCreateMixin
 from .managers import FootballManager, FootballSportManager
 
 from core.models import (
@@ -29,7 +29,7 @@ class FootballSource(FootballSaveMixin, LoadSource):
 
 
 ###################################################################
-class FootballLeague(FootballSaveMixin, League):
+class FootballLeague(FootballGetOrCreateMixin, FootballSaveMixin, League):
 
     objects = FootballManager()
 
@@ -39,7 +39,7 @@ class FootballLeague(FootballSaveMixin, League):
 
 
 ###################################################################
-class FootballTeam(FootballSaveMixin, Team):
+class FootballTeam(FootballGetOrCreateMixin, FootballSaveMixin, Team):
 
     objects = FootballManager()
 
@@ -48,7 +48,7 @@ class FootballTeam(FootballSaveMixin, Team):
 
 
 ###################################################################
-class FootballReferee(FootballSaveMixin, Referee):
+class FootballReferee(FootballGetOrCreateMixin, FootballSaveMixin, Referee):
 
     objects = FootballManager()
 

@@ -105,7 +105,7 @@ class Migration(migrations.Migration):
                 'indexes': [],
                 'constraints': [],
             },
-            bases=(project.betting.mixins.WDLParamClean, 'betting.odd'),
+            bases=('betting.odd',),
         ),
         migrations.AddConstraint(
             model_name='oddbookieconfig',

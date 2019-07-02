@@ -780,6 +780,26 @@ class Match(Mergable, models.Model):
     COMPETITOR_HOME = 'h'
     COMPETITOR_AWAY = 'a'
 
+    GOALS = 'g'
+    XG = 'xg'
+    YCARD = 'yc'
+    RCARD = 'rc'
+    PENALTY = 'pen'
+    GOALS_MINUTE = 'gm'
+    XG_MINUTE = 'xgm'
+    YCARD_MINUTE = 'ycm'
+    RCARD_MINUTE = 'rcm'
+    GOAL_TIME = 'gt'
+    SHOTS = 's'
+    SHOTS_ON_TARGET = 'sot'
+    DEEP = 'd'
+    PPDA = 'ppda'
+    CORNERS = 'c'
+    FOULS = 'f'
+    FREE_KICKS = 'fk'
+    OFFSIDES = 'o'
+    POSSESSION = 'pos'
+
     STATUS_CHOICES = (
         (FINISHED, 'Finished'),
         (SCHEDULED, 'Scheduled'),
@@ -939,7 +959,7 @@ class Match(Mergable, models.Model):
     def add_stat(self, stat_type, competitor, period, value, load_source):
         match_stat, updated = MatchStats.create_or_update(match=self, stat_type=stat_type, competitor=competitor, 
                                                           period=period, value=value, load_source=load_source)
-        if updated and stat_type==MatchStats.GOALS and period in(0,1,2,):
+        if updated and stat_type==Match.GOALS and period in(0,1,2,):
             #score (match or one of the half) was changed
             scores = ['']*6
             for stat in MatchStats.objects.filter(match=self, stat_type=stat_type, period__in=[0,1,2,]):
@@ -976,6 +996,12 @@ class Match(Mergable, models.Model):
         else:
             value = None
         return value
+    def get_competitors_values(self, stat_type, period):
+        '''Get competitors values (goals, corners, ...)
+           return home_value, away_value
+        '''
+        return MatchStats.get_competitors_values(match=self, stat_type=stat_type, period=period)
+
 
 ###################################################################
 class MatchReferee(models.Model):
@@ -1043,46 +1069,26 @@ class MatchReferee(models.Model):
 ###################################################################
 class MatchStats(Mergable, models.Model):
 
-    GOALS = 'g'
-    XG = 'xg'
-    YCARD = 'yc'
-    RCARD = 'rc'
-    PENALTY = 'pen'
-    GOALS_MINUTE = 'gm'
-    XG_MINUTE = 'xgm'
-    YCARD_MINUTE = 'ycm'
-    RCARD_MINUTE = 'rcm'
-    GOAL_TIME = 'gt'
-    SHOTS = 's'
-    SHOTS_ON_TARGET = 'sot'
-    DEEP = 'd'
-    PPDA = 'ppda'
-    CORNERS = 'c'
-    FOULS = 'f'
-    FREE_KICKS = 'fk'
-    OFFSIDES = 'o'
-    POSSESSION = 'pos'
-
     STAT_CHOICES = (
-        (GOALS, 'Goals'),
-        (XG, 'xG'),
-        (YCARD, 'Yellow cards'),
-        (RCARD, 'Red cards'),
-        (PENALTY, 'Penalies'),
-        (GOALS_MINUTE, 'Goals (minutes)'),
-        (XG_MINUTE, 'xG (minutes)'),
-        (YCARD_MINUTE, 'Yellow cards (minutes)'),
-        (RCARD_MINUTE, 'Red cards (minutes)'),
-        (GOAL_TIME, 'Goal time'),
-        (SHOTS, 'Shots'),
-        (SHOTS_ON_TARGET, 'Shots on target'),
-        (DEEP, 'Deep passes'),    #Passes completed within an estimated 20 yards of goal (crosses excluded)
-        (PPDA, 'PPDA'),           #Passes allowed per defensive action in the opposition half
-        (CORNERS, 'Corners'),
-        (FOULS, 'Fouls'),
-        (FREE_KICKS, 'Free kicks'),
-        (OFFSIDES, 'Offsides'),
-        (POSSESSION, 'Possession'),
+        (Match.GOALS, 'Goals'),
+        (Match.XG, 'xG'),
+        (Match.YCARD, 'Yellow cards'),
+        (Match.RCARD, 'Red cards'),
+        (Match.PENALTY, 'Penalies'),
+        (Match.GOALS_MINUTE, 'Goals (minutes)'),
+        (Match.XG_MINUTE, 'xG (minutes)'),
+        (Match.YCARD_MINUTE, 'Yellow cards (minutes)'),
+        (Match.RCARD_MINUTE, 'Red cards (minutes)'),
+        (Match.GOAL_TIME, 'Goal time'),
+        (Match.SHOTS, 'Shots'),
+        (Match.SHOTS_ON_TARGET, 'Shots on target'),
+        (Match.DEEP, 'Deep passes'),    #Passes completed within an estimated 20 yards of goal (crosses excluded)
+        (Match.PPDA, 'PPDA'),           #Passes allowed per defensive action in the opposition half
+        (Match.CORNERS, 'Corners'),
+        (Match.FOULS, 'Fouls'),
+        (Match.FREE_KICKS, 'Free kicks'),
+        (Match.OFFSIDES, 'Offsides'),
+        (Match.POSSESSION, 'Possession'),
     )
 
     COMPETITOR_CHOICES = (
@@ -1168,3 +1174,15 @@ class MatchStats(Mergable, models.Model):
 
     def merge_related(self, dst):
         pass
+    @staticmethod
+    def get_competitors_values(match, stat_type, period):
+        try:
+            stat = MatchStats.objects.get(match=match,stat_type=stat_type,competitor=Match.COMPETITOR_HOME,period=period)
+            value_h = stat.value
+            stat = MatchStats.objects.get(match=match,stat_type=stat_type,competitor=Match.COMPETITOR_AWAY,period=period)
+            value_a = stat.value
+        except MatchStats.DoesNotExist:
+            value_h = None
+            value_a = None
+        return value_h, value_a
+

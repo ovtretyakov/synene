@@ -343,45 +343,45 @@ class CommonHandler(MatchDetail, LoadSource):
     def _save_competitor_data(self, competitor, data):
         for p in range(0,3):
             if data._goals[p] != None:
-                self._save_statistic(MatchStats.GOALS, competitor, p, data._goals[p])
+                self._save_statistic(Match.GOALS, competitor, p, data._goals[p])
             if data._xG[p] != None:
-                self._save_statistic(MatchStats.XG, competitor, p, data._xG[p])
+                self._save_statistic(Match.XG, competitor, p, data._xG[p])
             if data._y_cards[p] != None:
-                self._save_statistic(MatchStats.YCARD, competitor, p, data._y_cards[p])
+                self._save_statistic(Match.YCARD, competitor, p, data._y_cards[p])
             if data._r_cards[p] != None:
-                self._save_statistic(MatchStats.RCARD, competitor, p, data._r_cards[p])
+                self._save_statistic(Match.RCARD, competitor, p, data._r_cards[p])
             if data._penalties[p] != None:
-                self._save_statistic(MatchStats.PENALTY, competitor, p, data._penalties[p])
+                self._save_statistic(Match.PENALTY, competitor, p, data._penalties[p])
         for k in sorted(data.get_empty_detail().keys()):
             if data._goals_minutes != None:
-                self._save_statistic(MatchStats.GOALS_MINUTE, competitor, k, data._goals_minutes[k])
+                self._save_statistic(Match.GOALS_MINUTE, competitor, k, data._goals_minutes[k])
             if data._xG_minutes != None:
-                self._save_statistic(MatchStats.XG_MINUTE, competitor, k, data._xG_minutes[k])
+                self._save_statistic(Match.XG_MINUTE, competitor, k, data._xG_minutes[k])
             if data._y_cards_minutes != None:
-                self._save_statistic(MatchStats.YCARD_MINUTE, competitor, k, data._y_cards_minutes[k])
+                self._save_statistic(Match.YCARD_MINUTE, competitor, k, data._y_cards_minutes[k])
             if data._r_cards_minutes != None:
-                self._save_statistic(MatchStats.RCARD_MINUTE, competitor, k, data._r_cards_minutes[k])
+                self._save_statistic(Match.RCARD_MINUTE, competitor, k, data._r_cards_minutes[k])
         if data.goal_time != None:
             value = ','.join(str(t) for t in data.goal_time)
-            self._save_statistic(MatchStats.GOAL_TIME, competitor, 0, value)
+            self._save_statistic(Match.GOAL_TIME, competitor, 0, value)
         if data.shots != None:
-            self._save_statistic(MatchStats.SHOTS, competitor, 0, data.shots)
+            self._save_statistic(Match.SHOTS, competitor, 0, data.shots)
         if data.shots_on_target != None:
-            self._save_statistic(MatchStats.SHOTS_ON_TARGET, competitor, 0, data.shots_on_target)
+            self._save_statistic(Match.SHOTS_ON_TARGET, competitor, 0, data.shots_on_target)
         if data.deep != None:
-            self._save_statistic(MatchStats.DEEP, competitor, 0, data.deep)
+            self._save_statistic(Match.DEEP, competitor, 0, data.deep)
         if data.ppda != None:
-            self._save_statistic(MatchStats.PPDA, competitor, 0, data.ppda)
+            self._save_statistic(Match.PPDA, competitor, 0, data.ppda)
         if data.corners != None:
-            self._save_statistic(MatchStats.CORNERS, competitor, 0, data.corners)
+            self._save_statistic(Match.CORNERS, competitor, 0, data.corners)
         if data.fouls != None:
-            self._save_statistic(MatchStats.FOULS, competitor, 0, data.fouls)
+            self._save_statistic(Match.FOULS, competitor, 0, data.fouls)
         if data.free_kicks != None:
-            self._save_statistic(MatchStats.FREE_KICKS, competitor, 0, data.free_kicks)
+            self._save_statistic(Match.FREE_KICKS, competitor, 0, data.free_kicks)
         if data.offsides != None:
-            self._save_statistic(MatchStats.OFFSIDES, competitor, 0, data.offsides)
+            self._save_statistic(Match.OFFSIDES, competitor, 0, data.offsides)
         if data.possession != None:
-            self._save_statistic(MatchStats.POSSESSION, competitor, 0, data.possession)
+            self._save_statistic(Match.POSSESSION, competitor, 0, data.possession)
 
 
     def finish_match(self):

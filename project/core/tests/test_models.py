@@ -1080,7 +1080,7 @@ class MatchModelTest(TestCase):
         match21.score='2:1'
         match21.save()
         match21_pk = match21.pk
-        stat = match21.add_stat(stat_type=MatchStats.YCARD, competitor=Match.COMPETITOR_HOME, 
+        stat = match21.add_stat(stat_type=Match.YCARD, competitor=Match.COMPETITOR_HOME, 
                                period=0, value=2, load_source=self.load_source_2)
         odd = Odd.objects.create(match = match21,
                                    bet_type = BetType.objects.get(slug=BetType.WDL),
@@ -1154,30 +1154,30 @@ class MatchModelTest(TestCase):
                                     match_date=match_date, 
                                     load_source=self.load_source_2
                                     )
-        stat1 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+        stat1 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_HOME, 
                                period=0, value=2, load_source=self.load_source_2)
-        stat2 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+        stat2 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_AWAY, 
                                period=0, value=1, load_source=self.load_source_2)
-        stat3 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+        stat3 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_HOME, 
                                period=1, value=1, load_source=self.load_source_2)
-        stat4 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+        stat4 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_AWAY, 
                                period=1, value=0, load_source=self.load_source_2)
-        stat5 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+        stat5 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_HOME, 
                                period=2, value=1, load_source=self.load_source_2)
-        stat6 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+        stat6 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_AWAY, 
                                period=2, value=1, load_source=self.load_source_2)
         match.refresh_from_db()
         self.assertEquals(match.score, '2:1 (1:0,1:1)')
 
-        stat7 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_AWAY, 
+        stat7 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_AWAY, 
                                period=2, value=11, load_source=self.load_source_3)
         #not changed
         match.refresh_from_db()
         self.assertEquals(match.score, '2:1 (1:0,1:1)')
 
-        stat8 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+        stat8 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_HOME, 
                                period=0, value=3, load_source=self.load_source_2)
-        stat9 = match.add_stat(stat_type=MatchStats.GOALS, competitor=Match.COMPETITOR_HOME, 
+        stat9 = match.add_stat(stat_type=Match.GOALS, competitor=Match.COMPETITOR_HOME, 
                                period=2, value=2, load_source=self.load_source_2)
         #changed
         match.refresh_from_db()
@@ -1281,15 +1281,15 @@ class MatchStatsModelTest(TestCase):
         match2 = Match.objects.create(league=self.league, team_h=self.team1, team_a=self.team2, 
                               match_date=date(2016,6,5), 
                               load_source=self.load_source_2)
-        stat11 = self.match.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=0, value='1', load_source=self.load_source_2)
+        stat11 = self.match.add_stat(stat_type=Match.PENALTY, competitor=Match.COMPETITOR_HOME, period=0, value='1', load_source=self.load_source_2)
         stat11_pk = stat11.pk
-        stat12 = self.match.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=1, value='1', load_source=self.load_source_2)
+        stat12 = self.match.add_stat(stat_type=Match.PENALTY, competitor=Match.COMPETITOR_HOME, period=1, value='1', load_source=self.load_source_2)
         stat12_pk = stat12.pk
-        stat21 = match2.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=0, value='2', load_source=self.load_source_2)
+        stat21 = match2.add_stat(stat_type=Match.PENALTY, competitor=Match.COMPETITOR_HOME, period=0, value='2', load_source=self.load_source_2)
         stat21_pk = stat21.pk
-        stat22 = match2.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=1, value='2', load_source=self.load_source_1)
+        stat22 = match2.add_stat(stat_type=Match.PENALTY, competitor=Match.COMPETITOR_HOME, period=1, value='2', load_source=self.load_source_1)
         stat22_pk = stat22.pk
-        stat23 = match2.add_stat(stat_type=MatchStats.PENALTY, competitor=Match.COMPETITOR_HOME, period=2, value='2', load_source=self.load_source_2)
+        stat23 = match2.add_stat(stat_type=Match.PENALTY, competitor=Match.COMPETITOR_HOME, period=2, value='2', load_source=self.load_source_2)
         stat23_pk = stat23.pk
         # 1
         stat21.change_match(self.match)
