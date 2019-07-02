@@ -76,6 +76,8 @@ class IntegerListParam(object):
                 i = Decimal(value)
             except (ValueError, DecimalException):
                 raise ValueError('Invalid odd param. Should be list of values (1 or 0,1,2): %s' % param)
+            if i < 0:
+                raise ValueError('Invalid odd param (should be positive): %s' % param)
             if i != round(i):
                 raise ValueError('Invalid odd param. Should be list of values (1 or 0,1,2): %s' % param)
         return param_
@@ -157,6 +159,14 @@ class HalfIntegerParam(object):
         param_ = '{0:.1f}'.format(param_)
         return param_
 
+class Two0or1Param(object):
+    @classmethod
+    def clean_param(cls, param):
+        param_ = param.replace(' ','')
+        if not param_ or param_ not in('0\\0','0\\1','1\\0','1\\1'):
+            raise ValueError('Invalid odd param (should be 0\\0,0\\1,1\\0 or 1\\1): %s' % param)
+        return param_
+
 ###################################################################
 # period
 ###################################################################
@@ -207,7 +217,7 @@ class HomeAwayOrEmptyTeam(object):
 class OnlyEmptyTeam(object):
     @classmethod
     def clean_team(cls, team):
-        if team:
+        if team == None or team:
             raise ValueError('Invalid team param (should be empty team): %s' % team)
         return team
 

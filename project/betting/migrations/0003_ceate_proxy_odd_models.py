@@ -199,7 +199,7 @@ class Migration(migrations.Migration):
                                )
         BetType.objects.create(slug='itotal_both_over_and_either_win', 
                                name='Both score & either win',
-                               description='Both team will score and either win in match or half\nperiod=0,1,2\nteam=empty\nparam=empty',
+                               description='Both team will score and either win in match or half\nperiod=0,1,2\nteam=empty\nparam=half-integer: 0.5,1.5,2.5,...',
                                handler='OddITotalBothOverAndEitherWin'
                                )
         BetType.objects.create(slug='race_to_goals', 
@@ -229,14 +229,14 @@ class Migration(migrations.Migration):
                                )
         BetType.objects.create(slug='win_no_bet', 
                                name='Win no bet',
-                               description='No bet of wininf of team. Param is resilt of the other team\nperiod=0,1,2\nteam=h,a\nparam=w or d',
+                               description='No bet  wining of team in parameter "team". Param is result of the other team\nperiod=0,1,2\nteam=h,a\nparam=w or d',
                                handler='OddWinNoBet'
                                )
-        BetType.objects.create(slug='draw_least_one_half', 
-                               name='Draw least one half',
-                               description='Draw at least in one half\nperiod=0\nteam=empty\nparam=empty',
-                               handler='OddDrawLeastOneHalf'
-                               )
+        # BetType.objects.create(slug='draw_least_one_half', 
+        #                        name='Draw least one half',
+        #                        description='Draw at least in one half\nperiod=0\nteam=empty\nparam=empty',
+        #                        handler='OddDrawLeastOneHalf'
+        #                        )
         BetType.objects.create(slug='w_and_itotal_over', 
                                name='Win & team total over',
                                description='Team will win (in match or half) and total goals greater than N (the same team) \nperiod=0,1,2\nteam=h,a\nparam=half-integer: 0.5,1.5,2.5,...',
@@ -262,26 +262,26 @@ class Migration(migrations.Migration):
                                description='Team will win and total goals of both team exacly equel N\nperiod=0,1,2\nteam=h,a\nparam=list of integers (1 or 0,1 or 1,2,3 or ...)',
                                handler='OddWAndTotal'
                                )
-        BetType.objects.create(slug='penalty_and_r_card', 
-                               name='Penalty & r_card',
-                               description='Penalty and red card (team or any team penalty + any team red card)\nperiod=0,1,2\nteam=h,a,empty-any\nparam=empty',
-                               handler='OddPenaltyAndRCard'
-                               )
-        BetType.objects.create(slug='penalty_or_r_card', 
-                               name='Penalty or r_card',
-                               description='Penalty or red card (team or any team penalty + any team red card)\nperiod=0,1,2\nteam=h,a,empty-any\nparam=empty',
-                               handler='OddPenaltyOrRCard'
-                               )
-        BetType.objects.create(slug='y_and_r_cards_over', 
-                               name='yellow & red cards_over',
-                               description='Number of cards greater than N (in match, half or 1-minute interval)\nperiod=0,1,2,15,30,45,60,75,90\nteam=h,a,empty-all\nparam=half-integer: 0.5,1.5,2.5,...',
-                               handler='OddYAndRCardsOver'
-                               )
-        BetType.objects.create(slug='y_and_r_cards_under', 
-                               name='yellow & red cards_under',
-                               description='Number of cards less than N (in match, half or 1-minute interval)\nperiod=0,1,2,15,30,45,60,75,90\nteam=h,a,empty-all\nparam=half-integer: 0.5,1.5,2.5,...',
-                               handler='OddYAndRCardsUnder'
-                               )
+        # BetType.objects.create(slug='penalty_and_r_card', 
+        #                        name='Penalty & r_card',
+        #                        description='Penalty and red card (team or any team penalty + any team red card)\nperiod=0,1,2\nteam=h,a,empty-any\nparam=empty',
+        #                        handler='OddPenaltyAndRCard'
+        #                        )
+        # BetType.objects.create(slug='penalty_or_r_card', 
+        #                        name='Penalty or r_card',
+        #                        description='Penalty or red card (team or any team penalty + any team red card)\nperiod=0,1,2\nteam=h,a,empty-any\nparam=empty',
+        #                        handler='OddPenaltyOrRCard'
+        #                        )
+        # BetType.objects.create(slug='y_and_r_cards_over', 
+        #                        name='yellow & red cards_over',
+        #                        description='Number of cards greater than N (in match, half or 1-minute interval)\nperiod=0,1,2,15,30,45,60,75,90\nteam=h,a,empty-all\nparam=half-integer: 0.5,1.5,2.5,...',
+        #                        handler='OddYAndRCardsOver'
+        #                        )
+        # BetType.objects.create(slug='y_and_r_cards_under', 
+        #                        name='yellow & red cards_under',
+        #                        description='Number of cards less than N (in match, half or 1-minute interval)\nperiod=0,1,2,15,30,45,60,75,90\nteam=h,a,empty-all\nparam=half-integer: 0.5,1.5,2.5,...',
+        #                        handler='OddYAndRCardsUnder'
+        #                        )
 
 
     dependencies = [
