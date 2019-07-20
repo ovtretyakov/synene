@@ -1135,7 +1135,11 @@ class MatchModelTest(TestCase):
                                 match_date=date(2016,6,1), 
                                 load_source=self.load_source_1
                                 )
+        self.assertIsNone(match.get_referee())
+
         match.set_referee(referee1, load_source=self.load_source_2)
+        referee = match.get_referee()
+        self.assertEquals(referee, referee1)
         match_referee = MatchReferee.objects.get(match=match)
         self.assertEquals(match_referee.referee, referee1)
 
