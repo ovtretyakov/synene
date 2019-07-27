@@ -1556,3 +1556,454 @@ class FootballDataHandlerTest(TestCase):
         self.assertEquals(odd.status, Odd.FINISHED)
         self.assertEquals(odd.result, Odd.SUCCESS)
         self.assertEquals(odd.result_value, Decimal('1.67'))
+
+    #######################################################################
+    @skip("Skip load html")
+    def test_understat_process_site(self):
+        EnglandCountry = Country.get_object('eng')
+        self.assertIsNotNone(EnglandCountry)
+        GreeceCountry = Country.get_object('grc')
+        self.assertIsNotNone(GreeceCountry)
+        RussiaCountry = Country.get_object('rus')
+        self.assertIsNotNone(RussiaCountry)
+        load_date = date(2017, 8, 9)
+
+        source_session = self.handler.process(debug_level=1, get_from_file=False, start_date=load_date)        
+        # source_session = self.handler.process(debug_level=1, get_from_file=True, is_debug_path=False, start_date=load_date)        
+        self.assertIsNotNone(source_session)
+        error_count = ErrorLog.objects.filter(source_session=source_session).count()
+        self.assertEquals(error_count, 0)
+
+        #CONFERENCE LEAGUE
+        match_date = date(2017, 8, 15)
+        conference_league = League.objects.get(name= 'England Conference', load_source=self.handler)
+        self.assertEquals(conference_league.country, EnglandCountry)
+        match_cnt = Match.objects.filter(league=conference_league, match_date=match_date).count()
+        self.assertEquals(match_cnt, 12)
+
+        #Solihull - Barrow
+        Team1 = Team.objects.get(name='Solihull')
+        self.assertEquals(Team1.country, EnglandCountry)
+        Team2 = Team.objects.get(name='Barrow')
+        self.assertEquals(Team2.country, EnglandCountry)
+        
+        match1 = Match.objects.get(
+                    league=conference_league,
+                    match_date=match_date,
+                    team_h=Team1,
+                    team_a=Team2)
+        self.assertEquals(str(match1), 'Solihull - Barrow')
+        self.assertEquals(match1.score, '3:3 (0:2,3:1)')
+        self.assertEquals(match1.status, Match.FINISHED)
+        self.assertEquals(match1.result, Match.DRAW)
+
+        #Referee
+        referee = match1.get_referee()
+        self.assertIsNotNone(referee)
+        self.assertEquals(referee.name, 'C Pollard')
+
+        #GOALS
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 0), '3')
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 0), '3')
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 1), '0')
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 1), '2')
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 2), '3')
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 2), '1')
+        #YCARD
+        self.assertEquals(match1.get_stat(Match.YCARD, Match.COMPETITOR_HOME, 0), '2')
+        self.assertEquals(match1.get_stat(Match.YCARD, Match.COMPETITOR_AWAY, 0), '2')
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_AWAY, 1))
+        #RCARD
+        self.assertEquals(match1.get_stat(Match.RCARD, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(Match.RCARD, Match.COMPETITOR_AWAY, 0), '1')
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_AWAY, 1))
+        #PENALTY
+        self.assertIsNone(match1.get_stat(Match.PENALTY, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.PENALTY, Match.COMPETITOR_AWAY, 0))
+        #GOALS_MINUTE
+        self.assertIsNone(match1.get_stat(Match.GOALS_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.GOALS_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #YCARD_MINUTE
+        self.assertIsNone(match1.get_stat(Match.YCARD_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.YCARD_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #RCARD_MINUTE
+        self.assertIsNone(match1.get_stat(Match.RCARD_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.RCARD_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #GOAL_TIME
+        self.assertIsNone(match1.get_stat(Match.GOAL_TIME, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.GOAL_TIME, Match.COMPETITOR_AWAY, 0))
+        #SHOTS
+        self.assertIsNone(match1.get_stat(Match.SHOTS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.SHOTS, Match.COMPETITOR_AWAY, 0))
+        #SHOTS_ON_TARGET
+        self.assertIsNone(match1.get_stat(Match.SHOTS_ON_TARGET, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.SHOTS_ON_TARGET, Match.COMPETITOR_AWAY, 0))
+        #CORNERS
+        self.assertIsNone(match1.get_stat(Match.CORNERS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.CORNERS, Match.COMPETITOR_AWAY, 0))
+        #FOULS
+        self.assertIsNone(match1.get_stat(Match.FOULS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.FOULS, Match.COMPETITOR_AWAY, 0))
+        #POSSESSION
+        self.assertIsNone(match1.get_stat(Match.POSSESSION, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.POSSESSION, Match.COMPETITOR_AWAY, 0))
+        #XG
+        self.assertIsNone(match1.get_stat(Match.XG, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.XG, Match.COMPETITOR_AWAY, 0))
+        
+        #Bet WDL - w
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="w")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('3.97'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet WDL - d
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="d")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('3.76'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.SUCCESS)
+        self.assertEquals(odd.result_value, Decimal('3.76'))
+        #Bet WDL - l
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="l")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('1.97'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet TOTAL_OVER
+        odd = match1.get_odd(bet_type_slug=BetType.TOTAL_OVER,param="2.50")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddTotalOver.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('1.72'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.SUCCESS)
+        self.assertEquals(odd.result_value, Decimal('1.72'))
+        #Bet TOTAL_UNDER
+        odd = match1.get_odd(bet_type_slug=BetType.TOTAL_UNDER,param="2.50")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddTotalUnder.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('2.05'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet HANDICAP
+        odd = match1.get_odd(bet_type_slug=BetType.HANDICAP,param="+0.50",team="h")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddHandicap.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('1.90'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.SUCCESS)
+        self.assertEquals(odd.result_value, Decimal('1.90'))
+        #Bet HANDICAP
+        odd = match1.get_odd(bet_type_slug=BetType.HANDICAP,param="-0.50",team="a")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddHandicap.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('1.93'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+
+        ################################################
+        #GREECE LEAGUE
+        match_date = date(2018, 2, 25)
+        league = League.objects.get(name= 'Greece Ethniki Katigoria', load_source=self.handler)
+        self.assertEquals(league.country, GreeceCountry)
+        match_cnt = Match.objects.filter(league=league, match_date=match_date).count()
+        self.assertEquals(match_cnt, 4)
+
+        #PAOK - Olympiakos
+        Team1 = Team.objects.get(name='PAOK')
+        self.assertEquals(Team1.country, GreeceCountry)
+        Team2 = Team.objects.get(name='Olympiakos')
+        self.assertEquals(Team2.country, GreeceCountry)
+        
+        match1 = Match.objects.get(
+                    league=league,
+                    match_date=match_date,
+                    team_h=Team1,
+                    team_a=Team2)
+        self.assertEquals(str(match1), 'PAOK - Olympiakos')
+        self.assertEquals(match1.score, '0:3 (:,:)')
+        self.assertEquals(match1.status, Match.FINISHED)
+        self.assertEquals(match1.result, Match.LOOSE)
+
+        #Referee
+        referee = match1.get_referee()
+        self.assertIsNone(referee)
+
+        #GOALS
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 0), '0')
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 0), '3')
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 1))
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 2))
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 2))
+        #YCARD
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_AWAY, 0))
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_AWAY, 1))
+        #RCARD
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_AWAY, 0))
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_AWAY, 1))
+        #PENALTY
+        self.assertIsNone(match1.get_stat(Match.PENALTY, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.PENALTY, Match.COMPETITOR_AWAY, 0))
+        #GOALS_MINUTE
+        self.assertIsNone(match1.get_stat(Match.GOALS_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.GOALS_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #YCARD_MINUTE
+        self.assertIsNone(match1.get_stat(Match.YCARD_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.YCARD_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #RCARD_MINUTE
+        self.assertIsNone(match1.get_stat(Match.RCARD_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.RCARD_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #GOAL_TIME
+        self.assertIsNone(match1.get_stat(Match.GOAL_TIME, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.GOAL_TIME, Match.COMPETITOR_AWAY, 0))
+        #SHOTS
+        self.assertIsNone(match1.get_stat(Match.SHOTS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.SHOTS, Match.COMPETITOR_AWAY, 0))
+        #SHOTS_ON_TARGET
+        self.assertIsNone(match1.get_stat(Match.SHOTS_ON_TARGET, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.SHOTS_ON_TARGET, Match.COMPETITOR_AWAY, 0))
+        #CORNERS
+        self.assertIsNone(match1.get_stat(Match.CORNERS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.CORNERS, Match.COMPETITOR_AWAY, 0))
+        #FOULS
+        self.assertIsNone(match1.get_stat(Match.FOULS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.FOULS, Match.COMPETITOR_AWAY, 0))
+        #POSSESSION
+        self.assertIsNone(match1.get_stat(Match.POSSESSION, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.POSSESSION, Match.COMPETITOR_AWAY, 0))
+        #XG
+        self.assertIsNone(match1.get_stat(Match.XG, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.XG, Match.COMPETITOR_AWAY, 0))
+        
+        #Bet WDL - w
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="w")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('1.79'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet WDL - d
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="d")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('3.33'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet WDL - l
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="l")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('5.86'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.SUCCESS)
+        self.assertEquals(odd.result_value, Decimal('5.86'))
+        #Bet TOTAL_OVER
+        odd = match1.get_odd(bet_type_slug=BetType.TOTAL_OVER,param="2.50")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddTotalOver.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('2.63'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.SUCCESS)
+        self.assertEquals(odd.result_value, Decimal('2.63'))
+        #Bet TOTAL_UNDER
+        odd = match1.get_odd(bet_type_slug=BetType.TOTAL_UNDER,param="2.50")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddTotalUnder.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('1.44'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet HANDICAP
+        odd = match1.get_odd(bet_type_slug=BetType.HANDICAP,param="-0.50",team="h")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddHandicap.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('1.74'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet HANDICAP
+        odd = match1.get_odd(bet_type_slug=BetType.HANDICAP,param="+0.50",team="a")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddHandicap.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('2.09'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.SUCCESS)
+        self.assertEquals(odd.result_value, Decimal('2.09'))
+
+
+        ###################################################
+        #RUSSIA Premier League
+        match_date = date(2017, 8, 9)
+        league = League.objects.get(name= 'Russia Premier League', load_source=self.handler)
+        self.assertEquals(league.country, RussiaCountry)
+        match_cnt = Match.objects.filter(league=league, match_date=match_date).count()
+        self.assertEquals(match_cnt, 5)
+
+        #Rubin Kazan - Lokomotiv Moscow
+        Team1 = Team.objects.get(name='Rubin Kazan')
+        self.assertEquals(Team1.country, RussiaCountry)
+        Team2 = Team.objects.get(name='Lokomotiv Moscow')
+        self.assertEquals(Team2.country, RussiaCountry)
+        
+        match1 = Match.objects.get(
+                    league=league,
+                    match_date=match_date,
+                    team_h=Team1,
+                    team_a=Team2)
+        self.assertEquals(str(match1), 'Rubin Kazan - Lokomotiv Moscow')
+        self.assertEquals(match1.score, '1:1 (:,:)')
+        self.assertEquals(match1.status, Match.FINISHED)
+        self.assertEquals(match1.result, Match.DRAW)
+
+        #Referee
+        referee = match1.get_referee()
+        self.assertIsNone(referee)
+
+        #GOALS
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 0), '1')
+        self.assertEquals(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 0), '1')
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 1))
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_HOME, 2))
+        self.assertIsNone(match1.get_stat(Match.GOALS, Match.COMPETITOR_AWAY, 2))
+        #YCARD
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_AWAY, 0))
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.YCARD, Match.COMPETITOR_AWAY, 1))
+        #RCARD
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_AWAY, 0))
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_HOME, 1))
+        self.assertIsNone(match1.get_stat(Match.RCARD, Match.COMPETITOR_AWAY, 1))
+        #PENALTY
+        self.assertIsNone(match1.get_stat(Match.PENALTY, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.PENALTY, Match.COMPETITOR_AWAY, 0))
+        #GOALS_MINUTE
+        self.assertIsNone(match1.get_stat(Match.GOALS_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.GOALS_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #YCARD_MINUTE
+        self.assertIsNone(match1.get_stat(Match.YCARD_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.YCARD_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #RCARD_MINUTE
+        self.assertIsNone(match1.get_stat(Match.RCARD_MINUTE, Match.COMPETITOR_HOME, 15))
+        self.assertIsNone(match1.get_stat(Match.RCARD_MINUTE, Match.COMPETITOR_AWAY, 15))
+        #GOAL_TIME
+        self.assertIsNone(match1.get_stat(Match.GOAL_TIME, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.GOAL_TIME, Match.COMPETITOR_AWAY, 0))
+        #SHOTS
+        self.assertIsNone(match1.get_stat(Match.SHOTS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.SHOTS, Match.COMPETITOR_AWAY, 0))
+        #SHOTS_ON_TARGET
+        self.assertIsNone(match1.get_stat(Match.SHOTS_ON_TARGET, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.SHOTS_ON_TARGET, Match.COMPETITOR_AWAY, 0))
+        #CORNERS
+        self.assertIsNone(match1.get_stat(Match.CORNERS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.CORNERS, Match.COMPETITOR_AWAY, 0))
+        #FOULS
+        self.assertIsNone(match1.get_stat(Match.FOULS, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.FOULS, Match.COMPETITOR_AWAY, 0))
+        #POSSESSION
+        self.assertIsNone(match1.get_stat(Match.POSSESSION, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.POSSESSION, Match.COMPETITOR_AWAY, 0))
+        #XG
+        self.assertIsNone(match1.get_stat(Match.XG, Match.COMPETITOR_HOME, 0))
+        self.assertIsNone(match1.get_stat(Match.XG, Match.COMPETITOR_AWAY, 0))
+        
+        #Bet WDL - w
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="w")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('2.63'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet WDL - d
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="d")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('3.08'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.SUCCESS)
+        self.assertEquals(odd.result_value, Decimal('3.08'))
+        #Bet WDL - l
+        odd = match1.get_odd(bet_type_slug=BetType.WDL,param="l")
+        self.assertIsNotNone(odd)
+        self.assertEquals(odd.__class__.__name__, OddWDL.__name__)
+        self.assertEquals(odd.status, Odd.WAITING)
+        self.assertEquals(odd.result, Odd.UNKNOWN)
+        self.assertEquals(odd.odd_value, Decimal('3.13'))
+        odd.calculate_result()
+        self.assertEquals(odd.status, Odd.FINISHED)
+        self.assertEquals(odd.result, Odd.FAIL)
+        self.assertEquals(odd.result_value, Decimal('0'))
+        #Bet TOTAL_OVER
+        odd = match1.get_odd(bet_type_slug=BetType.TOTAL_OVER,param="2.50")
+        self.assertIsNone(odd)
+        #Bet TOTAL_UNDER
+        odd = match1.get_odd(bet_type_slug=BetType.TOTAL_UNDER,param="2.50")
+        self.assertIsNone(odd)

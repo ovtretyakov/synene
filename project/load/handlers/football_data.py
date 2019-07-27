@@ -140,6 +140,8 @@ class FootballDataHandler(CommonHandler):
                                         debug_level=debug_level, get_from_file=get_from_file, is_debug_path=is_debug_path)
                         if debug_level >= 2:
                             break
+                    if debug_level >= 1:
+                        break
         else:
             CSV = soup.find('a', string='CSV')
             self.context = CSV
@@ -165,7 +167,9 @@ class FootballDataHandler(CommonHandler):
 
         file_name = self.data_file % (country_name, league_name, start_year)
         html = self.get_html(file_name, league_url, get_from_file, is_debug_path)
-        reader = csv.DictReader(html.decode().splitlines())
+        if get_from_file:
+            html = html.decode()
+        reader = csv.DictReader(html.splitlines())
 
         if league_name:
             if not self.start_or_skip_league(country_name + ' ' + league_name, country=country, detail_slug=league_name):
@@ -257,10 +261,16 @@ class FootballDataHandler(CommonHandler):
 
         #h_goals_1st
         h_goals_1st = match_data.get('HTHG',None)
-        if not h_goals_1st == None: h_goals_1st = int(h_goals_1st)
+        if not h_goals_1st == None and h_goals_1st != "": 
+            h_goals_1st = int(h_goals_1st)
+        else:
+            h_goals_1st = None
         #a_goals_1st
         a_goals_1st = match_data.get('HTAG')
-        if a_goals_1st: a_goals_1st = int(a_goals_1st)
+        if not a_goals_1st == None and a_goals_1st != "": 
+            a_goals_1st = int(a_goals_1st)
+        else:
+            a_goals_1st = None
         #h_goals_2nd
         if h_goals_1st != None and h_goals != None:
             h_goals_2nd = h_goals - h_goals_1st
@@ -306,25 +316,25 @@ class FootballDataHandler(CommonHandler):
 
         self.h.set_stats(
                         goals=h_goals, goals_1st=h_goals_1st, goals_2nd=h_goals_2nd,
-                        shots = h_shots if h_shots == None else int(h_shots),
-                        shots_on_target = h_shots_on_target if h_shots_on_target == None else int(h_shots_on_target),
-                        corners = h_corners if h_corners == None else int(h_corners),
-                        fouls = h_fouls if h_fouls == None else int(h_fouls),
-                        free_kicks = h_free_kicks if h_free_kicks == None else int(h_free_kicks),
-                        offsides = h_offsides if h_offsides == None else int(h_offsides),
-                        y_cards = h_y_cards if h_y_cards == None else int(h_y_cards),
-                        r_cards = h_r_cards if h_r_cards == None else int(h_r_cards)
+                        shots = None if h_shots == None or h_shots == "" else int(h_shots),
+                        shots_on_target = None if h_shots_on_target == None or h_shots_on_target == "" else int(h_shots_on_target),
+                        corners = None if h_corners == None or h_corners == "" else int(h_corners),
+                        fouls = None if h_fouls == None or h_fouls == "" else int(h_fouls),
+                        free_kicks = None if h_free_kicks == None or h_free_kicks == "" else int(h_free_kicks),
+                        offsides = None if h_offsides == None or h_offsides == "" else int(h_offsides),
+                        y_cards = None if h_y_cards == None or h_y_cards == "" else int(h_y_cards),
+                        r_cards = None if h_r_cards == None or h_r_cards == "" else int(h_r_cards)
                         )
         self.a.set_stats(
                         goals=a_goals, goals_1st=a_goals_1st, goals_2nd=a_goals_2nd,
-                        shots = a_shots if a_shots == None else int(a_shots),
-                        shots_on_target = a_shots_on_target if a_shots_on_target == None else int(a_shots_on_target),
-                        corners = a_corners if a_corners == None else int(a_corners),
-                        fouls = a_fouls if a_fouls == None else int(a_fouls),
-                        free_kicks = a_free_kicks if a_free_kicks == None else int(a_free_kicks),
-                        offsides = a_offsides if a_offsides == None else int(a_offsides),
-                        y_cards = a_y_cards if a_y_cards == None else int(a_y_cards),
-                        r_cards = a_r_cards if a_r_cards == None else int(a_r_cards)
+                        shots = None if a_shots == None or a_shots == "" else int(a_shots),
+                        shots_on_target = None if a_shots_on_target == None or a_shots_on_target == "" else int(a_shots_on_target),
+                        corners = None if a_corners == None or a_corners == "" else int(a_corners),
+                        fouls = None if a_fouls == None or a_fouls == "" else int(a_fouls),
+                        free_kicks = None if a_free_kicks == None or a_free_kicks == "" else int(a_free_kicks),
+                        offsides = None if a_offsides == None or a_offsides == "" else int(a_offsides),
+                        y_cards = None if a_y_cards == None or a_y_cards == "" else int(a_y_cards),
+                        r_cards = None if a_r_cards == None or a_r_cards == "" else int(a_r_cards)
                         )
         #avarage 1x0
         win = match_data.get('PH', None)
