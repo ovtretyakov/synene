@@ -51,7 +51,7 @@ def get_total_under_result(param_value, match_value, odd_value):
     match_value = match_value * 2
     result = (get_simple_total_under_result(param_value1, match_value, odd_value)/2 +
               get_simple_total_under_result(param_value2, match_value, odd_value)/2)
-    return result
+    return round(result,5)
 
 def get_simple_handicap_result(param_value, match_value, odd_value):
     if param_value==None or match_value==None: result=None
@@ -68,4 +68,4 @@ def get_handicap_result(param_value, match_value, odd_value):
     match_value = match_value * 2
     result = (get_simple_handicap_result(param_value1, match_value, odd_value)/2 +
               get_simple_handicap_result(param_value2, match_value, odd_value)/2)
-    return result
+    return round(result,5)
