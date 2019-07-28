@@ -104,6 +104,10 @@ class Loadable(Mergable, models.Model):
                 raise ValueError('Missing parameter "name"')
             slug = slugify(name)
             kwargs['slug'] = slug
+        if not slug:
+            raise ValueError('Missing parameter "slug"')
+        if len(slug) > 50:
+            raise ValueError('Too long slug: ' + slug)
         load_source = kwargs.get('load_source',None)
         if not load_source:
             raise ValueError('Missing parameter "load_source"')
