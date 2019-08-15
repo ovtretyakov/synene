@@ -146,6 +146,7 @@ class OddBookieConfig(models.Model):
     team = models.CharField('Team', max_length=10, blank=True)
     yes = models.CharField(r'Yes\No', max_length=1)
     bookie_handler = models.CharField('Handler', max_length=100, blank=True)
+    value_type = models.CharField('Value Type', max_length=20, null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -267,7 +268,10 @@ class Odd(Mergable, models.Model):
         # match
         if not match: raise ValueError('Missing parameter "match"')
         # bet_type
-        if not bet_type_slug: raise ValueError('Missing parameter "bet_type_slug"')
+        if not bet_type_slug:
+            logger.error("!!! Missing parameter 'bet_type_slug' match=%s, source=%s, config=%s" %
+                         (match, load_source, odd_bookie_config.code)) 
+            raise ValueError('Missing parameter "bet_type_slug"')
         try:
             bet_type = BetType.objects.get(slug=bet_type_slug)
         except BetType.DoesNotExist:
@@ -323,6 +327,7 @@ class Odd(Mergable, models.Model):
                     odd.odd_update=timezone.now()
                     odd.save()
         else:
+
             odd = cls.objects.create(
                                         match=match,
                                         bet_type=bet_type,
@@ -356,7 +361,9 @@ class Odd(Mergable, models.Model):
     def clean_yes(cls, yes):
         if yes in('y','n'): yes = yes.upper()
         elif yes.lower() == 'yes': yes = 'Y'
+        elif yes == '1': yes = 'Y'
         elif yes.lower() == 'no': yes = 'N'
+        elif yes == '0': yes = 'N'
         if not yes in('Y','N',):
             raise ValueError('Invalid yes-no param: %s' % yes)
         return yes
@@ -1377,6 +1384,8 @@ class OddHighestValueHalf(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, 
     @classmethod
     def clean_param(cls, param):
         param_ = param.strip().lower()
+        if param_ == "d":
+            param_ = "x"
         if not param_ in('1','x','2'):
             raise ValueError('Invalid odd param (should be 1,x or 2): %s' % param)
         return param_

@@ -1,5 +1,6 @@
 import os
 import time
+from decimal import Decimal
 from datetime import datetime, date, timedelta
 import traceback
 import logging
@@ -10,7 +11,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats, Referee
-from betting.models import Odd, ValueType
+from betting.models import Odd, ValueType, OddBookieConfig
 from .exceptions import LoadError, TooMamyErrors
 from .helpers import MatchDetail
 
@@ -82,6 +83,39 @@ class CommonHandler(MatchDetail, LoadSource):
         return html
 
 
+    def get_config(self, code):
+        try:
+            config = OddBookieConfig.objects.get(bookie=self, code=code)
+        except OddBookieConfig.DoesNotExist:
+            config = None
+        return config
+
+    def clear_handicap_param(self, param):
+      ''' clear handicap param
+          0 -> 0
+          0.0 -> 0
+          +0 -> 0
+          -1,5 -> -1.5
+          2.5 -> +2.5
+      '''
+      p0 = param.replace(',','.').replace(chr(int('0x2013',16)),'-')
+      # print(param, p0, chr(int('0x2013',16)))
+      # print(param, hex(ord(param[0])), chr(int(hex(ord(param[0])),16)) )
+      p = Decimal(p0)
+      if p == 0:
+        s = '0'
+      else:
+        s = '{0:+.2f}'.format(p)
+      return s
+
+    def clear_total_param(self, param):
+      if param == None: return None
+      p = Decimal(param.replace(',','.'))
+      if p == 0:
+        s = '0'
+      else:
+        s = '{0:.2f}'.format(p)
+      return s
 
     def clear_contents(self):
         self.source_session = None
@@ -225,7 +259,7 @@ class CommonHandler(MatchDetail, LoadSource):
             raise LoadError
 
 
-    def start_or_skip_league(self, league_name, country=None, season_name='NA', detail_slug=None):
+    def start_or_skip_league(self, league_name, country=None, season_name='NA', detail_slug=None, league_slug=None):
         try:
             with transaction.atomic():
                 self.lock()
@@ -245,11 +279,13 @@ class CommonHandler(MatchDetail, LoadSource):
                         if i > 1:
                             country = None
 
+                logger.debug("League.get_or_create name=<%s> slug=<%s>" % (league_name,league_slug))
                 self.league = League.get_or_create(
                                             sport=self.get_sport(),
                                             name=league_name,
                                             country=country,
-                                            load_source=self)
+                                            load_source=self,
+                                            slug=league_slug)
 
                 if not self.league:
                     logger.info(type(self).__name__ + ': Skip league ' + league_name)
@@ -392,7 +428,6 @@ class CommonHandler(MatchDetail, LoadSource):
 
 
     def finish_match(self):
-        self
         try:
             with transaction.atomic():
                 self.lock()
@@ -402,12 +437,15 @@ class CommonHandler(MatchDetail, LoadSource):
                     self._save_competitor_data(Match.COMPETITOR_HOME, self.h)
                     self._save_competitor_data(Match.COMPETITOR_AWAY, self.a)
                     for odd in self.odds:
+                        # logger.debug(odd)
                         bet_type_slug = odd.pop('bet_type',None)
                         value_type_slug = odd.pop('value_type',None)
                         if not value_type_slug:
                             value_type_slug = ValueType.MAIN
                         bookie = self if self.is_betting else None
+                        # logger.debug(odd)
                         Odd.create(self.match, bet_type_slug, value_type_slug, load_source=self, bookie=bookie, **odd)
+                    self.odds.clear()
                     self.source_detail_match.refresh_from_db()
                     self.source_detail_match.status=SourceDetail.FINISHED
                     self.source_detail_match.save()
