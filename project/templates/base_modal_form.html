@@ -15,12 +15,11 @@
 
   <div class="modal-body">
 
-    <div class="col-sm{% if form.non_field_errors %} invalid{% endif %} mb-2">
+    <div class="col-sm invalid mb-2 text-danger">
       {% for error in form.non_field_errors %}
         {{ error }}
       {% endfor %}
     </div>
-
 
     {% block modal-body %}
       {% for field in form %}
@@ -44,7 +43,7 @@
   <div class="modal-footer">
     {% block modal-footer %}
       <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{% block button-close %}Close{% endblock button-close %}</button>
-      <button type="button" class="submit-btn btn btn-primary btn-sm">{% block button-action %}Update{% endblock button-action %}</button>
+      <button type="button" class="submit-btn btn btn-primary btn-sm" id="submit-form-id">{% block button-action %}Update{% endblock button-action %}</button>
     {% endblock modal-footer %}
 
   </div>

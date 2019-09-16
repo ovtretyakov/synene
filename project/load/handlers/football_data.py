@@ -4,7 +4,7 @@ import logging
 
 from django.utils import timezone
 
-from load.models import CommonHandler
+from ..models import CommonHandler
 
 logger = logging.getLogger(__name__)
 

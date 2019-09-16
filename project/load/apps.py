@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class LoadConfig(AppConfig):
-    name = 'load'
+    name = 'project.load'

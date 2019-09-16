@@ -9,8 +9,8 @@ from urllib.request import urljoin
 
 from django.utils import timezone
 
-from load.models import CommonHandler
-from load.exceptions import TooMamyErrors
+from ..models import CommonHandler
+from ..exceptions import TooMamyErrors
 
 logger = logging.getLogger(__name__)
 

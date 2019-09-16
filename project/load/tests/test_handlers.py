@@ -5,10 +5,10 @@ from unittest import skip
 
 from django.test import TestCase
 
-from core.models import Country, League, Team, Match, MatchStats
-from load.models import ErrorLog
-from load.handlers.espn import ESPNHandler 
-from load.handlers.understat import UnderstatHandler
+from project.core.models import Country, League, Team, Match, MatchStats
+from ..models import ErrorLog
+from ..handlers.espn import ESPNHandler 
+from ..handlers.understat import UnderstatHandler
 
 def prepare_data(obj):
     obj.handler = ESPNHandler.get()

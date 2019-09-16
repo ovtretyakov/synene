@@ -4,17 +4,17 @@ from datetime import datetime, date, timedelta
 from django.test import TestCase
 from django.utils import timezone
 
-from core.models import Sport, TeamType, Country, League, Team, Match, MatchStats
-from load.models import (
+from project.core.models import Sport, TeamType, Country, League, Team, Match, MatchStats
+from ..models import (
                         SourceSession, 
                         SourceDetail, 
                         ErrorLog,
                         SourceDetailLeague,
                         SourceDetailMatch)
-from load.exceptions import LoadError, TooMamyErrors
-from load.handlers.espn import ESPNHandler
-from load.handlers.understat import UnderstatHandler
-from load.handlers.football_data import FootballDataHandler
+from ..exceptions import LoadError, TooMamyErrors
+from ..handlers.espn import ESPNHandler
+from ..handlers.understat import UnderstatHandler
+from ..handlers.football_data import FootballDataHandler
 
 
 def prepare_data(obj):

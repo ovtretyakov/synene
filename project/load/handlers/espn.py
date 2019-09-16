@@ -8,8 +8,8 @@ from bs4 import BeautifulSoup
 
 from django.utils import timezone
 
-from load.models import CommonHandler
-from load.exceptions import TooMamyErrors
+from ..models import CommonHandler
+from ..exceptions import TooMamyErrors
 
 logger = logging.getLogger(__name__)
 
@@ -58,13 +58,16 @@ class ESPNHandler(CommonHandler):
                 dat = self.get_load_date()
             if not dat:
                 dat = date(2010, 1, 1)
+            i = 0
             while dat <= timezone.now().date():
 
                 self.set_load_date(load_date=dat, is_set_main=True)
                 self.process_date(dat, is_debug, get_from_file, is_debug_path)
 
+                i += 1
                 dat += timedelta(days=1)
                 if is_debug: break
+                if i>= 2: break #!!!
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
         finally:

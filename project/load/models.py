@@ -9,7 +9,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.conf import settings
 
-from core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats
+from project.core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats
 from .exceptions import LoadError, TooMamyErrors
 from .helpers import MatchDetail
 

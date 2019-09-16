@@ -1,0 +1,67 @@
+{% extends "base_modal_form.html" %}
+{% block title %}Select league{% endblock %}
+{% block form_id %}formSelectLeague{% endblock form_id %}
+
+{% block modal-body %}
+
+
+      <div class="table-responsive">
+        <table id="select_league_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Country</th>
+              <th>Status</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+
+  <script>
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var events = $('#events');
+
+      var table = $('#select_league_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'football:league_list_api'  %}?format=datatables",
+              'order': [[ 0, 'asc' ]],
+              'columns': [
+                  {'data': 'id'},
+                  {'data': 'name'},
+                  {'data': 'team_type', 'name':'team_type.name'},
+                  {'data': 'country', 'name':'country.name'},
+                  {'data': 'load_status'},
+                  {'data': 'load_source', 'name':'load_source.name'},
+              ],
+      });
+
+
+        $('#select_league_table tbody').on('dblclick', 'tr', function () {
+          var data = table.row( this ).data();
+          $('#league_id').val(data.id);
+          $('#league_name').val(data.name);
+          $("#closeSelectLeagueForm").trigger({ type: "click" });
+          // $('#modal1-content').html("");
+        });
+
+
+    });
+  </script>
+
+
+
+{% endblock %}
+
+
+{% block modal-footer %}
+    <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal" id="closeSelectLeagueForm">Close</button>
+{% endblock modal-footer %}

@@ -3,9 +3,9 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from football.models import FootballSource,FootballLeague,FootballTeam
-from core.models import Country,TeamType,Match,MatchStats
-from betting.models import Odd,BetType,ValueType
+from project.football.models import FootballSource,FootballLeague,FootballTeam
+from project.core.models import Country,TeamType,Match,MatchStats
+from ..models import Odd,BetType,ValueType
 
 
 def prepare_data(obj):

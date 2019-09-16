@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Football leagues{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Football leagues</h1>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Delete selected leagues" id="delete-leagues" 
+            onclick="delete_leagues_dlg()" disabled>Delete leagues</button >
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Confirm selected leagues" id="confirm-leagues" onclick="confirm_leagues_dlg()" disabled>Confirm league</button>
+          </div>
+        </div>
+
+
+      </div>
+
+
+    <!-- Filter -->
+    <div class="pb-1 mb-1" >
+        <form  method="GET" id="league-filter-id">
+          <div class="form-row">
+            <div class="col-3">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="sources">Source</span>
+                </div>
+                <select name="source" class="custom-select" id="source">
+                  <option {% if selected_source == 0 %}selected{% endif %} value="0"> All sources </option>
+                  {% for source in sources %}
+                    <option {% if selected_source == source.id %}selected{% endif %} value="{{ source.id }}"> {{ source.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_from">From</span>
+                </div>
+                <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}">
+              </div>
+            </div>
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_to">To</span>
+                </div>
+                <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}">
+              </div>
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+            </div>
+          </div>
+        </form>
+    </div>
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Country</th>
+              <th>Status</th>
+              <th>Source</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var upd_url = "{% url 'core:update_league' 0 %}";
+          var merge_url = "{% url 'football:merge_league' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<button type="button" class="update-league btn btn-sm btn-outline-secondary" data-id="' + upd_url + '" title="Edit league" id="update-league">' +
+                '   <span class="fa fa-pencil"></span>' +
+                '</button>' +
+                '<button type="button" class="merge-league btn btn-sm btn-outline-secondary" data-id="' + merge_url + '" title="Merge to league" id="merge-league">' +
+                '   <span class="fa fa-sign-in"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'football:league_list_api'  %}?format=datatables&selected_source={{selected_source}}&date_from={{date_from}}&date_to={{date_to}}",
+              'order': [[ 3, 'desc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'3em'},
+                  {'data': 'name'},
+                  {'data': 'team_type', 'name':'team_type.name'},
+                  {'data': 'country', 'name':'country.name'},
+                  {'data': 'load_status'},
+                  {'data': 'load_source', 'name':'load_source.name'},
+                  {'data': 'created'},
+
+              ],
+
+              'drawCallback': function(settings, json) {
+                $(".update-league").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formUpdateLeague",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+                $(".merge-league").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formMergeLeague",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+              }
+      });
+
+      table.on('select', function ( e, dt, type, indexes) {
+          $('#delete-leagues').prop('disabled', false);
+          $('#confirm-leagues').prop('disabled', false);
+        });
+      table.on('deselect', function ( e, dt, type, indexes) {
+          var rows = table.rows( { selected: true } );
+          var count = rows.count();
+          if (count == 0) {
+              $('#delete-leagues').prop('disabled', true);
+              $('#confirm-leagues').prop('disabled', true);
+          }
+        });
+
+    });
+
+
+
+    function delete_leagues_dlg() 
+      {
+        var table = $('#main_table').DataTable();
+        var data = table.rows( { selected: true } ).data();
+        var idarray=[]; 
+        for (var i=0; i < data.length ;i++){
+          idarray.push(data[i]["id"]);
+        }
+        
+        var url = "{% url 'football:delete_leagues' %}?leagues=" + idarray.toString();
+        newForm("#modal",
+                ".modal0-content",
+                "#formDeleteLeagues",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
+    function confirm_leagues_dlg() 
+      {
+        var table = $('#main_table').DataTable();
+        var data = table.rows( { selected: true } ).data();
+        var idarray=[]; 
+        for (var i=0; i < data.length ;i++){
+          idarray.push(data[i]["id"]);
+        }
+        
+        var url = "{% url 'football:confirm_leagues' %}?leagues=" + idarray.toString();
+        newForm("#modal",
+                ".modal0-content",
+                "#formConfirmLeagues",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
+
+    
+  </script>
+{% endblock %}
+
+

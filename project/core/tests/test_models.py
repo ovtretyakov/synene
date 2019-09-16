@@ -3,8 +3,8 @@ from datetime import date, timedelta
 from django.test import TestCase
 from django.db.utils import IntegrityError
 
-from core.factories import get_sport, get_country, get_team
-from core.models import (
+from ..factories import get_sport, get_country, get_team
+from ..models import (
     Loadable, ObjectLoadSource,
     Sport, 
     LoadSource, 
@@ -17,7 +17,7 @@ from core.models import (
     Referee, RefereeLoadSource,
     Match, MatchReferee, MatchStats,
     )
-from betting.models import BetType, ValueType, Odd 
+from project.betting.models import BetType, ValueType, Odd 
 
 
 def prepare_data(obj):
@@ -25,6 +25,8 @@ def prepare_data(obj):
     obj.football = Sport.objects.get(slug=Sport.FOOTBALL)
     obj.sport = obj.football
     obj.team_type = TeamType.objects.get(slug=TeamType.REGULAR)
+    obj.regular = TeamType.objects.get(slug=TeamType.REGULAR)
+    obj.national = TeamType.objects.get(slug=TeamType.NATIONAL)
     obj.russia = Country.objects.get(slug='rus')
     obj.country = obj.russia
     obj.unknown_country = Country.objects.get(slug='na')
@@ -387,6 +389,86 @@ class LeagueModelTest(TestCase):
         self.assertEquals(new_league.load_source, self.load_source_1)
 
     #######################################################################
+    def test_api_leagues_confirm(self):
+        league1 = League.get_or_create(name='test_api_delete_leagues 1', 
+                                          sport=self.sport, 
+                                          load_source=self.load_source_1,
+                                          )
+        league1_pk = league1.pk
+        league2 = League.get_or_create(name='test_api_delete_leagues 2', 
+                                          sport=self.sport, 
+                                          load_source=self.load_source_2,
+                                          )
+        league2_pk = league2.pk
+
+        leagues_str = "%s,%s" % (league1_pk,league2_pk)
+        League.api_confirm_leagues(leagues_str, self.load_source_2)
+
+        league1.refresh_from_db()
+        league2.refresh_from_db()
+        self.assertEquals(league1.load_status, Loadable.CONFIRMED)
+        self.assertEquals(league2.load_status, Loadable.CONFIRMED)
+
+
+    #######################################################################
+    def test_league_api_update(self):
+        league_slug = 'test_api_update_league'
+        league1 = League.get_or_create(name=league_slug, load_source=self.load_source_1, sport=self.sport)
+        league1_pk = league1.pk
+        self.assertEquals(league1.load_status, Loadable.UNCONFIRMED)
+        team1 = Team.get_or_create(
+            name='team league_update 1', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        team2 = Team.get_or_create(
+            name='team league_update 2', 
+            team_type=self.team_type, sport=self.sport, country=self.country, load_source=self.load_source
+        )
+        match1 = Match.get_or_create(
+                                league=league1, team_h=team1, team_a=team2, 
+                                match_date=date(2017,10,1), 
+                                load_source=self.load_source_1
+                                )
+        match1_pk = match1.pk
+
+        league1.api_update(league1.slug, 
+                                name='test_api_update_league1', 
+                                team_type=self.national, 
+                                country=league1.country, 
+                                load_status=Loadable.CONFIRMED, 
+                                load_source=self.load_source_1)
+        league1.refresh_from_db()
+        self.assertEquals(league1.name, 'test_api_update_league1')
+        self.assertEquals(league1.team_type, self.national)
+        self.assertEquals(league1.country, league1.country)
+        self.assertEquals(league1.load_status, Loadable.CONFIRMED)
+        team1.refresh_from_db()
+        team2.refresh_from_db()
+        self.assertEquals(team1.team_type, self.national)
+        self.assertEquals(team2.team_type, self.national)
+
+        eng = Country.objects.get(slug='eng')
+        league2 = League.get_or_create(name=league_slug, load_source=self.load_source_1, sport=self.sport, country=eng)
+        league2.confirm(self.load_source_1)
+        league2_pk = league2.pk
+        match2 = Match.get_or_create(
+                                league=league2, team_h=team1, team_a=team2, 
+                                match_date=date(2017,10,1), 
+                                load_source=self.load_source_1
+                                )
+        match2_pk = match2.pk
+
+        league1.api_update(league1.slug, 
+                                name=league1.name, 
+                                team_type=league1.team_type,
+                                country=eng, 
+                                load_status=Loadable.CONFIRMED, 
+                                load_source=self.load_source_1)
+        self.assertEquals(league1, league2)
+        with self.assertRaises(Match.DoesNotExist):
+            match1.refresh_from_db()
+
+    #######################################################################
     def test_league_merge(self):
         team1 = Team.get_or_create(
             name='team league_merge 1', 
@@ -558,6 +640,25 @@ class LeagueModelTest(TestCase):
                                             sport=self.sport, 
                                             load_source=self.load_source_1)
         self.assertIsNone(deleted_league)
+
+    #######################################################################
+    def test_api_leagues_delete(self):
+        league1 = League.get_or_create(name='test_api_delete_leagues 1', 
+                                          sport=self.sport, 
+                                          load_source=self.load_source_1,
+                                          )
+        league1_pk = league1.pk
+        league2 = League.get_or_create(name='test_api_delete_leagues 2', 
+                                          sport=self.sport, 
+                                          load_source=self.load_source_2,
+                                          )
+        league2_pk = league2.pk
+
+        leagues_str = "%s,%s" % (league1_pk,league2_pk)
+        League.api_delete_leagues(leagues_str)
+
+        self.assertFalse(League.objects.filter(pk=league1_pk).exists(), 'League1 was deleted')
+        self.assertFalse(League.objects.filter(pk=league2_pk).exists(), 'League2 was deleted')
 
 
 #######################################################################################
@@ -914,6 +1015,7 @@ class TeamModelTest(TestCase):
 
         #test 1
         team3.merge_to(team1)
+        self.assertEquals(team3, team1)
         with self.assertRaises(Team.DoesNotExist):
             team3 = Team.objects.get(pk=team3_pk)
         with self.assertRaises(Match.DoesNotExist):
@@ -923,18 +1025,11 @@ class TeamModelTest(TestCase):
 
         #test 2
         team2.merge_to(team4)
+        self.assertEquals(team2, team4)
         match1 = Match.objects.get(pk=match1_pk)
         self.assertEquals(match1.team_h, team1)
         self.assertEquals(match1.team_a, team4)
 
-        exists_team1 = TeamMembership.objects.filter(team=team1).exists()
-        exists_team2 = TeamMembership.objects.filter(team=team2).exists()
-        exists_team3 = TeamMembership.objects.filter(team=team3).exists()
-        exists_team4 = TeamMembership.objects.filter(team=team4).exists()
-        self.assertTrue(exists_team1)
-        self.assertFalse(exists_team2)
-        self.assertFalse(exists_team3)
-        self.assertTrue(exists_team4)
     #######################################################################
     def test_team_delete(self):
         team1 = Team.get_or_create(
