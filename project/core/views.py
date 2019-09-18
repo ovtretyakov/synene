@@ -9,8 +9,10 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalReadView,
                                            BSModalDeleteView)
 
+from .utils import get_date_from_string
 from .models import League
 from .forms import LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfirmForm
+from .serializers import SeasonSerializer
 
 
 
@@ -130,6 +132,55 @@ class LeaguesConfirmView(BSModalCreateView):
             except Exception as e:
                 messages.error(self.request, "Confirming error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
+
+
+
+####################################################
+#  Season
+####################################################
+class SeasonView(generic.TemplateView):
+
+    def get_leagues(self):
+        return League.objects.select_related("country").all().order_by("country__name", "pk")
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super().get_context_data(**kwargs)
+
+        leagues = self.get_leagues()
+        context["leagues"] = leagues
+
+        date_to = self.request.GET.get("date_to", None)
+        if date_to:
+            context["date_to"] = date_to
+        date_from = self.request.GET.get("date_from", None)
+        if date_from:
+            context["date_from"] = date_from
+        selected_league = self.request.GET.get("selected_league", None)
+        if selected_league:
+            context["selected_league"] = int(selected_league)
+
+        return context    
+
+
+class SeasonAPI(ListAPIView):
+    serializer_class = SeasonSerializer
+    # queryset = FootballLeague.objects.all()
+    lookup_field = "pk"
+
+    def get_queryset(self, queryset, *args, **kwargs):
+        # queryset = FootballLeague.objects.all()
+        date_from = get_date_from_string(self.request.query_params.get("date_from", None))
+        if date_from:
+            queryset = queryset.filter(start_date__gte=date_from)
+        date_to = get_date_from_string(self.request.query_params.get("date_to", None))
+        if date_to:
+            queryset = queryset.filter(start_date__lte=date_to)
+        selected_league_id = self.request.query_params.get("selected_league", None)
+        if selected_league_id and int(selected_league_id) > 0:
+            queryset = queryset.filter(league=selected_league_id)
+
+        return queryset
 
 
 

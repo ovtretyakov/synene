@@ -12,8 +12,10 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from project.core.utils import get_date_from_string
-from project.core.models import LoadSource
-from project.core.views import LeagueMergeView, LeaguesDeleteView, LeaguesConfirmView
+from project.core.models import Sport, LoadSource, Season
+from project.core.views import (LeagueMergeView, LeaguesDeleteView, LeaguesConfirmView,
+                                SeasonView, SeasonAPI,
+                                )
 from .models import FootballLeague
 from .serializers import   (FootballLeagueSerializer, 
                             )
@@ -80,3 +82,19 @@ class FootballLeaguesDeleteView(LeaguesDeleteView):
 
 class FootballLeaguesConfirmView(LeaguesConfirmView):
     template_name = "football/confirm_leagues.html"
+
+
+
+####################################################
+#  FootballSeason
+####################################################
+class FootballSeasonView(SeasonView):
+    template_name = "football/season_list.html"
+
+    def get_leagues(self):
+        return FootballLeague.objects.select_related("country").all().order_by("country__name", "pk")
+
+class FootballSeasonAPI(SeasonAPI):
+    def get_queryset(self, *args, **kwargs):
+        queryset = Season.objects.filter(league__sport__slug=Sport.FOOTBALL)
+        return super().get_queryset(queryset, *args, **kwargs)
