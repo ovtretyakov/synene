@@ -300,6 +300,10 @@ class Odd(Mergable, models.Model):
         param = cls.clean_param(param)
         odd_value = cls.clean_value(odd_value)
 
+        if odd_value < bookie.min_odd or odd_value > bookie.max_odd:
+            #skip odd
+            return None
+
         #if exists
         try:
             if bookie:
@@ -895,11 +899,7 @@ class OddITotalOnlyOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam
             elif self.team == Match.COMPETITOR_AWAY:
                 win = (result_h != Odd.SUCCESS and result_a == Odd.SUCCESS)
             else:
-                win =   (
-                        (result_h == Odd.SUCCESS and result_a != Odd.SUCCESS) 
-                        or
-                        (result_h != Odd.SUCCESS and result_a == Odd.SUCCESS)
-                        )
+                win =   (result_h == Odd.SUCCESS or result_a == Odd.SUCCESS)
         return self.calc_result_with_field_yes(win)
 ###################################################################
 class OddITotalOnlyUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
@@ -1162,7 +1162,7 @@ class OddITotalBothUnderInBothHalves(OddMixins.Only0Period, OddMixins.OnlyEmptyT
             win = (value1_h < param) and (value1_a < param) and (value2_h < param) and (value2_a < param)
         return self.calc_result_with_field_yes(win)
 ###################################################################
-class OddITotalOnlyOverInBothHalves(OddMixins.Only0Period, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
+class OddITotalOnlyOverInBothHalves(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
     @staticmethod
@@ -1178,6 +1178,9 @@ class OddITotalOnlyOverInBothHalves(OddMixins.Only0Period, OddMixins.HomeOrAwayT
                 win = (value1_h > param) and (value2_h > param) and ((value1_a < param) or (value2_a < param))
             elif self.team == 'a':
                 win = (value1_a > param) and (value2_a > param) and ((value1_h < param) or (value2_h < param))
+            elif not self.team:
+                #neither
+                win = ((value1_h < param) or (value2_h < param)) and ((value1_a < param) or (value2_a < param))
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)

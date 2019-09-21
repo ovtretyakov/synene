@@ -189,7 +189,7 @@ class Migration(migrations.Migration):
                                )
         BetType.objects.create(slug='itotal_only_over_in_both_halves', 
                                name='Only one score over in both halves',
-                               description='Only one team will score greater than N goals in both halves\nperiod=0\nteam=h,a\nparam=half-integer: 0.5,1.5,2.5,...',
+                               description='Only one team will score greater than N goals in both halves\nperiod=0\nteam=h,a,empty-neither\nparam=half-integer: 0.5,1.5,2.5,...',
                                handler='OddITotalOnlyOverInBothHalves'
                                )
         BetType.objects.create(slug='itotal_only_under_in_both_halves', 
