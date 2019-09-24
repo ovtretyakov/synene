@@ -96,6 +96,7 @@
           var upd_url = "{% url 'core:update_league' 0 %}";
           var merge_url = "{% url 'football:merge_league' 0 %}";
           var season_url = "{% url 'football:season_list' %}?selected_league=0";
+          var match_url = "{% url 'football:match_list' %}?selected_league=0";
           if ( type === 'display' ) {
               var r = 
                 '<button type="button" class="update-league btn btn-sm btn-outline-secondary" data-id="' + upd_url + '" title="Edit league" id="update-league">' +
@@ -104,7 +105,8 @@
                 '<button type="button" class="merge-league btn btn-sm btn-outline-secondary" data-id="' + merge_url + '" title="Merge to league" id="merge-league">' +
                 '   <span class="fa fa-sign-in"></span>' +
                 '</button>' +
-                '<a class="btn btn-sm btn-outline-secondary" href="' + season_url + '"><span class="fa fa-sitemap" title="League seasons"></span></a>'
+                '<a class="btn btn-sm btn-outline-secondary" href="' + season_url + '"><span class="fa fa-sitemap" title="League seasons"></span></a>' +
+                '<a class="btn btn-sm btn-outline-secondary" href="' + match_url + '"><span class="fa fa-exchange" title="League matches"></span></a>'
               ;
               r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
               r = r.replace(new RegExp('=0', 'g'), '='+data);
@@ -124,7 +126,7 @@
               'order': [[ 3, 'desc' ]],
               'select': true,
               'columns': [
-                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'5em'},
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'7em'},
                   {'data': 'name'},
                   {'data': 'team_type', 'name':'team_type.name'},
                   {'data': 'country', 'name':'country.name'},

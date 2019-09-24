@@ -12,10 +12,13 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from project.core.utils import get_date_from_string
-from project.core.models import Sport, LoadSource, Season
+from project.core.models import Sport, LoadSource, Season, Match
 from project.core.views import (LeagueMergeView, LeaguesDeleteView, LeaguesConfirmView,
-                                SeasonView, SeasonAPI,
+                                SeasonAPI,
+                                MatchAPI,
                                 )
+from project.core.mixins import LeagueGetContextMixin
+
 from .models import FootballLeague
 from .serializers import   (FootballLeagueSerializer, 
                             )
@@ -88,13 +91,26 @@ class FootballLeaguesConfirmView(LeaguesConfirmView):
 ####################################################
 #  FootballSeason
 ####################################################
-class FootballSeasonView(SeasonView):
+class FootballSeasonView(LeagueGetContextMixin, generic.TemplateView):
     template_name = "football/season_list.html"
-
     def get_leagues(self):
         return FootballLeague.objects.select_related("country").all().order_by("country__name", "pk")
 
 class FootballSeasonAPI(SeasonAPI):
     def get_queryset(self, *args, **kwargs):
         queryset = Season.objects.filter(league__sport__slug=Sport.FOOTBALL)
+        return super().get_queryset(queryset, *args, **kwargs)
+
+
+####################################################
+#  FootballMatch
+####################################################
+class FootballMatchView(LeagueGetContextMixin, generic.TemplateView):
+    template_name = "football/match_list.html"
+    def get_leagues(self):
+        return FootballLeague.objects.select_related("country").all().order_by("country__name", "pk")
+
+class FootballMatchAPI(MatchAPI):
+    def get_queryset(self, *args, **kwargs):
+        queryset = Match.objects.filter(league__sport__slug=Sport.FOOTBALL)
         return super().get_queryset(queryset, *args, **kwargs)

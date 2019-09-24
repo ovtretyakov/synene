@@ -10,9 +10,9 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from .utils import get_date_from_string
-from .models import League
+from .models import League, Match, MatchStats
 from .forms import LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfirmForm
-from .serializers import SeasonSerializer
+from .serializers import SeasonSerializer, MatchSerializer, MatchStatsSerializer
 
 
 
@@ -138,30 +138,6 @@ class LeaguesConfirmView(BSModalCreateView):
 ####################################################
 #  Season
 ####################################################
-class SeasonView(generic.TemplateView):
-
-    def get_leagues(self):
-        return League.objects.select_related("country").all().order_by("country__name", "pk")
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get the context
-        context = super().get_context_data(**kwargs)
-
-        leagues = self.get_leagues()
-        context["leagues"] = leagues
-
-        date_to = self.request.GET.get("date_to", None)
-        if date_to:
-            context["date_to"] = date_to
-        date_from = self.request.GET.get("date_from", None)
-        if date_from:
-            context["date_from"] = date_from
-        selected_league = self.request.GET.get("selected_league", None)
-        if selected_league:
-            context["selected_league"] = int(selected_league)
-
-        return context    
-
 
 class SeasonAPI(ListAPIView):
     serializer_class = SeasonSerializer
@@ -183,4 +159,48 @@ class SeasonAPI(ListAPIView):
         return queryset
 
 
+####################################################
+#  Match
+####################################################
+class MatchAPI(ListAPIView):
+    serializer_class = MatchSerializer
+    lookup_field = "pk"
 
+    def get_queryset(self, queryset, *args, **kwargs):
+        # queryset = FootballLeague.objects.all()
+        date_from = get_date_from_string(self.request.query_params.get("date_from", None))
+        if date_from:
+            queryset = queryset.filter(match_date__gte=date_from)
+        date_to = get_date_from_string(self.request.query_params.get("date_to", None))
+        if date_to:
+            queryset = queryset.filter(match_date__lte=date_to)
+        selected_league_id = self.request.query_params.get("selected_league", None)
+        if selected_league_id and int(selected_league_id) > 0:
+            queryset = queryset.filter(league=selected_league_id)
+        season_id = self.request.query_params.get("season_id", None)
+        if season_id and int(season_id) > 0:
+            queryset = queryset.filter(season=season_id)
+
+        return queryset
+
+
+class MatchDetailView(generic.DetailView):
+    model = Match
+    template_name = "core/match_detail.html"
+
+
+####################################################
+#  MatchStats
+####################################################
+class MatchStatsAPI(ListAPIView):
+    serializer_class = MatchStatsSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = MatchStats.objects.all()
+        match_id = self.request.query_params.get("match_id", None)
+        print("!!!!", match_id)
+        if match_id and int(match_id) > 0:
+            queryset = queryset.filter(match=match_id)
+
+        return queryset

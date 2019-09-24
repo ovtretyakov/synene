@@ -14,4 +14,7 @@ urlpatterns = [
     #FootballSeasons
     url(r'^seasons/$', views.FootballSeasonView.as_view(), name='season_list'),
     url(r'^seasons/api/$', views.FootballSeasonAPI.as_view(), name='season_list_api'),
+    #FootballMatches
+    url(r'^matches/$', views.FootballMatchView.as_view(), name='match_list'),
+    url(r'^matches/api/$', views.FootballMatchAPI.as_view(), name='match_list_api'),
 ]
