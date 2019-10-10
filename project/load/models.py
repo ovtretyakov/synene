@@ -9,6 +9,7 @@ import requests
 from django.db import models, transaction
 from django.utils import timezone
 from django.conf import settings
+from django.template.defaultfilters import slugify
 
 from core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats, Referee
 from betting.models import Odd, ValueType, OddBookieConfig
@@ -341,14 +342,20 @@ class CommonHandler(MatchDetail, LoadSource):
                 match_date = self.match_date
             with transaction.atomic():
                 self.lock()
+                slug_h = slugify(name_h)
+                slug_h = slug_h if len(slug_h) < 30 else slug_h[:30]
                 self.team_h = Team.get_or_create(
                                         sport=self.get_sport(),
                                         name=name_h,
+                                        slug=slug_h,
                                         country=self.league.country,
                                         load_source=self)
+                slug_a = slugify(name_a)
+                slug_a = slug_a if len(slug_a) < 30 else slug_a[:30]
                 self.team_a = Team.get_or_create(
                                         sport=self.get_sport(),
                                         name=name_a,
+                                        slug=slug_a,
                                         country=self.league.country,
                                         load_source=self)
                 do_action = (self.team_h != None and self.team_a != None)

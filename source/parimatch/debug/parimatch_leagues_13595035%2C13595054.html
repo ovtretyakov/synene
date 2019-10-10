@@ -1,0 +1,685 @@
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>Bets - Betting company Parimatch</title>
+<script src="/cdn-cgi/apps/head/MCPWP9gJXv59FtX0hlqOTGzIA98.js"></script><link href="/css/01.css?20190928" media="screen" rel="stylesheet" type="text/css" />
+<link href="/css/02.css?20191001" media="screen" rel="stylesheet" type="text/css" />
+<!--<link href="/static/css/jquery-ui-1.8.5.custom.css?20191001" media="screen" rel="stylesheet" type="text/css" />-->
+<link href="/static/css/jquery-ui.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="/static/css/jquery-ui.structure.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="/static/css/jquery-ui.theme.min.css" media="screen" rel="stylesheet" type="text/css" />
+
+<link href="/css/font-awesome.min.css?20170522" media="screen" rel="stylesheet" type="text/css" />
+<!--[if lt IE 9]>
+<link href="/static/css/ie8-fix.css" media="screen" rel="stylesheet" type="text/css" />
+<![endif]-->
+<!--[if lt IE 7]>
+<link rel="stylesheet" href="/static/css/ie6-fix.css" type="text/css" />
+<![endif]-->
+
+<!--<script language="javascript" type="text/javascript" src="/static/jss/jquery-1.7.2.min.js" ></script>-->
+<script language="javascript" type="text/javascript" src="/static/jss/jquery-3.3.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="/static/jss/jquery-migrate-3.0.0.min.js"></script>
+<!--<script language="javascript" type="text/javascript" src="/static/jss/jquery-ui-1.8.5.custom.min.js"></script>-->
+<script language="javascript" type="text/javascript" src="/static/jss/jquery-ui-1.12.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="/static/jss/jquery.tools.min.js"></script>
+<script language="javascript" type="text/javascript" src="/static/jss/jquery.tooltip.js"></script>
+<script language="javascript" type="text/javascript" src="/static/jss/jquery.qtip-1.0.0-rc3.min.js "></script>
+<script language="javascript" type="text/javascript" src="/static/jss/jquery.jec-1.3.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="/static/jss/jquery.cookie.js"></script>
+<script language="javascript" type="text/javascript" src="/jss/common.js?20180214"></script>
+<script language="javascript" type="text/javascript" src="/jss/balance.js"></script>
+
+
+<script src="/jss/jq.js"></script>
+<script>$(document).ready(function () {
+        var options = {excludeUserAgent: true};
+        var fp = new Fingerprint2(options);
+        fp.get(function (result) {
+            setCookie("__forlog", result);
+        });
+    });</script>
+
+
+    <META name="robots" content="noindex"/>
+        <link href="./css/live.2013.css" rel="stylesheet" media="screen" type="text/css">
+    <link href="./css/live.2012.css?20190724" media="screen" rel="stylesheet" type="text/css">
+    <link href="./css/bet.2012.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="./css/match-info.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="./css/livestream.2012.css?22062018" media="screen" rel="stylesheet" type="text/css">
+    <link href="./css/draggable.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="./css/tooltip.css" media="screen" rel="stylesheet" type="text/css">
+
+    <style>
+        html {
+            overflow-y: scroll;
+        }
+
+        table.dt td.l img {
+            border: 0;
+            float: right;
+        }
+
+        table.dt td.l img.ten {
+            border: 0;
+            float: none;
+            margin-left: 5px;
+            vertical-align: baseline;
+            width: 10px;
+            height: 10px;
+        }
+
+        span.nol {
+            text-decoration: underline;
+            color: #039;
+        }
+
+
+        .idx{
+            background-color: #363636;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+
+        .table-legend{
+            display: flex;
+            flex-direction: row;
+        }
+
+        .table-legend .table-left, .table-legend .right{
+            width: 50%;
+
+        }
+
+    </style>
+    
+    <script language="javascript" type="text/javascript" src="./jss/bet-links.js"></script>
+    <script language="JavaScript" type="text/javascript" src="./jss/bet.js"></script>
+    <script language="JavaScript" type="text/javascript" src="./jss/match-info.js"></script>
+    <script language='JavaScript' type='text/javascript' src="./jss/swfobject.js"></script>
+    <script language="JavaScript" type="text/javascript" src="./jss/livestream.2012.js?11122018"></script>
+    <script language="JavaScript" type="text/javascript" src="./jss/highlight.js"></script>
+    <script language='JavaScript' type="text/javascript"
+            src="https://parimatch.betstream.betgenius.com/parimatchFlash/swfobject.js"></script>
+    <script language='JavaScript' type="text/javascript"
+            src="https://parimatch.betstream.betgenius.com/parimatchFlash/api.js"></script>
+    <script language='JavaScript' type='text/javascript' src="/static/jss/flowplayer-3.2.13.min.js"></script>
+
+
+    <script language="JavaScript" type="text/javascript">
+        function WO(URL, WN) {
+            var W = 800;
+            var L = (screen.availWidth - W) / 2;
+            var T = (screen.availHeight - 500) / 2;
+            NW = window.open('teams_stats.html?' + URL, WN, "location=0,menubar=0,toolbar=0,status=0,resizable=yes, scrollbars=yes, height=500"
+                + ", width=" + W
+                + ", left=" + L
+                + ", Top=" + T);
+            if (NW) NW.focus();
+
+        };
+
+
+    </script>
+</head>
+
+<body class="main" id="p_sport">
+
+<div id="z_container">
+
+    <!-- header -->
+    <a name=top></a>
+    <!-- ND 2012 header -->
+
+
+<div class="layout-header">
+    <div class="header-top">
+        <div id="timeHeader" class="time" data-tzserver="3"
+             data-timeforserver="1570366852">
+            <a href="/en/timezone.html"></a>
+        </div>
+        <script>timeHeader();</script>
+        <script>timeZoneHeader();</script>
+
+        <div class="language-switch">
+            <div class="leng">EN <i class="fa fa-angle-down" aria-hidden="true"></i></div>
+            <ul class="leng-drop">
+                <li>
+                    <a href="/ru/bet.html?hd=13595035%2C13595054">RU</a>
+                </li>
+                <!--                <li><a href="/ge-->
+                <!--">GE</a></li>-->
+            </ul>
+        </div>
+        <div class="button_new_version">
+            <a href="/redirectToAir.html">
+                New version
+            </a>
+        </div>
+        <div class="personalArea not-login">
+
+            			<div> <noindex><a class="header_reg" href="/en/reg_short.html" rel="nofollow">Join now</a> </noindex></div>
+			<div>
+				<form action="?lang=en&hd=13595035%2C13595054&login=1" method="post" name="navAuth" id="auth">
+				
+					<noindex>
+						<a class="login" href="?lang=en&hd=13595035%2C13595054&login=1" onclick="document.navAuth.submit();return false;" rel="nofollow">Login</a>
+					</noindex>			
+				</form>
+			</div>		
+        </div>
+
+        <div class="header-top-menu">
+            <ul>
+
+                                <li>
+                    <noindex><a href="/en/payments.html ">Deposit/Withdrawal</a></noindex>
+                </li>
+
+                <ul>
+        </div>
+
+    </div>
+
+
+    <div class="header-bottom">
+        <div class="logo">
+            <noindex><a href="/en/" rel="nofollow"></a></noindex>
+        </div>
+
+        <div class="header-bottom-menu">
+            <ul>
+                <li id="tbSport" class="active"><a href="/en/">Sport</a></li>
+                                    <li id="tbLive"><a href="/en/live.html">Live</a></li>
+                                            <li id="tbCasino"><a href="/en/tcasino/">CASINO</a></li>
+                        <li id="tbLvCas"><a href="/en/lvcas/">Live Casino</a></li>
+                        <li id="tbCasino"><a href="/en/tvbet/">TVBet <!--<div><i>new</i></div>--></a></li>
+                        <li id="tbLvCas"><a href="/en/bgtv/">BetGames</a></li>
+
+                    
+
+                                            <li id="tbMobile"><a href="https://air.parimatch.com/en/mobile">Mobile</a></li>
+                                                            <li id="tbPoker"><a
+                                href="https://pokermatch.com/ru?partner=p48806p154474p7e75t9182&promo=pm-cs-main"
+                                target="_blank">Poker</a>
+                    </li>
+                                        <li id="tbNews"><a href="/en/portal">News</a></li>
+                            </ul>
+        </div>
+
+    </div>
+</div>
+
+<!-- /ND 2012 header -->
+    <!-- /header -->
+
+    <!-- right -->
+        <!-- /right -->
+
+    <!-- left -->
+    <!-- ND left left -->
+<script language="javascript" type="text/javascript" src="/static/jss/jquery.ui.datepicker-ru.js"></script>
+<script language='JavaScript' type='text/javascript' src="./jss/swfobject.js"></script>
+
+<div id="z_left_column" class="grid_3 layout-left">
+	<div class="z_mnu">
+		<form name="sports" id="sports" action="/en/bet.html">
+
+
+            
+            <div class='site_block_1 leftmenu'>
+                <h2 class='header_1'>Virtual sport</h2>
+                <ul>
+                    <li id=vfl><a href="/en/vfl.html">Virtual football</a></li>
+                    <li id=vfwc><a href="/en/vfwc.html">Virtual World Cup </a></li>
+                    <li id=vbl><a href="/en/vbl.html">Virtual basketball</a></li>
+                    <li id=vto><a href="/en/vto.html">Virtual tennis </a></li>
+                </ul>
+            </div>
+
+            			            			<div class='site_block_1 leftmenu'>
+                <h2 class='header_1'>BetGames</h2>
+                <ul>
+                    <li><a href="/en/bgtv/">Live games</a></li>
+                    <li><a href="/en/bgtv/?poker">Bets on Poker</a></li>
+                    
+
+                                    </ul>
+            </div>
+                        
+                        <div class='site_block_1 leftmenu tvbet'>
+                <h2 class='header_1'>TVbet<!-- <span class="label-new">New</span> --></h2>
+                <ul>
+                    <li><a href="/en/tvbet/">PokerBet</a></li>
+                    <li><a href="/en/tvbet/">Battle of elements</a></li>
+                </ul>
+            </div>
+            
+            <div class='leftmenu' id="qtLiveResults" style="display: none;">
+                <ul>
+                    <li><a href="/en/liveres.html">Standard version</a></li>
+                    <li><a href="#Результаты_Live" onclick="openBR('https://ls.sir.sportradar.com/parimatch','brScores')">Advanced version</a></li>
+                </ul>
+            </div>
+            <!--<div id=live_logo  style="margin-bottom:15px" >
+            	<a href="https://new.parimatch.com"> <img src="/img/2012/button_pm_new.png"/></a>
+            </div>-->
+            <!--<div id=live_logo  style="margin-bottom:10px" ></div>
+			<script>
+                var so = new SWFObject("/img/2012/live_betting_en.swf", "live_betting", "220", "69", "9.0.0", "#000000");
+                so.addParam("quality", "high");
+                so.addParam("menu", "false");
+                so.addParam("wmode", "transparent");
+                so.write('live_logo');
+            </script>-->
+            
+
+            <span class="dynamic">
+             
+	<div id="lobbyLeftHolder" class='site_block_1 leftmenu'>
+        <h2 class='header_1'>COMPETITIONS LIST</h2>
+        <div id='buttons'>
+            <button class="btn_gray" type="button" onClick="clearSportSelection();">Clear</button>
+            <button class="btn_gray" type="button" onClick="openSelectedSports();">Show</button>
+        </div>
+        <ul>
+            <li><a href="#AllEvents" onClick="openAllSports();">All sports</a></li>
+            <li><a id="spFilter" href="#Filter" onClick="showGr('#spFilter','#filterItems');">Filter</a>
+                <ul class=hidden id="filterItems">
+                <li><a href="#today" onClick="loadFilter('today');">Today and later</a></li>
+                    <li style="display: none"><a href="#all" onClick="loadFilter('all');">No matter when</a></li>
+                    <li><a href="#hour" onClick="loadFilter('hour');">Next hour</a></li>
+                    <li><a href="#3hours" onClick="loadFilter('3hours');">Next 3 hours</a></li>
+                    <li><a href="#6hours" onClick="loadFilter('6hours');">Next 6 hours</a></li>
+                    <li><a href="#12hours" onClick="loadFilter('12hours');">Next 12 hours</a></li>
+                </ul>
+            </li>
+            <li><a id="spArchive" href="#Archive" onClick="showGr('#spArchive','#archItems');">Archive of lines</a>
+                <ul class=hidden id="archItems">
+                  <li>Date<span><input id="datePicker" class="hasDatePicker" type="text"><a onClick="loadArch();" title="Load archive data">&gt;&gt;</a></span></li>
+                </ul>
+            </li>
+
+
+            <li><a id=spLive href="/en/live.html"><img src='/img/2012/live_ic.png'>Live betting <b class='count'>1598</b></a></li>
+			<div id=lobbySportsHolder>
+            <li ><a href="#Football" onClick="clickSport(this);">Football<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/futbol/top-matchi-bez-golov-zvjozd" hd=13597296>TOP-matches without goals scored by star<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/specialnye-predlozhenija" hd=13595786>Specials<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/sravnenie-po-individualnomu-totalu" hd=13596625>Comparison by individual totals<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/chempionat-evropy-kvalifikacija" hd=13596846>European Championship. Qualification<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/liga-chempionov-uefa-gruppovojj-ehtap" hd=13597960>UEFA Champions League. Group stage<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/liga-evropy-uefa-gruppovojj-ehtap" hd=13597961>UEFA Europa League. Group stage<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kubok-libertadores" hd=13595863>Copa Libertadores<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-premer-liga" hd=13595956>England. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-chempionship" hd=13595645>England. Championship<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-primera" hd=13595971>Spain. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-segunda" hd=13595999>Spain. Segunda Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/germanija-bundesliga" hd=13596596>Germany. Bundesliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/germanija-bundesliga-2" hd=13595063>Germany. 2 Bundesliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/italija-serija-a" hd=13597784>Italy. Serie A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/italija-serija-v" hd=13595296>Italy. Serie B<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/francija-liga-1" hd=13595656>France. Ligue 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/francija-liga-2" hd=13595657>France. Ligue 2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ukraina-premer-liga" hd=13597209>Ukraine. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/rossija-premer-liga" hd=13596494>Russia. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/sbornye-tovarishheskie-matchi" hd=13595142>National teams. Friendlies<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/avstrija-bundesliga" hd=13595339>Austria. Bundesliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/avstrija-regionalnaja-liga" hd=13595255>Austria. Regionalliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/azerbajjdzhan-premer-liga" hd=13594855>Azerbaijan. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-trofejj-afl" hd=13595789>England.  League Trophy<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-liga-1" hd=13594845>England. League 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-liga-2" hd=13594846>England. League 2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-nacionalnaja-konferencija" hd=13594847>England. National League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-severnaja-premer-liga" hd=13594886>England. Northern Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-juzhnaja-premer-liga" hd=13594887>England. Southern Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/anglija-istmijjskaja-liga-premer-divizion" hd=13594888>England. Isthmian League. Premier Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/belarus-vysshaja-liga" hd=13595020>Belarus. Major League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/belgija-pervyjj-divizion-a" hd=13595337>Belgium. First Division A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/belgija-pervyjj-divizion-v" hd=13595680>Belgium. First Division B<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/bolgarija-gruppa-a" hd=13595209>Bulgaria. A PFG<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/bosnija-i-gercegovina-premer-liga" hd=13594859>Bosnia and Herzegovina. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/vengrija-liga-nb-i" hd=13595977>Hungary. NB I<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/vengrija-liga-nb-ii" hd=13594753>Hungary. NB II<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/germanija-liga-3" hd=13594828>Germany. 3 Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/germanija-regionalnaja-liga-bavarija" hd=13594838>Germany. Regionalliga Bayern<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/germanija-oberliga" hd=13598186>Germany. Oberliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/grecija-superliga-1" hd=13594870>Greece. Super League 1<em onClick="checkGroup(event, this);"></em></A></li><li  ex="5,10"><a href="/en/sport/futbol/gruzija-nacionalnaja-liga" hd=13594863>Georgia. Erovnuli Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/danija-superliga" hd=13595335>Denmark. Superliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/danija-kubok" hd=13594860>Denmark. Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/izrail-premer-liga" hd=13594878>Israel. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/izrail-nacionalnaja-liga" hd=13594893>Israel. Liga Leumit<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-segunda-v-gruppa-1" hd=13595135>Spain. Segunda B. Group 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-segunda-v-gruppa-2" hd=13595136>Spain. Segunda B. Group 2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-segunda-v-gruppa-3" hd=13595137>Spain. Segunda B. Group 3<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-segunda-v-gruppa-4" hd=13595138>Spain. Segunda B. Group 4<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-tersera" hd=13595084>Spain. Tercera<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/italija-serija-s-gruppa-a" hd=13595518>Italy. Serie C. Group A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/italija-serija-s-gruppa-b" hd=13595519>Italy. Serie C. Group B<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/italija-serija-s-gruppa-s" hd=13595520>Italy. Serie C. Group C<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/italija-serija-d" hd=13595104>Italy. Serie D<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kipr-divizion-1" hd=13594882>Cyprus. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ljuksemburg-nacionalnyjj-divizion" hd=13595233>Luxembourg. National Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/malta-premer-liga" hd=13595155>Malta. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/moldova-nacionalnyjj-divizion" hd=13594923>Moldova. Divizia Nationala<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/niderlandy-eredivisie" hd=13596448>Netherlands. Eredivisie<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/niderlandy-pervyjj-divizion" hd=13594849>Netherlands. Eerste Divisie<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/norvegija-ehlitserija" hd=13594953>Norway. Eliteserien<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/norvegija-divizion-1" hd=13594757>Norway. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/norvegija-divizion-2-gruppa-1" hd=13594806>Norway. Division 2. Group 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/norvegija-divizion-2-gruppa-2" hd=13595758>Norway. Division 2. Group 2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/norvegija-divizion-3" hd=13594770>Norway. Division 3<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/polsha-ehkstraklasa" hd=13594839>Poland. Ekstraklasa<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/polsha-liga-1" hd=13595032>Poland. Liga I<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/portugalija-chempionat-prio" hd=13596023>Portugal. Campeonato Prio<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/portugalija-kubok-ligi" hd=13594841>Portugal. League Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/portugalija-chempionat-u-19" hd=13594869>Portugal. U-19 Championship<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/rossija-vtorojj-divizion-ural-privolzhe" hd=13596016>Russia. Division 2. Ural-Privolzhye<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/rumynija-liga-1" hd=13594840>Romania. Liga 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/serbija-superliga" hd=13594864>Serbia. Super Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/slovakija-superliga" hd=13594820>Slovakia. Super Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/slovenija-liga-1" hd=13594819>Slovenia. 1. SNL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/turcija-superliga" hd=13595021>Turkey. Super League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/turcija-liga-1" hd=13594867>Turkey. TFF First League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/finljandija-ykkonen" hd=13594951>Finland. Ykkonen<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/khorvatija-liga-1" hd=13594818>Croatia. 1. HNL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/khorvatija-liga-2" hd=13595203>Croatia. 2. HNL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/chekhija-pervaja-liga" hd=13595979>Czech Republic. 1. Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/chekhija-vtoraja-liga" hd=13594758>Czech Republic. 2. Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/chekhija-tretja-liga" hd=13594776>Czech Republic. 3. Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shvejjcarija-superliga" hd=13594821>Switzerland. Super League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shvejjcarija-chellendzh-liga" hd=13594822>Switzerland. Challenge League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shvecija-allsvenskan" hd=13594954>Sweden. Allsvenskan<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shvecija-superettan" hd=13594955>Sweden. Superettan<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shvecija-divizion-1" hd=13595039>Sweden. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shvecija-allsvenskan-u-19" hd=13597472>Sweden. U-19 Allsvenskan<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shotlandija-premership" hd=13595327>Scotland. Premiership<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/argentina-primera-divizion" hd=13594983>Argentina. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/argentina-primera-b-nasonal" hd=13594773>Argentina. Primera B. Nacional<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/argentina-primera-b-metropolitana" hd=13594884>Argentina. Primera B. Metropolitana<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/argentina-primera-c-metropolitana" hd=13595271>Argentina. Primera C. Metropolitana<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/argentina-primera-d-metropolitana" hd=13595275>Argentina. Primera D. Metropolitana<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/bolivija-lfpb" hd=13594852>Bolivia. LFPB<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/brazilija-serija-a" hd=13597363>Brazil. Serie A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/brazilija-serija-v" hd=13594759>Brazil. Serie B<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/brazilija-serija-c" hd=13594784>Brazil. Serie C<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/brazilija-chempionat-u-20" hd=13595561>Brazil. U-20 Championship<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/venesuehla-primera-divizion" hd=13594899>Venezuela. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kolumbija-primera-a" hd=13594754>Colombia. Primera A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kolumbija-primera-b" hd=13594785>Colombia. Primera B<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/paragvajj-primera-divizion" hd=13594842>Paraguay. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/peru-primera-divizion" hd=13594755>Peru. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/peru-segunda-divizion" hd=13594794>Peru. Segunda Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/urugvajj-primera-divizion" hd=13594871>Uruguay. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/chili-primera-divizion" hd=13594854>Chile. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/chili-primera-v" hd=13594803>Chile. Primera B<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/mls" hd=13594895>MLS<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/gvatemala-liga-nasonal" hd=13595007>Guatemala. Liga Nacional<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/gonduras-liga-nasonal" hd=13595074>Honduras. Liga Nacional<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kanada-premer-liga" hd=13597354>Canada. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kosta-rika-primera-divizion" hd=13594865>Costa Rica. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kosta-rika-segunda-divizion" hd=13595465>Costa Rica. Segunda Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/meksika-liga-mx" hd=13594946>Mexico. Liga MX<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/meksika-assenso-liga" hd=13595073>Mexico. Liga de Ascenso<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/nikaragua-primera-divizion" hd=13595123>Nicaragua. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/salvador-primera-divizion" hd=13595024>El Salvador. Primera Division<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ssha-usl-chempionship" hd=13595047>USA. USL Championship<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/jamajjka-premer-liga" hd=13594912>Jamaica. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/chempionat-azii-u-19-kvalifikacija" hd=13598369>AFC U-19 Championship. Qualification<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/japonija-kubok-j-ligi" hd=13595088>Japan. J League Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/afrika-kubok-zapadnoafrikanskogo-sojuza" hd=13598328>Africa. WAFU Nations Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/alzhir-liga-1" hd=13595144>Algeria. Ligue 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/egipet-premer-liga" hd=13594802>Egypt. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/kenija-premer-liga" hd=13595263>Kenya. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/marokko-botola" hd=13595164>Morocco. Botola<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/juar-divizion-1" hd=13594935>South Africa. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/avstralija-a-liga" hd=13594914>Australia. A-League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/avstralija-kubok-ffa" hd=13595035>Australia. FFA Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/zhenshhiny-sbornye-tovarishheskie-matchi" hd=13595054>Women. National teams. Friendlies<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Football/Stats" onClick="clickSport(this);">Football/Stats<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/futbol/anglija-premer-liga-statistika" hd=13596010>Football. England. Premier League. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ispanija-primera-statistika" hd=13596542>Football. Spain. Primera Division. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/germanija-bundesliga-statistika" hd=13595082>Football. Germany. Bundesliga. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/italija-statistika" hd=13596935>Football. Italy. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/francija-liga-1-statistika" hd=13597814>Football. France. Ligue 1. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/ukraina-statistika" hd=13595935>Football. Ukraine. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/rossija-statistika" hd=13597627>Football. Russia. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/avstrija-bundesliga-statistika" hd=13596165>Football. Austria. Bundesliga. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/belgija-statistika" hd=13595761>Football. Belgium. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/danija-statistika" hd=13595885>Football. Denmark. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/niderlandy-statistika" hd=13596203>Football. Netherlands. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/norvegija-ehlitserija-statistika" hd=13595948>Football. Norway. Eliteserien. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/polsha-ehkstraklasa-statistika" hd=13597857>Football. Poland. Ekstraklasa. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/turcija-superliga-statistika" hd=13595394>Football. Turkey. Super League. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shvecija-allsvenskan-statistika" hd=13597595>Football. Sweden. Allsvenskan. Match stats<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbol/shotlandija-premership-statistika" hd=13595685>Football. Scotland. Premiership. Match stats<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Football/Futures" onClick="clickSport(this);">Football/Futures<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/futbolitogi/futbolnye-premii" hd=13595607>Football Awards<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-chempionat-evropy-2020-pobeditel" hd=13595668>Football. European Championship 2020. Winner<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-chempionat-evropy-2020-kvalifikacija-itogi-gruppovogo-ehtapa" hd=13596855>Football. European Championship 2020. Qualification. Group stage. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-liga-chempionov-uefa-201920-itogi" hd=13595593>Football. UEFA Champions League 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-liga-chempionov-uefa-201920-itogi-gruppovogo-ehtapa" hd=13597936>Football. UEFA Champions League 2019/20. Group stage Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-liga-evropy-uefa-201920-itogi" hd=13597565>Football. UEFA Europa League 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-liga-evropy-uefa-201920-itogi-gruppovogo-ehtapa" hd=13597937>Football. UEFA Europa League 2019/20. Group stage Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-kubok-libertadores-itogi" hd=13598301>Football. Copa Libertadores. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-anglija-premer-liga-201920-itogi" hd=13597360>Football. England. Premier League 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-anglija-kubok-201920-itogi" hd=13597554>Football. England. FA Cup 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-anglija-kubok-ligi-201920-itogi" hd=13597555>Football. England. League Cup 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-anglija-chempionship-201920-itogi" hd=13597542>Football. England. Championship 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-ispanija-kubok-korolja-201920-itogi" hd=13597839>Football. Spain. Copa del Rey 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-germanija-bundesliga-201920-itogi" hd=13595628>Football. Germany. Bundesliga 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-germanija-kubok-201920-itogi" hd=13597559>Football. Germany. Cup 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-italija-kubok-20192020-itogi" hd=13597807>Football. Italy. Cup 2019/2020. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-francija-liga-1-201920-itogi" hd=13597515>Football. France. Ligue 1 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-rossija-premer-liga-201920-itogi" hd=13597571>Football. Russia. Premier League 2019/2020 Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-rossija-fnl-201920-itogi" hd=13597583>Football. Russia. FNL 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-rossija-kubok-20192020-itogi" hd=13598362>Football. Russia. Cup 2019/2020. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-niderlandy-eredivisie-201920-itogi" hd=13597544>Football. Netherlands. Eredivisie 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-ssha-mls-2019-itogi" hd=13596351>Football. USA. MLS 2019. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol-avstralija-a-liga-201920-itogi" hd=13597543>Football. Australia. A-League 2019/20. Ante-post<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futbolitogi/futbol- portugalija- primejjra-liga- itogi" hd=13598125>Football.  Portugal.  Primeira Liga.  Ante-post<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Tennis" onClick="clickSport(this);">Tennis<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/tennis/atp-shankhajj-khard" hd=13598447>ATP. Shanghai. Hard<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/atp-pary-shankhajj-khard" hd=13598449>ATP. Doubles. Shanghai. Hard<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/wta-tjanczin-khard" hd=13598383>WTA. Tianjin. Hard<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/wta-tjanczin-khard-kvalifikacija" hd=13598384>WTA. Tianjin. Hard. Qualifying<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/wta-pary-tjanczin-khard" hd=13598385>WTA. Doubles. Tianjin. Hard<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/wta-linc-khard-kvalifikacija" hd=13598387>WTA. Linz. Hard. Qualifying<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/atp-chellendzher-kampinas-grunt" hd=13598269>ATP Challenger. Campinas. Clay<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/atp-chellendzher-pary-kampinas-grunt" hd=13598271>ATP Challenger. Doubles. Campinas. Clay<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/atp-chellendzher-santo-domingo-grunt" hd=13598450>ATP Challenger. Santo Domingo. Clay<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/atp-chellendzher-fehrfild-khard" hd=13598453>ATP Challenger. Fairfield. Hard<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/atp-chellendzher-mujjron-le-kaptif-khard" hd=13598456>ATP Challenger. Mouilleron le Captif. Hard<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/itf-muzhchiny-norman-khard" hd=13598289>ITF. Men. Norman. Hard<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/itf-muzhchiny-santjago-grunt" hd=13598299>ITF. Men. Santiago. Clay<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/itf-zhenshhiny-charlston-grunt" hd=13598235>ITF. Women. Charleston. Clay<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/itf-zhenshhiny-santjago-grunt" hd=13598244>ITF. Women. Santiago. Clay<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/tennis/itf-zhenshhiny-norman-khard" hd=13598262>ITF. Women. Norman. Hard<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Basketball" onClick="clickSport(this);">Basketball<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/basketbol/nba-reguljarnyjj-sezon" hd=13597831>NBA. Regular season<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/nba-predsezonnye-matchi" hd=13598192>NBA. Pre-season<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/wnba-plejj-off" hd=13598055>WNBA. Play-offs<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/evroliga" hd=13596152>Euroleague<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/adriaticheskaja-liga-1" hd=13596098>Adriatic League 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/edinaja-liga-vtb" hd=13596129>VTB United League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/avstrija-abl" hd=13595741>Austria. ABL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/bolgarija-nbl" hd=13595755>Bulgaria. NBL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/velikobritanija-kubok-bbl" hd=13595793>United Kingdom. BBL Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/germanija-bbl" hd=13596112>Germany. BBL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/germanija-pro-a" hd=13595110>Germany. Pro A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/grecija-liga-a1" hd=13595715>Greece. A1 League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/izrail-superliga" hd=13596134>Israel. Superleague<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/ispanija-liga-acb" hd=13596106>Spain. ACB League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/ispanija-leb-oro" hd=13596107>Spain. LEB Oro<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/italija-serija-a" hd=13595727>Italy. Serie A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/italija-serija-a2" hd=13596130>Italy. Serie A2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/litva-lkl" hd=13595721>Lithuania. LKL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/norvegija-blno" hd=13596109>Norway. BLNO<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/polsha-plk" hd=13596113>Poland. PLK<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/portugalija-lpb" hd=13595720>Portugal. LPB<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/serbija-kls" hd=13596111>Serbia. KLS<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/turcija-bsl" hd=13596133>Turkey. BSL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/francija-pro-a" hd=13595718>France. Pro A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/finljandija-korisliiga" hd=13595740>Finland. Korisliiga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/shvejjcarija-lnb-a" hd=13596252>Switzerland. LNB A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/ehstonsko-latvijjskaja-liga" hd=13596656>Estonian–Latvian League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/japonija-b-liga" hd=13595722>Japan. B-League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/avstralija-nbl" hd=13595739>Australia. NBL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/argentina-super-20" hd=13596686>Argentina. Super 20<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/chili-lnb" hd=13595487>Chile. LNB<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/dominikanskaja-respublika-lnb" hd=13597534>Dominican Republic. LNB<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/meksika-lnbp" hd=13595753>Mexico. LNBP<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/zhenshhiny-italija-serija-a1" hd=13595737>Women. Italy. Serie A1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/zhenshhiny-polsha-blk" hd=13596102>Women. Poland. BLK<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/zhenshhiny-shvecija-basketligan" hd=13595860>Women. Sweden. Basketligan<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/basketbol/zhenshhiny-francija-lfb" hd=13595746>Women. France. LFB<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Ice_Hockey" onClick="clickSport(this);">Ice Hockey<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/khokkejj/nhl-reguljarnyjj-sezon" hd=13597810>NHL. Regular season<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/ahl-reguljarnyjj-sezon" hd=13595752>AHL. Regular season<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/liga-chempionov" hd=13595629>Champions League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/kkhl-reguljarnyjj-sezon" hd=13597699>KHL. Regular season<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/vkhl" hd=13597162>VHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/parimatch-mkhl" hd=13596509>Parimatch-МHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/belarus-parimatch-ehkstraliga-a" hd=13597733>Belarus. Parimatch-Extraliga A<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/belarus-ehkstraliga-b" hd=13597930>Belarus. Extraliga B<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/avstrija-erste-bank-liga" hd=13594891>Austria. Erste Bank Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/aziatskaja-liga" hd=13598002>Asian League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/velikobritanija-elite-league" hd=13598001>Great Britain. Elite League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/germanija-del" hd=13594831>Germany. DEL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/germanija-del-2" hd=13598047>Germany. DEL 2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/danija-metal-ligaen" hd=13595632>Denmark. Metal Ligaen<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/kazakhstan-chempionat" hd=13598020>Kazakhstan. Championship<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/latvija-lhl" hd=13596713>Latvia. LHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/norvegija-get-ligaen" hd=13595633>Norway. GET-ligaen<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/polsha-pkhl" hd=13596360>Poland. PHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/slovakija-ehkstraliga" hd=13595635>Slovakia. Extraliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/chekhija-ehkstraliga" hd=13594832>Czech Republic. Extraliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/chekhija-liga-1" hd=13596616>Czech Republic. Liga 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/finljandija-liiga" hd=13595387>Finland. Liiga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/francija-ligue-magnus" hd=13595634>Hockey. France. Ligue Magnus<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/shvecija-shl" hd=13595630>Sweden. SHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/shvecija-ettan-norra" hd=13596718>Sweden. Ettan Norra<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/shvejjcarija-nla" hd=13595636>Switzerland. NLA<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/shvejjcarija-nlb" hd=13596036>Switzerland. NLB<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/erste-liga" hd=13598067>Erste Liga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/ohl" hd=13598079>OHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/qmjhl" hd=13598095>QMJHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/whl" hd=13598094>WHL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/khokkejj/zhenshhiny-shvecija-sdhl" hd=13596721>Women, Sweden, SDHL<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Volleyball" onClick="clickSport(this);">Volleyball<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/volejjbol/danija-ehlitdivizion" hd=13595711>Denmark. Elitedivision<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/volejjbol/slovakija-ehkstraliga" hd=13596114>Slovakia. Extraliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/volejjbol/finljandija-mestaruusliiga" hd=13596644>Finland. Mestaruusliiga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/volejjbol/chekhija-ehkstraliga" hd=13595706>Czech Republic. Extraliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/volejjbol/shvecija-ehlitserija" hd=13596647>Sweden. Elitserien<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/volejjbol/zhenshhiny-italija-serija-a2" hd=13595770>Women. Italy. Serie A2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/volejjbol/zhenshhiny-polsha-superkubok" hd=13602492>Women. Poland. Super Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/volejjbol/zhenshhiny-finljandija-mestaruusliiga" hd=13596651>Women. Finland. Mestaruusliiga<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#E-Sports" onClick="clickSport(this);">E-Sports<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/kibersport/dota-2-mdl-chengdu-major-cis-closed-qualifier" hd=13598395>Dota 2. MDL Chengdu Major CIS Closed Qualifier<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/dota-2-mdl-chengdu-major-europe-closed-qualifier" hd=13598396>Dota 2. MDL Chengdu Major Europe Closed Qualifier<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/dota-2-mdl-chengdu-major-north-america-closed-qualifier" hd=13598399>Dota 2. MDL Chengdu Major North America Closed Qualifier<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/dota-2-mdl-chengdu-major-south-america-closed-qualifier" hd=13598400>Dota 2. MDL Chengdu Major South America Closed Qualifier<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/dota-2-esl-championnat-national-winter-2019" hd=13598326>Dota 2. ESL Championnat National Winter 2019<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-dreamhack-masters-malmo-2019" hd=13598166>Counter-Strike. DreamHack Masters Malmo 2019<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-weplay!-forge-of-masters-autumn-2019" hd=13598353>Counter-Strike. WePlay! Forge of Masters Autumn 2019<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-esl-pro-league-s10-eu" hd=13598437>Counter-Strike. ESL Pro League S10 EU<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-esl-pro-league-s10-am" hd=13598485>Counter-Strike. ESL Pro League S10 AM<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-esea-season-32-premier-division-north-america" hd=13598064>Counter-Strike. ESEA Season 32 Premier Division - North America<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-esea-season-32-advanced-division-europe" hd=13602631>Counter-Strike. ESEA Season 32 Advanced Division - Europe<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-esl-adria-league-s4" hd=13598146>Counter-Strike. ESL Adria League S4<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-esl-mistrzostwa-polski" hd=13598354>Counter-Strike. ESL Mistrzostwa Polski<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-liga-portuguesa" hd=13598338>Counter-Strike. Liga Portuguesa<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-clutch-las-league-s1" hd=13598413>Counter-Strike. CLUTCH LAS League S1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-clutch-lan-league-s1" hd=13598486>Counter-Strike. CLUTCH LAN League S1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-starseries-i-league-s8-eu-qualifier" hd=13598359>Counter-Strike. StarSeries i-League S8 EU Qualifier<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-sector-most" hd=13598516>Counter-Strike. Sector MOST<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/counter-strike-go-go-gorilla" hd=13598488>Counter-Strike. Go Go Gorilla<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/liga-legend-world-championship" hd=13598190>League of Legends. World Championship<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/hearthstone-grandmasters-2019" hd=13597978>Hearthstone. GrandMasters 2019<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/starcraft-2-nationwars" hd=13598414>Starcraft 2. NationWars<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/rocket-league-rlcs-s8-sa" hd=13598410>Rocket League. RLCS S8 SA<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kibersport/rocket-league-rlcs-s8-eu" hd=13598412>Rocket League. RLCS S8 EU<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#UFC" onClick="clickSport(this);">UFC<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/ufc/244-03112019" hd=13597781>244 (03/11/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/245-15122019" hd=13597863>245 (15/12/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/on-espn-6-19102019" hd=13597737>on ESPN 6 (19/10/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/on-espn-7-08122019" hd=13597828>on ESPN 7 (08/12/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/fight-night-161-13102019" hd=13597639>Fight Night 161 (13/10/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/fight-night-162-26102019" hd=13597949>Fight Night 162 (26/10/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/fight-night-163-09112019" hd=13597953>Fight Night 163 (09/11/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/fight-night-164-17112019" hd=13597818>Fight Night 164 (17/11/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/fight-night-165-21122019" hd=13598032>Fight Night 165 (21/12/2019)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/itogi" hd=13596505>Outrights<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/specialnye-stavki" hd=13596591>Special Bets<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/ufc/vozmozhnye-boi" hd=13595812>Possible fights<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#American_football" onClick="clickSport(this);">American football<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/amerikanskijj-futbol/nfl-reguljarnyjj-sezon" hd=13597537>NFL. Regular season<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Baseball" onClick="clickSport(this);">Baseball<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/bejjsbol/mlb-plejj-off" hd=13596673>MLB. Play-offs<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/bejjsbol/mlb-itogi" hd=13596338>MLB. Ante-post<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Billiards" onClick="clickSport(this);">Billiards<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/biljard/snuker-championship-league-match-iz-5-ti-frejjmov" hd=13598502>Snooker. Championship League. Best of 5 frames<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Boxing" onClick="clickSport(this);">Boxing<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/boks/boks" hd=13594873>Boxing<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/boks/world-boxing-super-series" hd=13595973>World  Super Series<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Cricket" onClick="clickSport(this);">Cricket<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/kriket/karibskaja-premer-liga" hd=13597951>Caribbean Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kriket/zhenshhiny-odi-2-jj-match" hd=13597002>Women. ODI. 2nd match<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/kriket/tventi20-pentangular-series" hd=13598341>Twenty20. Pentangular Series<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Darts" onClick="clickSport(this);">Darts<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/darts/muzhchiny-world-grand-prix" hd=13598342>Men. World Grand Prix<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Entertainment" onClick="clickSport(this);">Entertainment<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/razvlechenija/evrovidenie-2020" hd=13597458>Eurovision 2020<em onClick="checkGroup(event, this);"></em></A></li><li  ex="7,17"><a href="/en/sport/razvlechenija/liga-smekha" hd=13597235>Liga Smeha<em onClick="checkGroup(event, this);"></em></A></li><li  ex="17"><a href="/en/sport/razvlechenija/tancy-so-zvjozdami-ukraina" hd=13596031>Dancing with the Stars (Ukraine)<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/razvlechenija/kino-specialnye-stavki" hd=13596075>Cinema. Specials<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/razvlechenija/second-annual-pornhub-awards" hd=13597991>Second Annual Pornhub Awards<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Floorball" onClick="clickSport(this);">Floorball<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/florbol/norvegija-eliteserien" hd=13596749>Norway. Eliteserien<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/florbol/finljandija-salibendiliga" hd=13596619>Finland. Salibandyliiga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/florbol/chekhija-tipsport-superliga" hd=13596280>Czech Republic. Tipsport Superliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/florbol/shvecija-superliga" hd=13596187>Sweden. Superligan<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/florbol/zhenshhiny-shvecija-superliga" hd=13595129>Women. Sweden. Superligan<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Futsal" onClick="clickSport(this);">Futsal<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/futzal/brazilija-liga-futsal" hd=13596385>Brazil. Liga <em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futzal/portugalija-liga-sport-zone" hd=13596072>Portugal. Liga Sport Zone<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futzal/chekhija-liga-1" hd=13596594>Czech Republic. Liga 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/futzal/polsha-ekstraklasa" hd=13598034>Poland. Ekstraklasa<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Golf" onClick="clickSport(this);">Golf<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/golf/muzhchiny-shriners-hospitals-for-children-open-4-jj-raund" hd=13598505>Men. Shriners Hospitals for Children Open. 4th round<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Handball" onClick="clickSport(this);">Handball<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/gandbol/kubok-egf" hd=13596566>EHF Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/kubok-vyzova" hd=13596293>Challenge Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/avstrija-hla-2" hd=13596934>Austria. HLA 2<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/germanija-bundesliga" hd=13596528>Germany. Bundesliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/germanija-bundesliga-2" hd=13595709>Germany. 2 Bundesliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/danija-divizion-1" hd=13596532>Denmark. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/islandija-olis-deild" hd=13595549>Iceland. Olis Deild<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/norvegija-ehlitserija" hd=13595388>Norway. Eliteserien<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/norvegija-divizion-1" hd=13596627>Norway. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/polsha-liga-1" hd=13597901>Poland. League 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/portugalija-andebol-1" hd=13596703>Portugal. Andebol 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/rumynija-nacionalnaja-liga" hd=13596467>Romania. Liga Nationala<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/turcija-superliga" hd=13596094>Turkey. Superleague<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/francija-lnh-divizion-1" hd=13596766>France. LNH. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/francija-kubok-ligi" hd=13596421>France. League Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/khorvatija-premer-liga" hd=13596638>Croatia. Premier League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/chekhija-ehkstraliga" hd=13596071>Czech Republic. Extraliga<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/shvecija-handbollsligan" hd=13597934>Sweden. Handbollsligan<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/zhenshhiny-liga-chempionov" hd=13596570>Women. Champions League<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/zhenshhiny-whil" hd=13597933>Women. WHIL<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/zhenshhiny-danija-superliga" hd=13596660>Women. Denmark. Superleague<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/zhenshhiny-norvegija-ehlitserija" hd=13595710>Women. Norway. Elitserien<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/zhenshhiny-norvegija-divizion-1" hd=13596425>Women. Norway. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/zhenshhiny-francija-lfh-divizion-1" hd=13596527>Women. France. LFH. Division 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/gandbol/zhenshhiny-shvecija-she" hd=13596618>Women. Sweden. SHE<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Lottery" onClick="clickSport(this);">Lottery<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/lotereja/ukraina-keno-20-iz-80" hd=13594957>Ukraine. KENO. 20 from 80<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ukraina-super-loto-6-iz-52" hd=13594960>Ukraine. SUPER LOTO. 6 from 52<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ukraina-loto-maksima-5-iz-45" hd=13594959>Ukraine. LOTO MAXIMA. 5 from 45<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ukraina-loto-trojjka-3-iz-10" hd=13594958>Ukraine. LOTO TRIYKA. 3 of 10<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/novaja-zelandija-keno-20-iz-80" hd=13595354>New Zealand. Keno. 20 from 80<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/germanija-keno-20-iz-70" hd=13595503>Germany. KENO. 20 from 70<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/francija-keno-20-iz-70" hd=13595585>France. KENO. 20 from 70<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/belarus-sportloto-6-iz-49" hd=13595504>Belarus. Sportloto. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/belarus-sportloto-5-iz-36" hd=13597265>Belarus. Sportloto. 5 from 36<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/velikobritanija-49s-6-iz-49" hd=13595505>Great Britain. 49's. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/germanija-lotto-6-iz-49" hd=13595347>Germany. LOTTO. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/gonkong-mark-6-6-iz-49" hd=13595506>Hong Kong. Mark 6. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/grecija-opap-6-iz-49" hd=13595348>Greece. OPAP. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ispanija-la-primitiva-6-iz-49" hd=13595507>Spain. La Primitiva. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/kanada-bc-49-6-iz-49" hd=13595349>Canada. BC 49. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/kanada-lotto-649-6-iz-49" hd=13595350>Canada. LOTTO 649. 6 from 49<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/avstralija-monday-lotto-6-iz-45" hd=13595344>Australia. Monday Lotto. 6 from 45<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/avstralija-wednesday-lotto-6-iz-45" hd=13595345>Australia. Wednesday Lotto. 6 from 45<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/avstralija-saturday-lotto-6-iz-45" hd=13595346>Australia. Saturday Lotto. 6 from 45<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/evropa-evromilliony-5-iz-50" hd=13595485>Europe. EuroMillions. 5 from 50<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/evropa-evrodzhekpot-5-iz-50" hd=13595343>Europe. EuroJackpot. 5 from 50<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/rossija-gosloto-5-iz-36" hd=13595341>Russia. GOSLOTO. 5 from 36<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/rossija-gosloto-6-iz-45" hd=13597254>Russia. GOSLOTO. 6 from 45<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ssha-kalifornija-daily-4-4-iz-10" hd=13595509>USA. California. Daily 4. 4 from 10<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ssha-nju-jjork-win-4-4-iz-10" hd=13595510>USA. New York. WIN 4. 4 from 10<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ssha-florida-play-4-4-iz-10" hd=13595511>USA. Florida. Play 4. 4 from 10<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/belgija-pick-3-3-iz-10" hd=13595512>Belgium. PICK 3. 3 from 10<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ssha-kalifornija-daily-3-3-iz-10" hd=13595502>USA. California. Daily 3. 3 from 10<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/lotereja/ssha-florida-cah-3-iz-10" hd=13595353>USA. Florida. CA$H 3. 3 from 10<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#MMA" onClick="clickSport(this);">MMA<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/edinoborstva/bellator" hd=13595813>Bellator<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/edinoborstva/bellator-world-grand-prix-welterweight-tournament" hd=13596501>Bellator. World Grand Prix Welterweight Tournament<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/edinoborstva/fight-nights-global" hd=13595814>Fight Nights Global<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/edinoborstva/glory-kickboxing" hd=13595823>Glory Kickboxing<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/edinoborstva/one-championship" hd=13595817>ONE Championship<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/edinoborstva/professional-fighters-league" hd=13595993>Professional Fighters League<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Motor_Sports" onClick="clickSport(this);">Motor Sports<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/avto-motosport/formula-1-gonka-gran-pri-japonii" hd=13598352>Formula 1. Race. Japanese Grand Prix<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Politics" onClick="clickSport(this);">Politics<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/politika/ukraina-prezidentskie-vybory" hd=13597617>Ukraine. Presidential Election<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/politika/ukraina-specialnye-predlozhenija" hd=13597675>Ukraine. Special offers<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Rugby" onClick="clickSport(this);">Rugby<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/regbi/-regbi-7-zhenshhiny-mirovaja-serija" hd=13598511> Rugby sevens. Women. World Series<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/regbi/-regbi-liga-liga-1" hd=13596503> Rugby League. League 1<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/regbi/-regbi-sojuz-kubok-mira" hd=13598111> Rugby union. World Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/regbi/-regbi-sojuz-anglija-kubok-premer-ligi" hd=13597069> Rugby union. England. Premiership Cup<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/regbi/-regbi-sojuz-francija-top-14" hd=13595687> Rugby union. France. Top 14<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Specials" onClick="clickSport(this);">Specials<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/raznoe/kosmos" hd=13596076>Space<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Squash" onClick="clickSport(this);">Squash<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/skvosh/muzhchiny-us-open" hd=13598296>Men. US Open<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Table_tennis" onClick="clickSport(this);">Table tennis<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/nastolnyjj-tennis/muzhchiny-ittf-swedish-open" hd=13598230>Men. ITTF. Swedish Open<em onClick="checkGroup(event, this);"></em></A></li><li ><a href="/en/sport/nastolnyjj-tennis/zhenshhiny-ittf-swedish-open" hd=13598232>Women. ITTF. Swedish Open<em onClick="checkGroup(event, this);"></em></A></li></ul></li><li ><a href="#Waterpolo" onClick="clickSport(this);">Waterpolo<em onClick="checkSport(event, this);"></em></A><ul  class="hidden groups"><li ><a href="/en/sport/vodnoe-polo/liga-chempionov" hd=13595619>Water polo. Champions League<em onClick="checkGroup(event, this);"></em></A></li></ul></li>
+            </div>
+        </ul>
+    </div>
+            </span>
+            <script>
+                $("#lobbySportsHolder").find("a[href$='#AllEvents']").parent().hide();
+			</script>
+            
+        </form>
+	</div>
+	
+	 <div class='site_block_1 leftmenu'>
+                <h2 class='header_1'>Menu</h2>
+                <ul>
+                    <li><a id="spResults" href="/en/res.html">Results</a></li>
+                    <li><a id="spLiveResultsn">Live results</a></li>
+                    <li><a id="spStatsn" href="https://s5.sir.sportradar.com/parimatch/en"
+                           target="_blank">Statistics</a></li>
+                    <li><a id="spRules" href="https://air.parimatch.com/en/terms-and-conditions" target="_blank">Rules</a></li>
+
+                </ul>
+     </div>	
+	
+</div>
+
+<style>
+    .worldCup{
+        color: #e21a3d !important;
+        font-weight: bold;
+    }
+    .worldCup.active{
+        color: #FFB100 !important;
+    }
+
+</style></script>
+
+
+<!-- /ND left -->
+
+    <!-- /left -->
+
+    <div id="z_contentw" class='bet-container'>
+        <!-- body  -->
+        
+
+
+
+
+	<script type="text/javascript" language="JavaScript">
+	function toggleToProcessing (element) {
+		element.disabled=true;
+		element.value="Processing... ";
+	}
+	</script>
+
+
+        <div id="makeBet">
+            <table border="0" id="betSlip" cellspacing="4">
+            <caption class=orange>BETSLIP</caption>
+                <tr>
+                    <td>
+                        <table width=100% border=0 cellspacing="0">
+                            <tr>
+                                <td nowrap>
+                                    <strong>Bets selected:</strong>
+                                <td align=right nowrap>
+                                    <span id="betsCount">0</span>
+                            <tr>
+                                <td nowrap>
+                                    <strong>Total odds:</strong>
+                                <td align=right nowrap>
+                                    <span id="betsCoeff">0</span>
+                         </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td >
+                        <table width="100%" border=0 cellspacing="0">
+                            <tr>
+                                <td><A href="javascript:void(0)" onClick="CC();">Clear</A>
+                                <td align=right><BUTTON type="button" class="btn_orange" onClick="MS();" style="width:100%;">PLACE BET ></BUTTON>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+    
+        </div>
+
+        <div id="oddsNote">
+            
+            
+            <form name="lineModeSwitcher" method="get">
+                <input type='hidden' name='filter' value=''/>
+                <input type='hidden' name='hd' value='13595035,13595054'>
+                <input type='hidden' name='ltype' value=''>
+
+                <input type=hidden name=props value=on>
+                
+
+                <table id=oddsView cellpadding=0 cellspacing=3><tr>
+                <td colspan=4>
+                <blockquote class=note>
+                    
+                        <h2>Current odds on 06.10.2019</h2>
+                    For choosing the outcome, just "click" corresponding odds. Form your bet by choosing one or several outcomes and press any of the buttons "Place bet". Complete your bet in opening window by indicating its type and amount.
+                    
+                </blockquote>
+                </table>
+            </form>
+            
+
+
+        </div>
+        
+
+        <div id=diProps><button type=button class=btn_gray id=btProps onClick="switchProps();"><span id=do_show>SHOW EXPANDED VIEW</span><span id=do_hide style="display:none">HIDE EXPANDED VIEW</span></button></div>
+
+    
+
+    
+
+<!--odds-->
+    <div id="oddsList">
+	
+
+		<form name=f1 id=f1>
+		<div class="container gray" ><a name=13595035></a><H3>Football. Australia. FFA Cup<img src="./img/bet_plus.png" width=16 height=16 onClick="toggleProps('#g13595035','#i13595035' );" id="i13595035" alt="additional odds" title="additional odds" /></h3><div class=wrapper><table id=g13595035 class="dt twp" bordercolorlight=#DADADA bordercolordark=#DADADA frame=border rules=groups><colgroup span=1 width=2%><colgroup span=1 width=5%><colgroup span=1 width=23%><colgroup span=2 width=5%><colgroup span=3 width=5%><colgroup span=3 width=5%><colgroup span=3 width=5%><colgroup span=3 width=5%><TR><th title="Event No">#<th>Date<th>Event<th title="Handicap value">Hand.<th title="Handicap coefficient">Odds<th title="Total">Total<th title="Over">Over<th title="Under">Under<th title="Home win">1<th title="Draw">X<th title="Away win">2<th title="Home win or draw">1X<th title="Home or away win">12<th title="Away win or draw">X2<th title="Team totals">iTotal<th title="Over">Over<th title="Under">Under</TR><TBODY class=row1><TR class=bk><td><span class=no>2469</span><td><!--evd 23/10/19 11:30 evd-->23/10<br>11:30<td class=l><a class=om id="a5047" alt="+188" title="+188">Adelaide United<br>Melbourne City</a><td><b>0</b><b>0</b><td><u><a id="r5047_223_ZE0.vytR^0pN.z_rKIOV">2.23</a></u><u><a id="r5047_165_HQUn858sLwHFakWIGvGw">1.65</a></u><td><b>2.5</b><td><u><a id="r5047_177_jYnjshIxQKg8XMdkhDuN">1.77</a></u><td><u><a id="r5047_205_xoK0tLl6WqOwzKhClBx.">2.05</a></u><td><u><a id="r5047_305_lJCRU.uW0G8rH95yxmlL">3.05</a></u><td><u><a id="r5047_365_4e^UDZ1Py3pgN8U9jyET">3.65</a></u><td><u><a id="r5047_223_QWDCy3jFDZ7oGvEtakU0">2.23</a></u><td><u><a id="r5047_166_GRls76J^R_J7NHtrjAMV">1.66</a></u><td><u><a id="r5047_128_9xJmIIllumyM9E.ncLeJ">1.28</a></u><td><u><a id="r5047_138_dd^5LX10p19seD^rsMNV">1.38</a></u><td><b>1.0</b><b>1.5</b><td><u><a id="r5047_167_6eetFZREjztB3GNOVN^a">1.67</a></u><u><a id="r5047_207_NP5ge4ZUbAx^.z_rKIOV">2.07</a></u><td><u><a id="r5047_220_C3xI3WAQ^MRQYMundDdJ">2.20</a></u><u><a id="r5047_175_AkIz1Gfvm2x.qE^j_LNF">1.75</a></u></TR><TBODY class="row1 props" style="display:none" id=p5047><TR class=bk><td colspan=2>&nbsp;<td>1-st half:<td><b>0</b><b>0</b><td><u><a id="r5047_214_J1hxqUPQNA9spAbnLHgJ">2.14</a></u><u><a id="r5047_171_dcV7L8rK8u^BzKhClBx.">1.71</a></u><td><b>1.0</b><td><u><a id="r5047_176_sEmvjyL2F3pg9lflcu6H">1.76</a></u><td><u><a id="r5047_206_argMR_SUgMqs_LLgqEcR">2.06</a></u><td><u><a id="r5047_355_sUwjj1K.NQAUGqEtakU0">3.55</a></u><td><u><a id="r5047_228_rMavKpMb.ICUFJtskCM6">2.28</a></u><td><u><a id="r5047_285_JQ5bq5Zv_Uo_J9UpbmED">2.85</a></u><td><u><a id="r5047_139_UfHPlBnUzxVRLHh3pAx^">1.39</a></u><td><u><a id="r5047_158_^w8d.zW9KbagBKtKnBMf">1.58</a></u><td><u><a id="r5047_127_WFmZnaO_BM6Z3GNOVN^a">1.27</a></u><td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>&nbsp;<td><b>+1.0</b><b>–1.0</b><td><u><a id="r5047_109_eL2eNo^fk5ucVNcs3GL6">1.09</a></u><u><a id="r5047_640_M0M1hTaQQ9SS^ucrrELV">6.40</a></u><td><b>2.0</b><td><u><a id="r5047_510_9tFkI9oWObF6XtdkhDuN">5.10</a></u><td><u><a id="r5047_115_UfHPlBfwkU4ZPOdC5Fu.">1.15</a></u><td colspan=3>&nbsp;<td colspan=3>&nbsp;<td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>&nbsp;<td><b>+1.5</b><b>–1.5</b><td><u><a id="r5047_106_KyporEFBv6XyXx4yhwwL">1.06</a></u><u><a id="r5047_780_vY7bZhs9KeNwmS7AEvnu">7.80</a></u><td><b>1.5</b><td><u><a id="r5047_260_3bvHCKEaR8ODqU^j_LNF">2.60</a></u><td><u><a id="r5047_145_V6dtfRS77ytPqE^j_LNF">1.45</a></u><td colspan=3>&nbsp;<td colspan=3>&nbsp;<td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>2-nd half:<td><b>0</b><b>0</b><td><u><a id="r5047_212_HyYw8E4XLRpbwa7QAjnd">2.12</a></u><u><a id="r5047_167_huJ0MHnL9_eqMHx7oAhZ">1.67</a></u><td><b>1.5</b><td><u><a id="r5047_196_b8b9_czSNa1pyCbGDJgv">1.96</a></u><td><u><a id="r5047_179_jYnjshHAJChq8EektL.N">1.79</a></u><td><u><a id="r5047_325_VF0^fa_sCAIWN8U9jyET">3.25</a></u><td><u><a id="r5047_265_G2xY7VBcR5XSL851pylc">2.65</a></u><td><u><a id="r5047_255_ASEC17vFTT4H7fFtRbV0">2.55</a></u><td><u><a id="r5047_145__4u9bPCdJe6vDv5Qykld">1.45</a></u><td><u><a id="r5047_142__Twrb0KeJ^2jCKMOfBta">1.42</a></u><td><u><a id="r5047_129_XUTno1raM_F6GvEtakU0">1.29</a></u><td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>&nbsp;<td><b>+1.0</b><b>–1.0</b><td><u><a id="r5047_115_zSUG079_tjW2vA_jOHOF">1.15</a></u><u><a id="r5047_500_2geMBsQx.7we856ytufL">5.00</a></u><td><b>2.0</b><td><u><a id="r5047_305_NP5ge4sK8x2sm37AEvnu">3.05</a></u><td><u><a id="r5047_135_ksnKSgIgUfw.mCgCEJb.">1.35</a></u><td colspan=3>&nbsp;<td colspan=3>&nbsp;<td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>&nbsp;<td><b>+1.5</b><b>–1.5</b><td><u><a id="r5047_110_MPE3h4vYuH3KkCOOFJ_a">1.10</a></u><u><a id="r5047_620_FR5_66YInqSkpybnLHgJ">6.20</a></u><td><b>1.0</b><td><u><a id="r5047_135_HQUn859gUfDfaC_KGJOf">1.35</a></u><td><u><a id="r5047_300_1OBBAj.Zu8bL2W^KWNNf">3.00</a></u><td colspan=3>&nbsp;<td colspan=3>&nbsp;<td colspan=4>&nbsp;</TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>To qualify:</i> Adelaide United <u><a id="r5047_217_U6LQlRkTzq_aDv5Qykld">2.17</a></u>; Melbourne City <u><a id="r5047_169_NP5ge4ZqsceJBjUInaEw">1.69</a></u>; </TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>Add. handicaps:<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><TR><td>&nbsp;<i>Adelaide United</i>:<td>(–1.5) <u><a id="r5047_580_XEPfoyd09l8stuu78EdZ">5.80</a></u>; (–1.0) <u><a id="r5047_490_CSlK37Jj_PyLk3GMFvWm">4.90</a></u>; (+0.25) <u><a id="r5047_188_TfXTwB51VCU19E.ncLeJ">1.88</a></u>; (+1.0) <u><a id="r5047_133_7NaZGvNBv2Mw2G^KWNNf">1.33</a></u>; (+1.5) <u><a id="r5047_122_BS5O27ZlkzyOGJM_aCt2">1.22</a></u>; (+2.0) <u><a id="r5047_107_KyporEGchWT2cLd39Eu^">1.07</a></u>; </TR><TR><td>&nbsp;<i>Melbourne City</i>:<td>(+1.5) <u><a id="r5047_111_2_6OBrYlSO.eeD^rsMNV">1.11</a></u>; (+1.0) <u><a id="r5047_115_W6uYnRzAJE0XPb4A5fwu">1.15</a></u>; (–0.25) <u><a id="r5047_192_IAAa9lb9K4LGrlFx^uVz">1.92</a></u>; (–1.0) <u><a id="r5047_330_6.qcFJUdva5vBstKnBMf">3.30</a></u>; (–1.5) <u><a id="r5047_400_8xZwHI62YN^mFZtskCM6">4.00</a></u>; (–2.0) <u><a id="r5047_750_ERES56oW0S99bmOgJI_R">7.50</a></u>; </TR></table></table></TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>Add. totals:<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><TR><td colspan=2>(1.5) over <u><a id="r5047_123_FR5_66Z5nFw._LLgqEcR">1.23</a></u>; under <u><a id="r5047_385_G2xY7VB3ff0jm37AEvnu">3.85</a></u>; (2.0) over <u><a id="r5047_135_PnXDmC60fVDfaC_KGJOf">1.35</a></u>; under <u><a id="r5047_305_gLaqOoLNIhqYmSgCEJb.">3.05</a></u>; (2.75) over <u><a id="r5047_198_XlXwoA5KX0EEvyWpOoGD">1.98</a></u>; under <u><a id="r5047_183_TfXTwB5rT3A4qlVp_uFD">1.83</a></u>; <BR>(3.0) over <u><a id="r5047_231_v9gxZtRhl_B4^uT9rlDT">2.31</a></u>; under <u><a id="r5047_161_TfXTwB5DszpN1nfET.6o">1.61</a></u>; (3.5) over <u><a id="r5047_285_zSUG079lSRUyU^uW0Gdq">2.85</a></u>; under <u><a id="r5047_139__Twrb0HYLUmcbmGhJpWP">1.39</a></u>; (4.0) over <u><a id="r5047_450_GByZ7fN6nahvmSgCEJb.">4.50</a></u>; under <u><a id="r5047_118_3bvHCKEwSOqr9E.ncLeJ">1.18</a></u>; </TR><TR><td>&nbsp;<i>Adelaide United</i>:<td>(2.0) over <u><a id="r5047_460_nvjXWNEuQs_0EZxWmChq">4.60</a></u>; under <u><a id="r5047_117_M0M1hTkErAhXAKxGwBhv">1.17</a></u>; (1.5) over <u><a id="r5047_248_fvrcVNT6GgB7Yxwldw4H">2.48</a></u>; under <u><a id="r5047_150_NP5ge4ZUbD0Kxzb7HIgZ">1.50</a></u>; </TR><TR><td>&nbsp;<i>Melbourne City</i>:<td>(2.0) over <u><a id="r5047_325_G2xY7VCx1Bybzr5Alalu">3.25</a></u>; under <u><a id="r5047_131_V6dtfRRpmF4vmCgCEJb.">1.31</a></u>; (1.0) over <u><a id="r5047_140_duZ4LH6uyV0jkkGMFvWm">1.40</a></u>; under <u><a id="r5047_285_ysGCQgjsdyy_ZhTpgwDD">2.85</a></u>; </TR></table></table></TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Goal in first half:</i> yes <u><a id="r5047_135_JQ5bq5Zv_^2oAjlEwa5o">1.35</a></u>; no <u><a id="r5047_305_1_FCArpFwPEEW^L_2Gc2">3.05</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Goal in second half:</i> yes <u><a id="r5047_120_Fa9c6FVYSuFE5F.WPOeq">1.20</a></u>; no <u><a id="r5047_420_RG0Nak_KGIKVVeTY3nD4">4.20</a></u>; <i class=p2r>Goals both halves:</i> yes <u><a id="r5047_167_zkYD0G6AUyAT6fVYSbF4">1.67</a></u>; no <u><a id="r5047_212_LzQ6dwe3YBElfB_sCKO6">2.12</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Winning margin Adelaide United 1 goal:</i> yes <u><a id="r5047_460_Nm9deDV9sap.a3WIGvGw">4.60</a></u>; no <u><a id="r5047_117_5^FSEqpVmcJF6fVYSbF4">1.17</a></u>; <i class=p2r>Winning margin Melbourne City 1 goal:</i> yes <u><a id="r5047_400_dLR6Loh3pNZaFqUYkkE4">4.00</a></u>; no <u><a id="r5047_122_qxquJIUpbberqE^j_LNF">1.22</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Winning margin Adelaide United 1 goal or draw:</i> yes <u><a id="r5047_215_RG0Nak_KGE0X9lflcu6H">2.15</a></u>; no <u><a id="r5047_165_FB1^6f^sSON4NHtrjAMV">1.65</a></u>; <i class=p2r>Winning margin Melbourne City 1 goal or draw:</i> yes <u><a id="r5047_200_OzyqgwNgZMZQcLd39Eu^">2.00</a></u>; no <u><a id="r5047_176_E2MQ5VaTPgq9HIhkxzxN">1.76</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Adelaide United wins and over 2.5:</i> yes <u><a id="r5047_460_wq_UT^0P11l^.0W9KpGT">4.60</a></u>; <i class=p2r>Adelaide United wins and under 2.5:</i> yes <u><a id="r5047_680__4u9bPCdJgR3Loh3pAx^">6.80</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Melbourne City wins and over 2.5:</i> yes <u><a id="r5047_335_JA1.ql^j_Jsyy3nEDv7o">3.35</a></u>; <i class=p2r>Melbourne City wins and under 2.5:</i> yes <u><a id="r5047_540_9hNyIYywu6mbFvtskCM6">5.40</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Adelaide United won't lose and over 2.5:</i> yes <u><a id="r5047_340_KQljr5J.^ZWan2GtBjW0">3.40</a></u>; <i class=p2r>Adelaide United won't lose and under 2.5:</i> yes <u><a id="r5047_300_duZ4LH51pnudNXtrjAMV">3.00</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Melbourne City won't lose and over 2.5:</i> yes <u><a id="r5047_265_5NBREvxWmEm_O8EhvyUP">2.65</a></u>; <i class=p2r>Melbourne City won't lose and under 2.5:</i> yes <u><a id="r5047_270_qM2.JptjbFTaAsxGwBhv">2.70</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Adelaide United wins both halves:</i> yes <u><a id="r5047_930_lvKPUNwU0bN4O8MgvAtR">9.30</a></u>; no <u><a id="r5047_104_Zl8uvAWpOm9IBKtKnBMf">1.04</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Melbourne City wins both halves:</i> yes <u><a id="r5047_650_msWGPg8B5_vhGvM_aCt2">6.50</a></u>; no <u><a id="r5047_109_X5cloQ3mM1l^FvUYkkE4">1.09</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Adelaide United wins at least one half:</i> yes <u><a id="r5047_199_3OaJCjMOfKW2GJM_aCt2">1.99</a></u>; no <u><a id="r5047_177_.X7g^dXqrcFFGvEtakU0">1.77</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Melbourne City wins at least one half:</i> yes <u><a id="r5047_164_jYnjshH.etJUFJtskCM6">1.64</a></u>; no <u><a id="r5047_217_4e^UDZ1Pyq7vFvUYkkE4">2.17</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Adelaide United to win to nil:</i> yes <u><a id="r5047_530_G2xY7VBcR6HlGvM_aCt2">5.30</a></u>; no <u><a id="r5047_114__DmqbmOgJzAGGJM_aCt2">1.14</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Melbourne City to win to nil:</i> yes <u><a id="r5047_400_nJkZW.L_2NeoDZhSyCxe">4.00</a></u>; no <u><a id="r5047_122_twH0xzn5HmQCDJhSyCxe">1.22</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Total:</i> even <u><a id="r5047_189_GapX7FFtRyp^2nVIW.Fw">1.89</a></u>; odd <u><a id="r5047_191_D2tU4V2PQ0yL6fVYSbF4">1.91</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=dyn align=left colspan=16>&nbsp;<i class=p2r>Goal in match:</i> <nobr>yes <u><a id="r5047_101_mr_EP_29wOehdTqm86ww">1.01</a></u>;&nbsp</nobr> <nobr>no <u><a id="r5047_1350_^D0e.mtBZ0UGJIIdOrW8">13.5</a></u>;&nbsp</nobr> </TR><TR><td colspan=2>&nbsp;<td class=dyn align=left colspan=16>&nbsp;<i class=p2r>Correct score 1:</i> <nobr>1:0 <u><a id="r5047_1050_ERES56obAylSXMu2c_.6">10.5</a></u>;&nbsp</nobr> <nobr>2:0 <u><a id="r5047_1600_SGmJkkM6W4DKXxu2c_.6">16.0</a></u>;&nbsp</nobr> <nobr>2:1 <u><a id="r5047_1050_E2MQ5VmxAAlSXMu2c_.6">10.5</a></u>;&nbsp</nobr> <nobr>3:0 <u><a id="r5047_3300_eL2eNo_Bqg^hcLLvZ^N.">33.0</a></u>;&nbsp</nobr> <nobr>3:1 <u><a id="r5047_2300_C3xI3Wz5GztMfBgFyPhB">23.0</a></u>;&nbsp</nobr> <nobr>3:2 <u><a id="r5047_2900_Z5dxvQQQ^FHoU^DHRdFL">29.0</a></u>;&nbsp</nobr> <nobr>4:0 <u><a id="r5047_7500_YEzapyx^t68wP^LJRcNN">75.0</a></u>;&nbsp</nobr> <nobr>4:1 <u><a id="r5047_5500_nqbYW^BlkIS^a2GHa0EL">55.0</a></u>;&nbsp</nobr> <nobr>4:2 <u><a id="r5047_7000_cDP6umhJX7PeSeuBPc.F">70.0</a></u>;&nbsp</nobr> <nobr>4:3 <u><a id="r5047_11000_HAQf8ldZL2UbbabBmPxF">110.0</a></u>;&nbsp</nobr> <nobr>5:0 <u><a id="r5047_17500_oYWnXhqsuv_xfFNJ2TLN">175.0</a></u>;&nbsp</nobr> <nobr>5:1 <u><a id="r5047_14000_9xJmIInch^FjLjxRDYbV">140.0</a></u>;&nbsp</nobr> <nobr>5:2 <u><a id="r5047_16000_0_VGzrrr4uFKHvMJBXON">160.0</a></u>;&nbsp</nobr> <nobr>5:3 <u><a id="r5047_23000_MPE3h4oOIkQek6fz04wD">230.0</a></u>;&nbsp</nobr> </TR><TR><td colspan=2>&nbsp;<td class=dyn align=left colspan=16>&nbsp;<i class=p2r>Correct score X:</i> <nobr>0:0 <u><a id="r5047_1350_P7cEmS19TDdEZxz8^gFd">13.5</a></u>;&nbsp</nobr> <nobr>1:1 <u><a id="r5047_710_0_VGzrrr4u2FZtPd_gV8">7.10</a></u>;&nbsp</nobr> <nobr>2:2 <u><a id="r5047_1350_QWDCy3pgUwuAsxPd_gV8">13.5</a></u>;&nbsp</nobr> <nobr>3:3 <u><a id="r5047_5000_lJCRU...y9bQcM04tg60">50.0</a></u>;&nbsp</nobr> <nobr>4:4 <u><a id="r5047_19000_kKkJSbN6n8SN72jBmPxF">190.0</a></u>;&nbsp</nobr> </TR><TR><td colspan=2>&nbsp;<td class=dyn align=left colspan=16>&nbsp;<i class=p2r>Correct score 2:</i> <nobr>0:1 <u><a id="r5047_900_kjjHSOF4nXKHYtw2c_.6">9.00</a></u>;&nbsp</nobr> <nobr>0:2 <u><a id="r5047_1150_ajrLROV0fX_MfaGJaPMN">11.5</a></u>;&nbsp</nobr> <nobr>1:2 <u><a id="r5047_900_mKSFPbeqw8rDZtTe__^q">9.00</a></u>;&nbsp</nobr> <nobr>0:3 <u><a id="r5047_2100_MmI0hDwLISl3sxw2c_.6">21.0</a></u>;&nbsp</nobr> <nobr>1:3 <u><a id="r5047_1650_tTD3x0pOYn47sMTe__^q">16.5</a></u>;&nbsp</nobr> <nobr>2:3 <u><a id="r5047_2500_6eetFZSy2MJXtcLoZeFu">25.0</a></u>;&nbsp</nobr> <nobr>0:4 <u><a id="r5047_4500_opswXM6XuZkaWgDZVtN^">45.0</a></u>;&nbsp</nobr> <nobr>1:4 <u><a id="r5047_3500_2_6OBrs36uJHCshTE97P">35.0</a></u>;&nbsp</nobr> <nobr>2:4 <u><a id="r5047_5500_wJSVT.evm9S^a2GJaPMN">55.0</a></u>;&nbsp</nobr> <nobr>3:4 <u><a id="r5047_9000_WVwsn2InSlmRD8hwIq7m">90.0</a></u>;&nbsp</nobr> <nobr>0:5 <u><a id="r5047_10000_RG0Nakt2V48DOZUNCX_J">100.0</a></u>;&nbsp</nobr> <nobr>1:5 <u><a id="r5047_9000_W6uYnRAlSEmRD8hwIq7m">90.0</a></u>;&nbsp</nobr> <nobr>2:5 <u><a id="r5047_12000_D2tU4V0pzAMYwzGvvRM.">120.0</a></u>;&nbsp</nobr> <nobr>3:5 <u><a id="r5047_19000_yjKzQOfdlX_M7BnBmPxF">190.0</a></u>;&nbsp</nobr> <nobr>0:6 <u><a id="r5047_22500_PGPFmkhqT4HH1R7FyPhB">225.0</a></u>;&nbsp</nobr> <nobr>1:6 <u><a id="r5047_20000_tDz2xmxNY7chMLT.s^^v">200.0</a></u>;&nbsp</nobr> </TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>Goals<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Adelaide United to score:</i> yes <u><a id="r5047_132_PWTGm3rBE_B5FJtskCM6">1.32</a></u>; no <u><a id="r5047_320_C3xI3WBLVrgqw27QAjnd">3.20</a></u>; <i class=p2r>Melbourne City to score:</i> yes <u><a id="r5047_122_RW4Oa3sJG_qrqE^j_LNF">1.22</a></u>; no <u><a id="r5047_400_TVTWw2rRA^^aFqUYkkE4">4.00</a></u>; <i class=p2r>Both to score:</i> yes <u><a id="r5047_164_YUDkp1jfLtBUFJtskCM6">1.64</a></u>; no <u><a id="r5047_217_v9gxZtPog1hZvyWpOoGD">2.17</a></u>; <i class=p2r><BR>First goal:</i> Adelaide United <u><a id="r5047_204_nqbYW^zc21QQxzb7HIgZ">2.04</a></u>; Melbourne City <u><a id="r5047_173_cDP6umg3IOfdNHtrjAMV">1.73</a></u>; &nbsp;<i class=p2r><BR>Second goal:</i> 1 - 60 min. <u><a id="r5047_188_O0x9gTAyRFTyxzuezKgq">1.88</a></u>; 61 - 90 min. <u><a id="r5047_345_JQ5bq5sGetVQ8Ud2NH_B">3.45</a></u>; 2-nd goal no one <u><a id="r5047_385_aK3NRbcK7O^3FqUYkkE4">3.85</a></u>; <i class=p2r><BR>Last goal:</i> Adelaide United <u><a id="r5047_204_6N2^FvtskJnxBKtKnBMf">2.04</a></u>; Melbourne City <u><a id="r5047_173_.ord^LT9ruvNBjUInaEw">1.73</a></u>; &nbsp;<i class=p2r><BR>Total:</i> 0-1 goals <u><a id="r5047_385_4NRVDvhSyM^SN8U9jyET">3.85</a></u>; 2-3 goals <u><a id="r5047_212_IQEk95vfcRMnfaWYCjG4">2.12</a></u>; 4+ goals <u><a id="r5047_285__wo8bzGhJnugBrUInaEw">2.85</a></u>; <i class=p2r><BR>1 half:</i> Adelaide United score <u><a id="r5047_217_OzyqgwNgZBYawa7QAjnd">2.17</a></u>; Adelaide United not score <u><a id="r5047_165_B3hM2WRHW1IV6fVYSbF4">1.65</a></u>; Melbourne City score <u><a id="r5047_192_E2MQ5VaTP0hKoy7yMonL">1.92</a></u>; Melbourne City not score <u><a id="r5047_183_G2xY7VBcR0AD6fVYSbF4">1.83</a></u>; <i class=p2r><BR>2 half:</i> Adelaide United score <u><a id="r5047_181_GByZ7fN_RzIF6fVYSbF4">1.81</a></u>; Adelaide United not score <u><a id="r5047_194_Jy9uqEVp_kt3fB_sCKO6">1.94</a></u>; Melbourne City score <u><a id="r5047_162_CSlK37JNVQEU7fFtRbV0">1.62</a></u>; Melbourne City not score <u><a id="r5047_221_RW4Oa3sJGUo^qlVp_uFD">2.21</a></u>; <i class=p2r><BR>Both halves:</i> Adelaide United score <u><a id="r5047_390_PnXDmC7AEbF6FZtskCM6">3.90</a></u>; Adelaide United not score <u><a id="r5047_123_RW4Oa3sJG_.drlFx^uVz">1.23</a></u>; Melbourne City score <u><a id="r5047_315_B3hM2WRHWrjhr5Fx^uVz">3.15</a></u>; Melbourne City not score <u><a id="r5047_133_QWDCy3jFD_V2GvEtakU0">1.33</a></u>; <i class=p2r><BR>1-st half:</i> both to score <u><a id="r5047_410_Zl8uvAWpOx6ZJYtjbzMF">4.10</a></u>; at least one not to score <u><a id="r5047_121_R7dMaSSHGg6qqlVp_uFD">1.21</a></u>; <i class=p2r><BR>2-nd half:</i> both to score <u><a id="r5047_295_edehNXQ8j48IArlEwa5o">2.95</a></u>; at least one not to score <u><a id="r5047_136_Vf8cfBWYC.qpBKtKnBMf">1.36</a></u>; <i class=p2r><BR>Both halves total over 1.5:</i> yes <u><a id="r5047_500_9MBaIpxnuHODFZtskCM6">5.00</a></u>; no <u><a id="r5047_115_YUDkp1jfLPMDGvEtakU0">1.15</a></u>; <i class=p2r>Both halves total under 1.5:</i> yes <u><a id="r5047_265_BS5O27ZJWVmbCrEMfaUm">2.65</a></u>; no <u><a id="r5047_144_kjjHSODM6.qpDJhSyCxe">1.44</a></u>; </TR></table></table></TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>HT/FT<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><td><span class=p2r>1/1 H/F</span> <u><a id="r5047_510_fqgtV^PX35wc27VIW.Fw">5.10</a></u>;<BR><span class=p2r>X/2 H/F</span> <u><a id="r5047_560_0g^Ezs1zl0YCV.cs3GL6">5.60</a></u>;<td><span class=p2r>1/X H/F</span> <u><a id="r5047_1300_pICaYxundFTmGZtskCM6">13.0</a></u>;<BR><span class=p2r>2/1 H/F</span> <u><a id="r5047_2400_B3hM2WRHWdeJ07VIW.Fw">24.0</a></u>;<td><span class=p2r>1/2 H/F</span> <u><a id="r5047_2000_YUDkp1jfLZWmFZEtakU0">20.0</a></u>;<BR><span class=p2r>2/X H/F</span> <u><a id="r5047_1300_.ord^LT9rfDwFZM_aCt2">13.0</a></u>;<td><span class=p2r>X/1 H/F</span> <u><a id="r5047_710_U6LQlRkTz9CUNotrjAMV">7.10</a></u>;<BR><span class=p2r>2/2 H/F</span> <u><a id="r5047_365_zCQF0neCUMv_66VYSbF4">3.65</a></u>;<td><span class=p2r>X/X H/F</span> <u><a id="r5047_580_5NBREvxWmAIWNotrjAMV">5.80</a></u>;</table></table></TR></table></div></div><div class="container gray" ><a name=13595054></a><H3>Football. Women. National teams. Friendlies<img src="./img/bet_plus.png" width=16 height=16 onClick="toggleProps('#g13595054','#i13595054' );" id="i13595054" alt="additional odds" title="additional odds" /></h3><div class=wrapper><table id=g13595054 class="dt twp" bordercolorlight=#DADADA bordercolordark=#DADADA frame=border rules=groups><colgroup span=1 width=2%><colgroup span=1 width=5%><colgroup span=1 width=23%><colgroup span=2 width=5%><colgroup span=3 width=5%><colgroup span=3 width=5%><colgroup span=3 width=5%><colgroup span=3 width=5%><TR><th title="Event No">#<th>Date<th>Event<th title="Handicap value">Hand.<th title="Handicap coefficient">Odds<th title="Total">Total<th title="Over">Over<th title="Under">Under<th title="Home win">1<th title="Draw">X<th title="Away win">2<th title="Home win or draw">1X<th title="Home or away win">12<th title="Away win or draw">X2<th title="Team totals">iTotal<th title="Over">Over<th title="Under">Under</TR><TBODY class=row1><TR class=bk><td><span class=no>2716</span><td><!--evd 06/10/19 21:00 evd-->06/10<br>21:00<td class=l><a class=om id="a5066" alt="+144" title="+144">USA (w)<br>Republic of Korea (w)</a><td><b>–2.5</b><b>+2.5</b><td><u><a id="r5066_193_buR5LX3OFZGwCKMOfBta">1.93</a></u><u><a id="r5066_178_le6cFJTZL8SAV.TY3nD4">1.78</a></u><td><b>3.5</b><td><u><a id="r5066_206_KEXno18EKY3YOoEhvyUP">2.06</a></u><td><u><a id="r5066_168_h87d^LW^hwPAmCgCEJb.">1.68</a></u><td><u><a id="r5066_107_AG8Oa3sJGZOfpAbnLHgJ">1.07</a></u><td><u><a id="r5066_810_6ZORU.uW0G48N8trjAMV">8.10</a></u><td><u><a id="r5066_2000_cmy9gTBdZh^RZhLbeDcB">20.0</a></u><td>&nbsp;<td><u><a id="r5066_106_FVLRlabWzKjgbzOgJI_R">1.06</a></u><td><u><a id="r5066_740_yOqOBrYJnRQyjAGxNoWz">7.40</a></u><td><b>3.0</b><b>1.0</b><td><u><a id="r5066_205_dXbq_uNvmaluaC_KGJOf">2.05</a></u><u><a id="r5066_700_KUcfoydeErC5XM4yhwwL">7.00</a></u><td><u><a id="r5066_169_6vCQU^aAvPUz0GeCUN..">1.69</a></u><u><a id="r5066_107_6ZORU.bJ84uNSOLO6Fca">1.07</a></u></TR><TBODY class="row1 props" style="display:none" id=p5066><TR class=bk><td colspan=2>&nbsp;<td>1-st half:<td><b>–1.0</b><b>+1.0</b><td><u><a id="r5066_186_4ZbZW.LqrLvOGJM_aCt2">1.86</a></u><u><a id="r5066_184_vtNaIp.qwrs3Xx4yhwwL">1.84</a></u><td><b>1.5</b><td><u><a id="r5066_207_9IrbZhXEKz5HjyGxNoWz">2.07</a></u><td><u><a id="r5066_168_3KsGPg8xABYk8l6ytufL">1.68</a></u><td><u><a id="r5066_141_3s_FPbdC5O68GJM_aCt2">1.41</a></u><td><u><a id="r5066_315__Pt6dwe3YD0IFqUYkkE4">3.15</a></u><td><u><a id="r5066_1250_Ef0tfRSXC2yxpy7yMonL">12.5</a></u><td>&nbsp;<td><u><a id="r5066_131_yb2MBsQHn4wNpAbnLHgJ">1.31</a></u><td><u><a id="r5066_270_EVd^fa_sCMf^.P_rKIOV">2.70</a></u><td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>&nbsp;<td><b>–1.5</b><b>+1.5</b><td><u><a id="r5066_265_0rnHSOG^BM2s.0W9KpGT">2.65</a></u><u><a id="r5066_142_tPheew^TbV8pkkGMFvWm">1.42</a></u><td><b>1.0</b><td><u><a id="r5066_141_QC9O27YW_jG6T.4Q1nwd">1.41</a></u><td><u><a id="r5066_265_0KjKSgKSeapxS_LO6Fca">2.65</a></u><td colspan=3>&nbsp;<td colspan=3>&nbsp;<td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>2-nd half:<td><b>–1.5</b><b>+1.5</b><td><u><a id="r5066_210_0KjKSgKtB1AUjyGxNoWz">2.10</a></u><u><a id="r5066_165_0rnHSODaB1ET6F^sSON6">1.65</a></u><td><b>1.5</b><td><u><a id="r5066_164_1KrORgXlCAp_4f6QQbfd">1.64</a></u><td><u><a id="r5066_212_hXge^ucTORpbwa7QAjnd">2.12</a></u><td><u><a id="r5066_128_2rGzQOwE4u2IHIhkxzxN">1.28</a></u><td><u><a id="r5066_400_7Z_VT.dS1MfcIYxnuzhJ">4.00</a></u><td><u><a id="r5066_1300_UB9_66ZZSUDTJYMb.ztB">13.0</a></u><td>&nbsp;<td><u><a id="r5066_120_nNZWDq9RyTzGU.wU0n48">1.20</a></u><td><u><a id="r5066_335_Y15uqEVp_jjhf2WYCjG4">3.35</a></u><td colspan=4>&nbsp;</TR><TR class=bk><td colspan=2>&nbsp;<td>&nbsp;<td><b>–1.0</b><b>+1.0</b><td><u><a id="r5066_151_wefXGJE8jf4vlBbWzKgq">1.51</a></u><u><a id="r5066_239_xceeNo^fk44J3GNOVN^a">2.39</a></u><td><b>2.0</b><td><u><a id="r5066_221_F6DPlBfwksO4zKhClBx.">2.21</a></u><td><u><a id="r5066_159_6vCQU^ylSGL4mk7AEvnu">1.59</a></u><td colspan=3>&nbsp;<td colspan=3>&nbsp;<td colspan=4>&nbsp;</TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>Add. handicaps:<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><TR><td>&nbsp;<i>USA (w)</i>:<td>(–2.25) <u><a id="r5066_175_agFzAKnkMTzDmk7AEvnu">1.75</a></u>; (–2.0) <u><a id="r5066_153_mOvKCrKOFVmunBO_BK_2">1.53</a></u>; </TR><TR><td>&nbsp;<i>Republic of Korea (w)</i>:<td>(+2.25) <u><a id="r5066_201_ZQMa9lbg5vKfAjlEwa5o">2.01</a></u>; (+2.0) <u><a id="r5066_235_YA9bq5ssdoKFAKxGwBhv">2.35</a></u>; </TR></table></table></TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>Add. totals:<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><TR><td colspan=2>(3.0) over <u><a id="r5066_164_neVTDJ7DrHnMPOdC5Fu.">1.64</a></u>; under <u><a id="r5066_212_3KsGPgqWbhftXMdkhDuN">2.12</a></u>; (3.25) over <u><a id="r5066_187_2jCAQ_k84KkdsxDxewTz">1.87</a></u>; under <u><a id="r5066_187_2rGzQOn94skdsxDxewTz">1.87</a></u>; </TR><TR><td>&nbsp;<i>USA (w)</i>:<td>(2.5) over <u><a id="r5066_163_7qWTTN5R^8nNQOuG4Fdv">1.63</a></u>; under <u><a id="r5066_214_zWuJkkNLpUXQrlFx^uVz">2.14</a></u>; </TR><TR><td>&nbsp;<i>Republic of Korea (w)</i>:<td>(1.5) over <u><a id="r5066_880_PSxJ3nNmaVTa^dcrrELV">8.80</a></u>; under <u><a id="r5066_103_Lwm9bPCSeytPGvEtakU0">1.03</a></u>; </TR></table></table></TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Goal in first half:</i> yes <u><a id="r5066_122_P3lH3GFMVu.O7FN_RO^2">1.22</a></u>; no <u><a id="r5066_380_Q35L2GVIWuqJ76FtRbV0">3.80</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Goal in second half:</i> yes <u><a id="r5066_112_R3Ez1GfETx6Y0GeCUN..">1.12</a></u>; no <u><a id="r5066_530_rpSlXt0mh7whAjxGwBhv">5.30</a></u>; <i class=p2r>Goals both halves:</i> yes <u><a id="r5066_142_HEojj1K.NWdrnBO_BK_2">1.42</a></u>; no <u><a id="r5066_265_jhVwHI5yxbN7l2nUzj78">2.65</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Winning margin USA (w) 1 goal:</i> yes <u><a id="r5066_460_X1lorEFx^k9qn2GtBjW0">4.60</a></u>; no <u><a id="r5066_116_F6DPlBnUzwDEVNcs3GL6">1.16</a></u>; <i class=p2r>Winning margin Republic of Korea (w) 1 goal:</i> yes <u><a id="r5066_1500_a_NBAjxGwMJVXhwldw4H">15.0</a></u>; no &nbsp;; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Winning margin USA (w) 1 goal or draw:</i> yes <u><a id="r5066_325_rpSlXt0mhr_3n2GtBjW0">3.25</a></u>; no <u><a id="r5066_130_KEXno1raMXjMYxwldw4H">1.30</a></u>; <i class=p2r>Winning margin Republic of Korea (w) 1 goal or draw:</i> yes <u><a id="r5066_630_EVd^fa_sCKK5vy_jOHOF">6.30</a></u>; no <u><a id="r5066_108_FFHSl2jVzs3rbmGhJpWP">1.08</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>USA (w) wins and over 2.5:</i> yes <u><a id="r5066_147_n.RUDZ1Py5w^pAbnLHgJ">1.47</a></u>; <i class=p2r>USA (w) wins and under 2.5:</i> yes <u><a id="r5066_360_YQh.ql^j_JOwpQbnLHgJ">3.60</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Republic of Korea (w) wins and over 2.5:</i> yes <u><a id="r5066_2900_syQl8U2mtq7vl2O_BK_2">29.0</a></u>; <i class=p2r>Republic of Korea (w) wins and under 2.5:</i> yes <u><a id="r5066_2600_LDorb0KeJ_J5xzGhJpWP">26.0</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>USA (w) won't lose and over 2.5:</i> yes <u><a id="r5066_142_n^^VDvhSyEm_.z_rKIOV">1.42</a></u>; <i class=p2r>USA (w) won't lose and under 2.5:</i> yes <u><a id="r5066_280_E64cfBWYCxNTpQbnLHgJ">2.80</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Republic of Korea (w) won't lose and over 2.5:</i> yes <u><a id="r5066_1900_tz9ge4ZqssW2x0g3IIb^">19.0</a></u>; <i class=p2r>Republic of Korea (w) won't lose and under 2.5:</i> yes <u><a id="r5066_820_RSMB1n.GTHnN46eSQO.e">8.20</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>USA (w) wins both halves:</i> yes <u><a id="r5066_189_997uZMTpgueHGJM_aCt2">1.89</a></u>; no <u><a id="r5066_181_rpSlXt0mhd^zGJM_aCt2">1.81</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Republic of Korea (w) wins both halves:</i> yes <u><a id="r5066_2300_OwP5uP30I0yOfa7QAjnd">23.0</a></u>; no &nbsp;; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>USA (w) wins at least one half:</i> yes <u><a id="r5066_105_le6cFJUYkvOwpAbnLHgJ">1.05</a></u>; no <u><a id="r5066_770_Lwm9bPCdJ0tzZhcjgDLF">7.70</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Republic of Korea (w) wins at least one half:</i> yes <u><a id="r5066_710_ho3h^cP8rdRCsMDxewTz">7.10</a></u>; no <u><a id="r5066_106_vhFmIIllupk_nBO_BK_2">1.06</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>USA (w) to win to nil:</i> yes <u><a id="r5066_153_6qGPUNwU0..uGJM_aCt2">1.53</a></u>; no <u><a id="r5066_233_JlzypQkwL1xcnBO_BK_2">2.33</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Republic of Korea (w) to win to nil:</i> yes <u><a id="r5066_1700_rIsnXh8ahtJUFJEtakU0">17.0</a></u>; no &nbsp;; </TR><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>Total:</i> even <u><a id="r5066_185_P3lH3GFMVmpN7fFtRbV0">1.85</a></u>; odd <u><a id="r5066_185_PkyI3WBLV1QP0GeCUN..">1.85</a></u>; </TR><TR><td colspan=2>&nbsp;<td class=dyn align=left colspan=16>&nbsp;<i class=p2r>Correct score 1:</i> <nobr>1:0 <u><a id="r5066_760_2sOBQb.el8kBDqrlUteR">7.60</a></u>;&nbsp</nobr> <nobr>2:0 <u><a id="r5066_520_6JKSUevbypkRd48ExSh2">5.20</a></u>;&nbsp</nobr> <nobr>2:1 <u><a id="r5066_1100_DVuZnaMfS5HX_cZMOs_q">11.0</a></u>;&nbsp</nobr> <nobr>3:0 <u><a id="r5066_530_5Jr_VeZkapsc95oQoRxf">5.30</a></u>;&nbsp</nobr> <nobr>3:1 <u><a id="r5066_1100_D6wXnBEwSUXc^cJINsOe">11.0</a></u>;&nbsp</nobr> <nobr>3:2 <u><a id="r5066_3500_k_^Fzjgq4dfCAjSgSdVH">35.0</a></u>;&nbsp</nobr> <nobr>4:0 <u><a id="r5066_690_a_NBAjbe5dqDGqKpVtN^">6.90</a></u>;&nbsp</nobr> <nobr>4:1 <u><a id="r5066_1400_P3lH3GD4GPUOGvSbWhVX">14.0</a></u>;&nbsp</nobr> <nobr>4:2 <u><a id="r5066_4500_^mA1hTmMICM91FoywQxV">45.0</a></u>;&nbsp</nobr> <nobr>4:3 <u><a id="r5066_14000_bLZ7L8rK8bReIqrlUteR">140.0</a></u>;&nbsp</nobr> <nobr>5:0 <u><a id="r5066_1100_JULapyx^t6HoS_ZhCX_J">11.0</a></u>;&nbsp</nobr> <nobr>5:1 <u><a id="r5066_2200_^zI3h4oOIkI82W85yPhB">22.0</a></u>;&nbsp</nobr> <nobr>5:2 <u><a id="r5066_6000_TBps76HnCy5WCvsxWt^Z">60.0</a></u>;&nbsp</nobr> <nobr>5:3 <u><a id="r5066_18000_XApjr5HWOa1fGeZxGY_Z">180.0</a></u>;&nbsp</nobr> <nobr>6:0 <u><a id="r5066_2000_oxapKYCUgN6nW.ZxGY_Z">20.0</a></u>;&nbsp</nobr> <nobr>6:1 <u><a id="r5066_3500_yg6LBKW06cfCAjSgSdVH">35.0</a></u>;&nbsp</nobr> <nobr>6:2 <u><a id="r5066_9000_JEHkp1p_tnw3LvrlUteR">90.0</a></u>;&nbsp</nobr> <nobr>7:0 <u><a id="r5066_3500_fNJSEqjb1u.AAKshSc^J">35.0</a></u>;&nbsp</nobr> <nobr>7:1 <u><a id="r5066_6500_W2UT4F4ozP5GBv3nUh6P">65.0</a></u>;&nbsp</nobr> <nobr>7:2 <u><a id="r5066_15000_pte.Jp_RegBqB8rEt_e2">150.0</a></u>;&nbsp</nobr> <nobr>8:0 <u><a id="r5066_7000_Qk1M2WP1FAEsJorEt_e2">70.0</a></u>;&nbsp</nobr> <nobr>8:1 <u><a id="r5066_11000_ho3h^cRAvJCvNqrlUteR">110.0</a></u>;&nbsp</nobr> <nobr>8:2 <u><a id="r5066_25000_rpSlXt2YuK_h_JKpVtN^">250.0</a></u>;&nbsp</nobr> <nobr>9:0 <u><a id="r5066_13000_4JjsWeJnkokBHqrlUteR">130.0</a></u>;&nbsp</nobr> <nobr>9:1 <u><a id="r5066_20000_Q35L2GT0FQ1VWqrlUteR">200.0</a></u>;&nbsp</nobr> <nobr>10:0 <u><a id="r5066_24000_ho3h^cRAvJbyBNvyDYbV">240.0</a></u>;&nbsp</nobr> </TR><TR><td colspan=2>&nbsp;<td class=dyn align=left colspan=16>&nbsp;<i class=p2r>Correct score X:</i> <nobr>0:0 <u><a id="r5066_1900_L4w8bzEDsWH8_cVOOrW8">19.0</a></u>;&nbsp</nobr> <nobr>1:1 <u><a id="r5066_1550_5Zg^V.^aa9W_eDDK.3Ed">15.5</a></u>;&nbsp</nobr> <nobr>2:2 <u><a id="r5066_3500_agFzAKnd5caBArWgSdVH">35.0</a></u>;&nbsp</nobr> <nobr>3:3 <u><a id="r5066_12000_4ZbZW.Nfk9OYDHGK^gFd">120.0</a></u>;&nbsp</nobr> </TR><TR><td colspan=2>&nbsp;<td class=dyn align=left colspan=16>&nbsp;<i class=p2r>Correct score 2:</i> <nobr>0:1 <u><a id="r5066_3500_aOJCArjg5ufCAjSyTt.V">35.0</a></u>;&nbsp</nobr> <nobr>0:2 <u><a id="r5066_9000_GVcVwahvP54WEoj_seVo">90.0</a></u>;&nbsp</nobr> <nobr>1:2 <u><a id="r5066_4500_Yy1xqUPQNBUb4n0pfQM^">45.0</a></u>;&nbsp</nobr> <nobr>1:3 <u><a id="r5066_14000_.dF0MHnL9_q4KZS1Pc.F">140.0</a></u>;&nbsp</nobr> <nobr>2:3 <u><a id="r5066_11000_9p3xZtRQ.JKoNZ39RcNN">110.0</a></u>;&nbsp</nobr> </TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>Goals<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><TR><td colspan=2>&nbsp;<td class=p2r align=left colspan=16>&nbsp;<i class=p2r>USA (w) to score:</i> yes <u><a id="r5066_101_ZQMa9l.ncIWPnBO_BK_2">1.01</a></u>; no <u><a id="r5066_1100_QShN2n^KWKkhfBO_BK_2">11.0</a></u>; <i class=p2r>Republic of Korea (w) to score:</i> yes <u><a id="r5066_250_goS5cc0090QAwa7QAjnd">2.50</a></u>; no <u><a id="r5066_147_fNJSEqpVmVLfnBO_BK_2">1.47</a></u>; <i class=p2r>Both to score:</i> yes <u><a id="r5066_260_CWcFmkgCEOV0nRO_BK_2">2.60</a></u>; no <u><a id="r5066_144_f^NREvxWmFzlnBO_BK_2">1.44</a></u>; <i class=p2r><BR>First goal:</i> USA (w) <u><a id="r5066_110_Yy1xqURo_qCloy7yMonL">1.10</a></u>; Republic of Korea (w) <u><a id="r5066_590_VaAQ5VaTP9rsbzGhJpWP">5.90</a></u>; &nbsp;<i class=p2r><BR>Last goal:</i> USA (w) <u><a id="r5066_110_ohfoKIEx.pgsnBO_BK_2">1.10</a></u>; Republic of Korea (w) <u><a id="r5066_590_yOqOBrYJnsnhfa_sCKO6">5.90</a></u>; &nbsp;<i class=p2r><BR>1 half:</i> USA (w) score <u><a id="r5066_130_GFXWw2rRATuOpAbnLHgJ">1.30</a></u>; USA (w) not score <u><a id="r5066_320_7JsWTe8R1XkLpQbnLHgJ">3.20</a></u>; Republic of Korea (w) score <u><a id="r5066_460_Z1Em9Eflck9qn2GtBjW0">4.60</a></u>; Republic of Korea (w) not score <u><a id="r5066_116_z7wHkCGMFlDUROcK7FLf">1.16</a></u>; <i class=p2r><BR>2 half:</i> USA (w) score <u><a id="r5066_117_AWdNak_KGEXRSbDM6fTm">1.17</a></u>; USA (w) not score <u><a id="r5066_440_VBIS56vVPPyL7VN_RO^2">4.40</a></u>; Republic of Korea (w) score <u><a id="r5066_385_DfmYnRCcB4LGj1GxNoWz">3.85</a></u>; Republic of Korea (w) not score <u><a id="r5066_122_GVcVwagSADLGUNuW0Gdq">1.22</a></u>; <i class=p2r><BR>Both halves:</i> USA (w) score <u><a id="r5066_158_wNvsGqI^aV8pnaGtBjW0">1.58</a></u>; USA (w) not score <u><a id="r5066_223_4vkYW^zc225vnBO_BK_2">2.23</a></u>; Republic of Korea (w) score <u><a id="r5066_1250_qpCyYtmwd1YQfaGtBjW0">12.5</a></u>; Republic of Korea (w) not score &nbsp;; <i class=p2r><BR>1-st half:</i> both to score <u><a id="r5066_590_Qk1M2WRHWr3rnBGtBjW0">5.90</a></u>; at least one not to score <u><a id="r5066_110_Y15uqEVp_p3snBO_BK_2">1.10</a></u>; <i class=p2r><BR>2-nd half:</i> both to score <u><a id="r5066_460_1r7LROTI7kh8nRO_BK_2">4.60</a></u>; at least one not to score <u><a id="r5066_116__0U4dD61YosAnBO_BK_2">1.16</a></u>; <i class=p2r><BR>Both halves total over 1.5:</i> yes <u><a id="r5066_340_k_^FzjhClJ_mnRO_BK_2">3.40</a></u>; no <u><a id="r5066_127_px2xJYQob87JnBO_BK_2">1.27</a></u>; <i class=p2r>Both halves total under 1.5:</i> yes <u><a id="r5066_360_neVTDJ5QyjO4xPb7HIgZ">3.60</a></u>; no <u><a id="r5066_125_oxapKYAu.8gHnBO_BK_2">1.25</a></u>; </TR></table></table></TR><TR><td colspan=2>&nbsp;<td colspan=16><table class=ps width="100%"><tr class=btb><th nowrap>HT/FT<td width="90%">&nbsp;<tr><td colspan=2><table class=ps width="100%"><tr><td><span class=p2r>1/1 H/F</span> <u><a id="r5066_140_W2UT4F6QQxBULHh3pAx^">1.40</a></u>;<BR><span class=p2r>X/2 H/F</span> <u><a id="r5066_3300_xu2hNXQ8j39rxmW9KpGT">33.0</a></u>;<td><span class=p2r>1/X H/F</span> <u><a id="r5066_2200_XyyprUBu^eqjFv5Qykld">22.0</a></u>;<BR><span class=p2r>2/1 H/F</span> <u><a id="r5066_2200_^PM2hw.7XOB5AKMOfBta">22.0</a></u>;<td><span class=p2r>1/2 H/F</span> <u><a id="r5066_6500_PCpK37JNVc6H1VN_RO^2">65.0</a></u>;<BR><span class=p2r>2/X H/F</span> <u><a id="r5066_3100_dHjr_dHeqVXkEvUYkkE4">31.0</a></u>;<td><span class=p2r>X/1 H/F</span> <u><a id="r5066_400_U25c6FVYSx6XHYhkxzxN">4.00</a></u>;<BR><span class=p2r>2/2 H/F</span> <u><a id="r5066_3400_KlPloQ3mMrndnRgSAKbe">34.0</a></u>;<td><span class=p2r>X/X H/F</span> <u><a id="r5066_1150_VRMR5f.WPMJW0G.GTNev">11.5</a></u>;</table></table></TR></table></div></div><table class=buttons ><tr><td width=10% align=center><span class=ke>&nbsp;</span><td width=90% align=right><a onClick="CC();">Clear</a><button type=button class=btn_orange onClick="MS();">Place bet</button></table>
+		<a name=bt></a>
+		
+
+		
+
+
+		</form>
+	
+    </div>         <!-- /body  -->
+        <script language="JavaScript" type="text/javascript">
+            function __bindOdds() {
+                if ($) {
+                    BindOddHandlers('#z_contentw table.dt tbody:visible');
+                    BindOddHandlers('#z_contentw table.dtyn');
+                }
+                else {
+                    setTimeout('__bindOdds();', 500);
+                }
+            };
+            __bindOdds();
+
+            removeEventId();
+
+
+        </script>
+    </div>
+    <div style="clear: both"></div>
+</div>
+
+<!-- footer -->
+<!-- ND -->
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#toTop").bind('click', function () {
+            $("html, body").animate({scrollTop: 0}, "slow");
+            return false;
+        });
+    });
+</script>
+
+<div class="footer">
+    <div class="foot_inn">
+        <a id="toTop"><i class="fa fa-arrow-circle-o-up fa-3x" aria-hidden="true"></i></a>
+        <ul class="foot_inn">
+            <li class="ft2"><a href="http://info.parimatch.com/en/support/">Help</a></li>
+            <li class="ft1"><a href="/en/">Sports Betting</a></li>
+            <li class="ft3"><a href="/en/">Services</a></li>
+            <li class="ft5"><a href="about.parimatch.com/en/">Parimatch</a></li>
+        </ul>
+        <div class="foot_inn1">
+
+            <ul>
+
+                
+                    <li><a href="http://info.parimatch.com/en/main/articles/38_Kak-sdelat-stavku/">Your first bet</a>
+                    </li>
+                    <li><a href="/en/payments.html">Deposits</a></li>
+                    <li><a href="/en/payments.html">Withdrawals</a></li>
+                    <li><a href="http://info.parimatch.com/en/faq/">FAQ</a></li>
+                    <li><a href="http://info.parimatch.com/en/support/">Customer support</a></li>
+                    <li><a href="https://air.parimatch.com/security">Account protection</a>
+                            </ul>
+
+            <ul>
+                
+                    <li><a href="/en/live.html">Live betting</a></li>
+                                    <li><a href="https://air.parimatch.com/mobile">Mobile betting</a>
+                    </li>
+                                     <li><a href="http://info.parimatch.com/en/main/articles/33_Shkola-bukmekerstva/">School of
+                            betting</a>
+                    </li>
+
+                            </ul>
+
+            <ul>
+
+
+                
+                    <li><a href="/en/">Sports Betting</a></li>
+
+                                                                    <li><a href="/en/tcasino/">Casino</a></li>
+                                                          <li><a href="/en/lvcas/">Live-casino</a></li>
+                                                                        
+                    
+                
+            </ul>
+            <ul>
+
+                
+                    <li><a href="https://air.parimatch.com/en/about">About the company</a></li>
+                    <li><a href="https://air.parimatch.com/en/terms-and-conditions">Terms and Conditions</a></li>
+                    <li><a href="/en/privacy.html">Privacy Policy</a></li>
+                                            <li><a target="_blank" href="https://air.parimatch.com/en/affiliates/main">Affiliate Program</a></li>
+                                        <li><a href="http://info.parimatch.com/en/info/page/Responsible-Gambling">Responsible Gambling</a></li>
+                    <li><a href="/en/for-press.html">Contacts for press</a></li>
+
+                
+
+            </ul>
+        </div>
+        <div class="foot_inn2">
+            <div class='pay_method'>
+                <noindex>
+                    <a rel="nofollow" href='http://info.parimatch.com/index.php/ru/info/page/17-LiqPay' target='_blank'
+                       class='visa'></a>
+                    <a rel="nofollow" href='http://info.parimatch.com/index.php/ru/info/page/17-LiqPay' target='_blank'
+                       class='mastercard'></a>
+                    <a rel="nofollow" href='http://info.parimatch.com/index.php/ru/info/page/2-WebMoney' target='_blank'
+                       class='webmoney'></a>
+
+                                            <a rel="nofollow" href='http://info.parimatch.com/index.php/ru/info/page/1-Skrill' target='_blank'
+                           class='skrill'></a>
+                                    </noindex>
+            </div>
+
+            <div style="margin-right: 180px; border-bottom: 2px solid #fff;">
+                <a href="https://air.parimatch.com/uk/firedup" target="_blank">
+                    <div id="konor_logo"></div>
+                </a>
+                <a href="http://www.ufc.com/" target="_blank">
+                    <div id="ufc_logo"></div>
+                </a>
+                <a href="https://www.parimatch.com/portal/parimatch-news/13475-maik-taison-stal-poslom-brenda-parimatch.html" target="_blank">
+                    <div id="tyson_logo"></div>
+                </a>
+            </div>
+
+            <div class='trust'>
+
+                        <div id="logoCruasao">
+
+            
+                <noindex>
+                    <div id="ceg-4e4bede4-5890-4645-8a5b-633d0a00002a"
+                         data-ceg-seal-id="4e4bede4-5890-4645-8a5b-633d0a00002a" data-ceg-image-size="35"
+                         data-ceg-image-type="basic-small"></div>
+                    <script type="text/javascript"
+                            src="https://4e4bede4-5890-4645-8a5b-633d0a00002a.curacao-egaming.com/ceg-seal.js"></script>
+                </noindex>
+
+            
+        </div>
+
+
+    
+                <div class="logoFooterRight">
+                    <noindex><a href="http://federbet.com/" target='_blank' rel="nofollow"><img
+                                    height="28px"
+                                    src="/img/footer/trust/federbet.png" alt="Federbet"></a>
+                    </noindex>
+                </div>
+
+                <div class="logoFooterRight">
+                    <noindex><a href="http://www.gamblingtherapy.org/ru" target='_blank' rel="nofollow"><img
+                                    height="28px"
+                                    src="/img/footer/trust/gt_bigred1.png"
+                                    alt="Gambling Therapy"></a></noindex>
+                </div>
+
+                <div class="logoFooterRight">
+                    <noindex><img height="30px"
+                                  src="/static/img/footer/ft_18.png">
+                    </noindex>
+                </div>
+            </div>
+
+
+
+        </div>
+        <div class="foot_inn3">
+            <div class="foot_inn_l">
+
+
+                
+                    <p>© 1994-2019 Parimatch N.V. – best online betting company</p>
+                    <p>parimatch.com is owned and operated by Parimatch N.V.,</p>
+                    <p>R.N.: 122693 Address: Schout Bij Nacht Doormanweg 40, Curacao</p>
+
+                            </div>
+            <div class="foter_cener">
+
+
+            </div>
+            <div class="foot_inn-cy">
+                
+                    <p>Payment agent - VINCEZA LTD. PARI - MATCH SERVICES (CY) LIMITED.<br> Adress: Christodoulou
+                        Hatzipavlou 199, Office 4A, 4th Floor, 3936 Limassol, Cyprus</p>
+
+                            </div>
+
+            <div class="foot_inn_c">
+
+                <noindex>
+                    <noindex>
+    <!-- google -->
+    <!--<script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-1171079-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>-->
+    <!-- /google -->
+
+
+<!-- детектор ботов -->
+<script>
+!function(a,b,c,d,e,f){a.ddjskey=e;a.ddoptions=f||null;var m=b.createElement(c),n=b.getElementsByTagName(c)[0];m.async=1,m.src=d,n.parentNode.insertBefore(m,n)}(window,document,"script","https://js.datadome.co/tags.js","8C3B447B229E3576822D6D36561F42", { ajaxListenerPath : window.location.hostname });
+</script>
+<!-- /детектор ботов -->
+</noindex>                </noindex>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div id="balance-holder" class="rc-3px" style="display:none">
+    <em></em>
+    <img id=wait src="/img/2012/wait_ic.gif"/>
+    <div>
+        <ul>
+            <li>Account balance <span id="ros"></span></li>
+            <li>Pending bets <span id="ronc"></span></li>
+            <li id=stp><img src="/img/stavki_plus_s_en.png"/>
+                <table>
+                    <tr>
+                        <td>bets:<span>of 100</span><span id="cc"></span>
+                            <hr/>
+                            bonus:<span id=as></span>
+                </table>
+            </li>
+
+        </ul>
+    </div>
+</div>
+<!-- /footer -->
+
+</body>
+</html>

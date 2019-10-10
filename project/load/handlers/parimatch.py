@@ -69,7 +69,7 @@ class ParimatchHandler(CommonHandler):
         return hdir.path("parimatch") 
 
 
-    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None):
+    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, main_file=None):
         """ Process site
           Site https://www.parimatch.com/en/
         """
@@ -77,21 +77,26 @@ class ParimatchHandler(CommonHandler):
         try:
             source_session = self.start_load(is_debug=debug_level)
 
+            if not main_file:
+                main_file = self.main_file
+
             main_url = "https://www.parimatch.com/en/"
-            html = self.get_html(self.main_file, main_url, get_from_file, is_debug_path)
+            html = self.get_html(main_file, main_url, get_from_file, is_debug_path)
             self.context = html
 
             soup = BeautifulSoup(html, "lxml", from_encoding="utf-8")
 
             if debug_level >= 2:
                 self.start_detail("Football") 
-                self.process_all_leagues(None, debug_level, get_from_file, is_debug_path)
+                self.process_all_leagues(None, debug_level, get_from_file, is_debug_path, is_football_stats=False)
             else:
                 football_tag  = soup.find("a", href="#Football")
                 football_stats_tag  = soup.find("a", href="#Football/Stats")
                 leagues = football_tag.next_sibling.find_all("li")
                 self.start_detail("Football") 
                 for j in [1,2]:  #1 - Football, 2 - Football Stats
+
+                    is_football_stats = (j==2)
 
                     all_lieague_id = (league.a["hd"] for league in leagues)
                     i = 0
@@ -101,13 +106,13 @@ class ParimatchHandler(CommonHandler):
                         i += 1
                         if i>=10:
                             league_ids = "%2C".join(all_lieague_id)
-                            self.process_all_leagues(league_ids, debug_level, get_from_file, is_debug_path)
+                            self.process_all_leagues(league_ids, debug_level, get_from_file, is_debug_path, is_football_stats)
                             i = 0
                             all_lieague_id = []
 
                     if all_lieague_id:
                         league_ids = "%2C".join(all_lieague_id)
-                        self.process_all_leagues(league_ids, debug_level, get_from_file, is_debug_path)
+                        self.process_all_leagues(league_ids, debug_level, get_from_file, is_debug_path, is_football_stats)
                     
                     #next - process football stats
                     self.finish_detail() 
@@ -122,7 +127,7 @@ class ParimatchHandler(CommonHandler):
         return source_session
 
 
-    def process_all_leagues(self, league_ids, debug_level, get_from_file, is_debug_path):
+    def process_all_leagues(self, league_ids, debug_level, get_from_file, is_debug_path, is_football_stats):
         """ Process all leagues
             Site https://www.parimatch.com/en/
 
@@ -145,11 +150,11 @@ class ParimatchHandler(CommonHandler):
         leagues  = odd_list.select("div.container")
         for league in leagues:
             self.context = league
-            self.process_single_league(league)
+            self.process_single_league(league, is_football_stats)
 
 
 
-    def process_single_league(self, league_html):
+    def process_single_league(self, league_html, is_football_stats):
         """ Process single league
             Site https://www.parimatch.com/en/
 
@@ -157,7 +162,7 @@ class ParimatchHandler(CommonHandler):
             league_html  - html info of league
         """
         league_name = league_html.h3.get_text().strip()
-        if league_name.lower().find("comparison") < 0:
+        if league_name.lower().find("comparison") < 0 and league_name.lower().find("specials") < 0:
 
             #remove ending Match stats
             #Football. UEFA Champions League. Match stats
@@ -191,11 +196,11 @@ class ParimatchHandler(CommonHandler):
                     else:
                         match_odds = [match]
                         self.context = match_odds
-                    self.process_match(match_odds, header)
+                    self.process_match(match_odds, header, is_football_stats)
             self.finish_league() 
 
 
-    def process_match(self, match_odds, header):
+    def process_match(self, match_odds, header, is_football_stats):
         date_pattern = re.compile(r"\d+/\d+/\d+") #evd 17/03/19 18:30 evd
         match_date   = None
         name_h       = None
@@ -214,7 +219,10 @@ class ParimatchHandler(CommonHandler):
                 match_date = datetime.strptime(date_str, "%d/%m/%y").date()
                 #get teams
                 teams_tag = match_odd.select_one("tr > td.l")
-                name_h, name_a, match_stat = self._get_teams(teams_tag)
+                name_h, name_a, match_stat = self._get_teams(teams_tag, is_football_stats)
+                if is_football_stats and not match_stat:
+                    #unknown match stat - skip
+                    return
                 if (name_h.lower().find("home")>=0 and name_a.lower().find("away")>=0 or
                     name_h.lower().find("home")>=0 and name_a.lower().find("guests")>=0
                     ):
@@ -332,7 +340,7 @@ class ParimatchHandler(CommonHandler):
         ###################################################################
         elif table_type == "Add. totals:":
             trs = inner_table.find_all("tr")
-            for i in range(1,4):
+            for i in range(1,len(trs)):
                 tr = trs[i]
                 #first tag "td" contains taem name
                 team_name = tr.find("td").get_text().strip()
@@ -623,11 +631,14 @@ class ParimatchHandler(CommonHandler):
             self.odds.append(odd)
 
 
-    def _get_teams(self, teams_tag):
+    def _get_teams(self, teams_tag, is_football_stats):
         lines = teams_tag.get_text("\n", strip=True).splitlines()
         name_h      = lines[len(lines)-2]
         name_a      = lines[len(lines)-1]
-        match_stat  = "main"
+        if is_football_stats:
+            match_stat  = None
+        else:
+            match_stat  = "main"
         for key in PARIMATCH_STATS.keys():
             if name_h.startswith(key):
                 name_h      = name_h[len(key):].strip()
