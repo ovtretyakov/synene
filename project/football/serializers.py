@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from project.core.helpers import DisplayChoiceField
 from project.core.models import Loadable
-from .models import FootballLeague
+from .models import FootballLeague, FootballTeam
 
 
 class FootballLeagueSerializer(serializers.ModelSerializer):
@@ -16,3 +16,10 @@ class FootballLeagueSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "team_type", "country", "load_status", "load_source", "created")
         depth = 1
 
+class FootballTeamSerializer(serializers.ModelSerializer):
+    load_status = DisplayChoiceField(choices = Loadable.STATUS_CHOICES)
+    created = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    class Meta:
+        model = FootballTeam
+        fields = ("id", "name", "team_type", "country", "load_status", "load_source", "created", )
+        depth = 1

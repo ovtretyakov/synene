@@ -366,6 +366,7 @@ class TeamType(models.Model):
 
     REGULAR = 'regular'
     NATIONAL = 'national'
+    UNKNOWN = 'unknown'
 
     slug = models.SlugField(unique=True)
     name = models.CharField('Team type', max_length=100)
@@ -378,7 +379,7 @@ class League(SaveSlugCountryMixin, Loadable):
 
     slug = models.SlugField()
     name = models.CharField('League', max_length=100)
-    team_type = models.ForeignKey(TeamType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Team type')
+    team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     country = models.ForeignKey(Country, on_delete=models.PROTECT, verbose_name='Country')
 
@@ -402,6 +403,8 @@ class League(SaveSlugCountryMixin, Loadable):
         slug = kwargs.get('slug', None)
         name = kwargs.get('name', None)
         team_type = kwargs.get('team_type', None)
+        if not team_type:
+            team_type = TeamType.objects.get(slug=TeamType.UNKNOWN)
         sport = kwargs.get('sport', None)
         country = kwargs.get('country', None)
         if not name:
@@ -428,10 +431,12 @@ class League(SaveSlugCountryMixin, Loadable):
 
     def api_update(self, slug, name, team_type, country, load_status, load_source):
         with transaction.atomic():
-            if team_type and self.team_type != team_type:
+            #get current object
+            current_league = League.objects.get(pk=self.pk)
+            if current_league.team_type != team_type:
                 # Team.objects.filter(teammembership__season__league=self).exclude(team_type=team_type).update(team_type=team_type)
-                Team.objects.filter(bcore_match_team_h_fk__league=self).exclude(team_type=team_type).update(team_type=team_type)
-                Team.objects.filter(bcore_match_team_a_fk__league=self).exclude(team_type=team_type).update(team_type=team_type)
+                Team.objects.filter(bcore_match_team_h_fk__league=self).update(team_type=team_type)
+                Team.objects.filter(bcore_match_team_a_fk__league=self).update(team_type=team_type)
             self.slug = slug
             self.name = name
             self.team_type = team_type
@@ -449,7 +454,10 @@ class League(SaveSlugCountryMixin, Loadable):
         ''' Delete league '''
         # 1. Block load source
         load_source = LeagueLoadSource.objects.filter(league=self).update(status=ObjectLoadSource.DELETED, league=None)
-        # 1. Delete object
+        # 2. Delete matches
+        for match in Match.objects.filter(league=self):
+            match.delete_object()
+        # 3. Delete object
         self.delete()
 
     def merge_related(self, dst):
@@ -622,7 +630,7 @@ class Team(SaveSlugCountryMixin, Loadable):
 
     slug = models.SlugField()
     name = models.CharField('Team', max_length=100)
-    team_type = models.ForeignKey(TeamType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Team type')
+    team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     country = models.ForeignKey(Country, on_delete=models.PROTECT, verbose_name='Country')
 
@@ -646,6 +654,8 @@ class Team(SaveSlugCountryMixin, Loadable):
         slug = kwargs.get('slug', None)
         name = kwargs.get('name', None)
         team_type = kwargs.get('team_type', None)
+        if not team_type:
+            team_type = TeamType.objects.get(slug=TeamType.UNKNOWN)
         sport = kwargs.get('sport', None)
         country = kwargs.get('country', None)
         if not name:
@@ -655,6 +665,35 @@ class Team(SaveSlugCountryMixin, Loadable):
         team = Team(slug=slug, name=name, team_type=team_type, sport=sport, country=country)
         team._create(**kwargs)
         return team
+
+    @staticmethod
+    def api_delete_teams(teams_str):
+        for team_str in teams_str.split(","):
+            with transaction.atomic():
+                team =  Team.objects.get(pk=int(team_str))
+                team.delete_object()
+
+    @staticmethod
+    def api_confirm_teams(teams_str, load_source):
+        for team_str in teams_str.split(","):
+            with transaction.atomic():
+                team =  Team.objects.get(pk=int(team_str))
+                team.confirm(load_source)
+
+    def api_update(self, slug, name, team_type, country, load_status, load_source):
+        with transaction.atomic():
+            self.slug = slug
+            self.name = name
+            self.team_type = team_type
+            self.save()
+            self.change_country(country)
+            if load_status == Loadable.CONFIRMED:
+                self.confirm(load_source)
+
+    def api_merge_to(self, league_dst):
+        with transaction.atomic():
+            self.merge_to(league_dst)
+
 
     def get_season(self, match_date):
         try:
@@ -669,10 +708,17 @@ class Team(SaveSlugCountryMixin, Loadable):
 
     def delete_object(self):
         ''' Delete team '''
-        # 1. Block load source
-        load_source = TeamLoadSource.objects.filter(team=self).update(status=ObjectLoadSource.DELETED, team=None)
-        # 1. Delete object
+        # 1. Delete load source
+        load_source = TeamLoadSource.objects.filter(team=self).delete()
+        # 2. Delete object
         self.delete()
+
+    def delete_if_no_matches(self):
+        match = Match.objects.filter(team_h=self).first()
+        if not match:
+            match = Match.objects.filter(team_a=self).first()
+        if not match:
+            self.delete_object()
 
     def merge_related(self, dst):
         for match in Match.objects.filter(team_h=self):
@@ -941,6 +987,7 @@ class Match(Mergable, models.Model):
                 team_a.set_membership(season=season, load_source=load_source)
         return match
 
+
     def set_referee(self, referee, load_source=None):
         MatchReferee.create_or_update(self, referee, load_source)
 
@@ -985,6 +1032,16 @@ class Match(Mergable, models.Model):
         self.score = src.score
         self.result = src.result
         self.save()
+
+    def delete_object(self):
+        ''' Delete match '''
+        team_h = self.team_h
+        team_a = self.team_a
+        # 1. Delete object
+        self.delete()
+        # 2. Delete teams of match
+        team_h.delete_if_no_matches()
+        team_a.delete_if_no_matches()
 
     def set_season(self, season=None, load_source=None):
         if not season:

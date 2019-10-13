@@ -72,7 +72,7 @@
           </li>          
 
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'league_list,season_list,match_list' %}active{% endif %}" 
+            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'league_list,season_list,match_list,team_list' %}active{% endif %}" 
               href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
             >
             <span class="fa fa-futbol-o"></span>
@@ -93,6 +93,11 @@
                 id="navbarSources"  href="{% url 'football:match_list' %}">
                 <span class="fa fa-exchange"></span>
                 Matches
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'team_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'football:team_list' %}">
+                <span class="fa fa-users"></span>
+                Teams
               </a>
             </div>
           </li>          

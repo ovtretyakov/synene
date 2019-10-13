@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from project.core.helpers import DisplayChoiceField
-from .models import Season, Match, MatchStats
+from .models import Loadable, Season, Match, MatchStats
 
 
 class SeasonSerializer(serializers.ModelSerializer):
@@ -30,3 +30,5 @@ class MatchStatsSerializer(serializers.ModelSerializer):
         model = MatchStats
         fields = ("id", "stat_type", "competitor", "period", "value", "load_source",)
         depth = 1
+
+

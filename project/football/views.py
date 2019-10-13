@@ -12,16 +12,16 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from project.core.utils import get_date_from_string
-from project.core.models import Sport, LoadSource, Season, Match
+from project.core.models import Sport, Country, LoadSource, Season, Match, TeamType
 from project.core.views import (LeagueMergeView, LeaguesDeleteView, LeaguesConfirmView,
                                 SeasonAPI,
                                 MatchAPI,
+                                TeamMergeView, TeamsDeleteView, TeamsConfirmView,
                                 )
 from project.core.mixins import LeagueGetContextMixin
 
-from .models import FootballLeague
-from .serializers import   (FootballLeagueSerializer, 
-                            )
+from .models import FootballLeague, FootballTeam
+from .serializers import FootballLeagueSerializer, FootballTeamSerializer
 
 
 
@@ -114,3 +114,73 @@ class FootballMatchAPI(MatchAPI):
     def get_queryset(self, *args, **kwargs):
         queryset = Match.objects.filter(league__sport__slug=Sport.FOOTBALL)
         return super().get_queryset(queryset, *args, **kwargs)
+
+
+####################################################
+#  FootballTeam
+####################################################
+class FootballTeamView(generic.TemplateView):
+    template_name = "football/team_list.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(FootballTeamView, self).get_context_data(**kwargs)
+
+        load_sources = LoadSource.objects.all().order_by("pk")
+        context["sources"] = load_sources
+        countries = Country.objects.all().order_by("name")
+        context["countries"] = countries
+        team_types = TeamType.objects.all().order_by("name")
+        context["team_types"] = team_types
+
+        selected_source = self.request.GET.get("source", None)
+        if selected_source:
+            context["selected_source"] = int(selected_source)
+        selected_country = self.request.GET.get("country", None)
+        if selected_country:
+            context["selected_country"] = int(selected_country)
+        selected_team_type = self.request.GET.get("team_type", None)
+        if selected_team_type:
+            context["selected_team_type"] = int(selected_team_type)
+
+        return context
+
+
+class FootballTeamAPI(ListAPIView):
+    serializer_class = FootballTeamSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = FootballTeam.objects.all()
+
+        teams = self.request.query_params.get("teams", None)
+        if teams:
+            teams_id = teams.split(",")
+            queryset = queryset.filter(pk__in=teams_id)
+
+        load_source_id = self.request.query_params.get("selected_source", None)
+        if load_source_id and int(load_source_id) > 0:
+            queryset = queryset.filter(load_source=load_source_id)
+
+        country_id = self.request.query_params.get("selected_country", None)
+        if country_id and int(country_id) > 0:
+            queryset = queryset.filter(country=country_id)
+
+        team_type_id = self.request.query_params.get("selected_team_type", None)
+        if team_type_id and int(team_type_id) > 0:
+            queryset = queryset.filter(team_type=team_type_id)
+
+        return queryset
+
+
+class SelectFootballTeamView(generic.TemplateView):
+    template_name = "football/select_team.html"
+
+class FootballTeamMergeView(TeamMergeView):
+    template_name = "football/merge_team.html"
+
+class FootballTeamsDeleteView(TeamsDeleteView):
+    template_name = "football/delete_teams.html"
+
+class FootballTeamsConfirmView(TeamsConfirmView):
+    template_name = "football/confirm_teams.html"

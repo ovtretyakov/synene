@@ -17,4 +17,11 @@ urlpatterns = [
     #FootballMatches
     url(r'^matches/$', views.FootballMatchView.as_view(), name='match_list'),
     url(r'^matches/api/$', views.FootballMatchAPI.as_view(), name='match_list_api'),
+    #FootballTeams
+    url(r'^teams/$', views.FootballTeamView.as_view(), name='team_list'),
+    url(r'^team_select/$', views.SelectFootballTeamView.as_view(), name='select_team'),
+    url(r'^teams/api/$', views.FootballTeamAPI.as_view(), name='team_list_api'),
+    url(r'^team/merge/(?P<pk>\d+)/$', views.FootballTeamMergeView.as_view(), name='merge_team'),
+    url(r'^teams/delete/$', views.FootballTeamsDeleteView.as_view(), name='delete_teams'),
+    url(r'^teams/confirm/$', views.FootballTeamsConfirmView.as_view(), name='confirm_teams'),
 ]

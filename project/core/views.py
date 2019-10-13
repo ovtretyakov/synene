@@ -10,8 +10,10 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from .utils import get_date_from_string
-from .models import League, Match, MatchStats
-from .forms import LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfirmForm
+from .models import League, Match, MatchStats, Team
+from .forms import (LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfirmForm,
+                    TeamForm, TeamMergeForm, TeamsDeleteForm, TeamsConfirmForm,
+                   )
 from .serializers import SeasonSerializer, MatchSerializer, MatchStatsSerializer
 
 
@@ -204,3 +206,117 @@ class MatchStatsAPI(ListAPIView):
             queryset = queryset.filter(match=match_id)
 
         return queryset
+
+
+####################################################
+#  Team
+####################################################
+class TeamUpdateView(BSModalUpdateView):
+    model = Team
+    template_name = "core/update_team.html"
+    form_class = TeamForm
+    success_message = "Success: Team was updated."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def get_success_message(self):
+        return self.success_message
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                self.object.api_update(slug=cleaned_data["slug"], 
+                                        name=cleaned_data["name"], 
+                                        team_type=cleaned_data["team_type"], 
+                                        country=cleaned_data["country"], 
+                                        load_status=cleaned_data["load_status"], 
+                                        load_source=cleaned_data["load_source"]
+                                        )
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Updating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class TeamMergeView(BSModalUpdateView):
+    model = Team
+    template_name = "core/merge_team.html"
+    form_class = TeamMergeForm
+    success_message = "Success: Team was merged to %(id)s."
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, team_id):
+        return self.success_message % {"id":team_id,}
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                team_id = cleaned_data["team_id"]
+                self.object.api_merge_to(team_id)
+                messages.success(self.request, self.get_success_message(team_id))
+            except Exception as e:
+                messages.error(self.request, "Merging error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+class TeamsDeleteView(generic.TemplateView):
+    form_class = TeamsDeleteForm
+    success_message = "Success: %(cnt)s teams were deleted."
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, cnt):
+        return self.success_message % {"cnt":cnt,}
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(TeamsDeleteView, self).get_context_data(**kwargs)
+
+        teams_id = self.request.GET.get("teams", None)
+        if teams_id:
+            context["teams_id"] = teams_id
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                teams_id = cleaned_data["teams_id"]
+                Team.api_delete_teams(teams_id)
+                cnt = len(teams_id.split(","))
+                messages.success(self.request, self.get_success_message(cnt))
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class TeamsConfirmView(BSModalCreateView):
+    form_class = TeamsConfirmForm
+    success_message = "Success: %(cnt)s teams were confirmed."
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, cnt):
+        return self.success_message % {"cnt":cnt,}
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(TeamsConfirmView, self).get_context_data(**kwargs)
+
+        teams_id = self.request.GET.get("teams", None)
+        if teams_id:
+            context["teams_id"] = teams_id
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                teams_id = cleaned_data["teams_id"]
+                load_source = cleaned_data["load_source"]
+                Team.api_confirm_teams(teams_id, load_source)
+                cnt = len(teams_id.split(","))
+                messages.success(self.request, self.get_success_message(cnt))
+            except Exception as e:
+                messages.error(self.request, "Confirming error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())

@@ -9,4 +9,6 @@ urlpatterns = [
     #Matches
     url(r'^match/detail/(?P<pk>\d+)/$', views.MatchDetailView.as_view(), name='match_detail'),
     url(r'^match/stats/api/$', views.MatchStatsAPI.as_view(), name='match_stats_api'),
+    #TEam
+    url(r'^team/update/(?P<pk>\d+)/$', views.TeamUpdateView.as_view(), name='update_team'),
 ]
