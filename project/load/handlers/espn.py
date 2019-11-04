@@ -67,7 +67,7 @@ class ESPNHandler(CommonHandler):
                 i += 1
                 dat += timedelta(days=1)
                 if is_debug: break
-                if i>= 2: break #!!!
+                if i>= 10: break #!!!
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
         finally:
@@ -96,7 +96,11 @@ class ESPNHandler(CommonHandler):
         #find script with "window.espn.scoreboardData"
         script = str(soup.find('script', string=re.compile("window.espn.scoreboardData")).string)
         self.context = script
-        matches_json = script_pattern.search(script)[1]
+        matches_json = script_pattern.search(script)
+        if not matches_json:
+            #no data
+            return
+        matches_json = matches_json[1]
         self.context = matches_json
         matches = json.loads(matches_json)
         scores = matches['scores']
