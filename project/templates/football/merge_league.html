@@ -1,0 +1,59 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Merge league{% endblock %}
+{% block form_id %}formMergeLeague{% endblock form_id %}
+
+{% block modal-body %}
+
+    <p>Select league to merge with current league.</p>
+
+
+      <div class="pb-1 mb-1" >
+
+
+          <input type="hidden" name="league_id" id="league_id" >
+
+          <div class="form-row">
+
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_from">League name:</span>
+                </div>
+                <input type="text" name="current_league_name" id="current_league_name" class="form-control" value="{{object.name}}" readonly>
+            </div>
+
+
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_from">Merge to</span>
+                </div>
+                <input type="text" name="league_name" id="league_name" class="form-control" placeholder="Choose league desination" aria-label="League desination"  aria-describedby="select-league" readonly>
+                <div class="input-group-append">
+                  <button class="btn select-league btn-outline-secondary" type="button" id="select-league" Title="Choose league"><span class="fa fa-bars"></button>
+                </div>
+            </div>
+
+
+      </div>
+
+
+
+
+  <script>
+    $(".select-league").modalForm(
+      {formURL: "{% url 'football:select_league' %}",
+        modalID: "#modal1",
+        modalContent: "#modal1-content",
+        modalForm: "#formSelectLeague",
+        submitBtn: "#SelectLeagueID"
+      }
+    );
+  </script>
+
+
+{% endblock %}
+
+
+{% block button-action %}Merge league{% endblock button-action %}
+
+

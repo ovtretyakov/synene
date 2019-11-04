@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from core.models import Sport
+from project.core.models import Sport
 from .models import FootballTeam, FootballReferee
 
 

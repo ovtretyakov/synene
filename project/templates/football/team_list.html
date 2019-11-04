@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Football teams{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Football teams</h1>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Delete selected teams" id="delete-teams" 
+            onclick="delete_teams_dlg()" disabled>Delete teams</button >
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Confirm selected teams" id="confirm-teams" 
+            onclick="confirm_teams_dlg()" disabled>Confirm teams</button>
+          </div>
+        </div>
+
+
+      </div>
+
+
+    <!-- Filter -->
+    <div class="pb-1 mb-1" >
+        <form  method="GET" id="league-filter-id">
+          <div class="form-row">
+
+            <div class="col-3">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="sources">Source</span>
+                </div>
+                <select name="source" class="custom-select" id="source">
+                  <option {% if selected_source == 0 %}selected{% endif %} value="0"> All sources </option>
+                  {% for source in sources %}
+                    <option {% if selected_source == source.id %}selected{% endif %} value="{{ source.id }}"> {{ source.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+
+            <div class="col-3">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="country">Country</span>
+                </div>
+                <select name="country" class="custom-select" id="country">
+                  <option {% if selected_country == 0 %}selected{% endif %} value="0"> All countries </option>
+                  {% for country in countries %}
+                    <option {% if selected_country == country.id %}selected{% endif %} value="{{ country.id }}"> {{ country.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+
+            <div class="col-3">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="team_type">Team type</span>
+                </div>
+                <select name="team_type" class="custom-select" id="team_type">
+                  <option {% if selected_team_type == 0 %}selected{% endif %} value="0"> All types </option>
+                  {% for team_type in team_types %}
+                    <option {% if selected_team_type == team_type.id %}selected{% endif %} value="{{ team_type.id }}"> {{ team_type.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+
+            <div class="col-auto">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+            </div>
+          </div>
+        </form>
+    </div>
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Country</th>
+              <th>Status</th>
+              <th>Source</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var upd_url = "{% url 'core:update_team' 0 %}";
+          var merge_url = "{% url 'football:merge_team' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<button type="button" class="update-team btn btn-sm btn-outline-secondary" data-id="' + upd_url + '" title="Edit league" id="update-team">' +
+                '   <span class="fa fa-pencil"></span>' +
+                '</button>' +
+                '<button type="button" class="merge-team btn btn-sm btn-outline-secondary" data-id="' + merge_url + '" title="Merge to team" id="merge-team">' +
+                '   <span class="fa fa-sign-in"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'football:team_list_api'  %}?format=datatables&selected_source={{selected_source}}&selected_country={{selected_country}}&selected_team_type={{selected_team_type}}",
+              'order': [[ 3, 'desc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'3em'},
+                  {'data': 'name'},
+                  {'data': 'team_type.name'},
+                  {'data': 'country.name'},
+                  {'data': 'load_status'},
+                  {'data': 'load_source.name'},
+                  {'data': 'created'},
+
+              ],
+
+              'drawCallback': function(settings, json) {
+                $(".update-team").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formUpdateTeam",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+                $(".merge-team").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formMergeTeam",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+              }
+      });
+
+      table.on('select', function ( e, dt, type, indexes) {
+          $('#delete-teams').prop('disabled', false);
+          $('#confirm-teams').prop('disabled', false);
+        });
+      table.on('deselect', function ( e, dt, type, indexes) {
+          var rows = table.rows( { selected: true } );
+          var count = rows.count();
+          if (count == 0) {
+              $('#delete-teams').prop('disabled', true);
+              $('#confirm-teams').prop('disabled', true);
+          }
+        });
+
+    });
+
+
+
+    function delete_teams_dlg() 
+      {
+        var table = $('#main_table').DataTable();
+        var data = table.rows( { selected: true } ).data();
+        var idarray=[]; 
+        for (var i=0; i < data.length ;i++){
+          idarray.push(data[i]["id"]);
+        }
+        
+        var url = "{% url 'football:delete_teams' %}?teams=" + idarray.toString();
+        newForm("#modal",
+                ".modal0-content",
+                "#formDeleteTeams",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
+    function confirm_teams_dlg() 
+      {
+        var table = $('#main_table').DataTable();
+        var data = table.rows( { selected: true } ).data();
+        var idarray=[]; 
+        for (var i=0; i < data.length ;i++){
+          idarray.push(data[i]["id"]);
+        }
+        
+        var url = "{% url 'football:confirm_teams' %}?teams=" + idarray.toString();
+        newForm("#modal",
+                ".modal0-content",
+                "#formConfirmTeams",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
+
+    
+  </script>
+{% endblock %}
+
+

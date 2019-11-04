@@ -1,0 +1,106 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Data source detail{% endblock %}
+
+{% block modal-body %}
+  <!-- Row1 -->
+  <div class="form-row">
+    <!-- load_source -->
+    <div class="form-group col-sm">
+      <label for="load_source-id" class="col-form-label">Source:</label>
+      <input type="text" class="form-control form-control-sm" id="load_source-id" value="{{object.name}}" disabled>
+    </div>
+    <!-- sport -->
+    <div class="form-group col-sm">
+      <label for="sport-id" class="col-form-label">Sport:</label>
+      <input type="text" class="form-control form-control-sm" id="sport-id" value="{{object.sport.name}}" disabled>
+    </div>
+  </div>
+
+  <div class="accordion" id="accordionExample">
+    <div class="card">
+      <div class="card-header" id="headingOne">
+        <h2 class="mb-0">
+          <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            Detail
+          </button>
+        </h2>
+      </div>
+
+      <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+        <div class="card-body">
+        <div class="form-row">
+          <div class="table-responsive">
+            <table id="main_table0" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+              <thead><tr><th>Name</th><th>Last upd</th><th>Load date</th><th>League</th><th>Match</th><th>Status</th></tr></thead>
+            </table>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" id="headingTwo">
+        <h2 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          Sessions
+          </button>
+        </h2>
+      </div>
+      <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+        <div class="card-body">
+        <div class="form-row">
+            <div class="table-responsive">
+              <table id="table_sessions" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+                <thead><tr><th>Start</th><th>End</th><th>Status</th><th>Matches</th><th>Errors</th></tr></thead>
+              </table>
+            </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+
+    $(document).ready(function () {
+    
+      var table = $('#main_table0').DataTable({
+              'serverSide': true,
+              'ajax': "{% url 'load:source_detail_api' load_source=object.pk %}?format=datatables",
+              'order': [[ 2, 'asc' ]],
+              'columns': [
+                  {'data': 'slug'},
+                  {'data': 'last_update'},
+                  {'data': 'load_date'},
+                  {'data': 'league_name'},
+                  {'data': 'match_name'},
+                  {'data': 'status'}
+              ],
+              });
+
+      var table_sessions = $('#table_sessions').DataTable({
+              'serverSide': true,
+              'ajax': "{% url 'load:source_sessions_api' load_source=object.pk %}?format=datatables",
+              'order': [[ 0, 'desc' ]],
+              'columns': [
+                  {'data': 'start_time'},
+                  {'data': 'end_time'},
+                  {'data': 'status'},
+                  {'data': 'match_cnt'},
+                  {'data': 'err_cnt'}
+              ],
+              });
+    });
+  </script>
+
+
+
+
+{% endblock %}
+
+{% block modal-footer %}
+  <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{% block button-close %}Close{% endblock button-close %}</button>
+{% endblock%}

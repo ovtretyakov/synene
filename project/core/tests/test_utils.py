@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from core.utils import get_total_over_result, get_total_under_result, get_handicap_result
+from ..utils import get_total_over_result, get_total_under_result, get_handicap_result
 
 
 class UtilsTest(TestCase):

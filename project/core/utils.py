@@ -1,5 +1,20 @@
+import datetime
 import math
 from decimal import Decimal
+
+def get_date_from_string(date_str):
+    if not date_str: return None
+    try:
+        date_str = date_str.replace('"','').replace("'",'')
+        if date_str and len(date_str) == 8:
+            date_obj = datetime.datetime.strptime(date_str, '%d.%m.%y').date()
+        elif date_str and len(date_str) == 10:
+            date_obj = datetime.datetime.strptime(date_str, '%d.%m.%Y').date()
+        else:
+            date_obj = None
+    except ValueError as ve:
+        date_obj = None
+    return date_obj
 
 def get_int(value):
     if value: value = int(value)

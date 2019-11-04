@@ -1,10 +1,10 @@
 from django.test import TestCase
 
-from core.factories import get_country 
-from core.models import Sport, LoadSource
+from project.core.factories import get_country 
+from project.core.models import Sport, LoadSource
 
-from football.factories import get_football, get_football_team, get_football_referee
-from football.models import FootballLeague, FootballTeam, FootballReferee
+from ..factories import get_football, get_football_team, get_football_referee
+from ..models import FootballLeague, FootballTeam, FootballReferee
 
 
 def prepare_data(obj):

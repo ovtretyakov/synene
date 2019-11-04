@@ -1,7 +1,7 @@
 from .mixins import FootballSaveMixin, FootballGetOrCreateMixin
 from .managers import FootballManager, FootballSportManager
 
-from core.models import (
+from project.core.models import (
     Sport,
     LoadSource,
     League,

@@ -4,17 +4,12 @@ from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 
-#<<<<<<< HEAD
-#from core.models import Mergable, LoadSource, Match
-#from .mixins import WDLParamClean
-#=======
-from core.models import Mergable, LoadSource, Match
+from project.core.models import Mergable, LoadSource, Match
 from . import mixins as OddMixins
-from core.utils import (get_int, list_get,
+from project.core.utils import (get_int, list_get,
                         get_match_result, 
                         get_total_over_result, get_total_under_result, 
                         get_handicap_result)
-#>>>>>>> feature_create_odd_models
 
 ###################################################################
 class ValueType(models.Model):

@@ -1,0 +1,121 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Load session detail{% endblock %}
+
+{% block modal-body %}
+
+  <!-- Row1 -->
+  <div class="form-row">
+    <!-- load_source -->
+    <div class="form-group col-sm">
+      <label for="load_source-id" class="col-form-label">Source:</label>
+      <input type="text" class="form-control form-control-sm" id="load_source-id" value="{{object.load_source.name}}" disabled>
+    </div>
+    <!-- status -->
+    <div class="form-group col-sm">
+      <label for="status-id" class="col-form-label">Status:</label>
+      <input type="text" class="form-control form-control-sm" id="status-id" value="{{object.get_status_display}}" disabled>
+    </div>
+  </div>
+
+  <!-- Row2 -->
+  <div class="form-row">
+    <!-- start_time -->
+    <div class="form-group col-sm">
+      <label for="start_time-id" class="col-form-label">Start:</label>
+      <input type="text" class="form-control form-control-sm" id="start_time-id" value="{{object.start_time}}" disabled>
+    </div>
+    <!-- end_time -->
+    <div class="form-group col-sm">
+      <label for="end_time-id" class="col-form-label">End:</label>
+      <input type="text" class="form-control form-control-sm" id="end_time-id" value="{{object.end_time}}" disabled>
+    </div>
+  </div>
+
+  <!-- Row3 -->
+  <div class="form-row">
+    <!-- match_cnt -->
+    <div class="form-group col-sm">
+      <label for="match_cnt-id" class="col-form-label">Matches:</label>
+      <input type="text" class="form-control form-control-sm text-right" id="match_cnt-id" value="{{object.match_cnt}}" disabled>
+    </div>
+    <!-- err_cnt -->
+    <div class="form-group col-sm">
+      <label for="err_cnt-id" class="col-form-label">Errors:</label>
+      <input type="text" class="form-control form-control-sm" id="err_cnt-id" value="{{object.err_cnt}}" disabled>
+    </div>
+  </div>
+
+  <hr>
+  <h5>Errors</h5>
+
+  <div class="table-responsive">
+    <table id="error_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Error</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+
+
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var upd_url = "{% url 'load:view_error' 0 %}";
+          if ( type === 'display' ) {
+              var r = '<button type="button" class="view-error btn btn-sm btn-outline-secondary" data-id="' + upd_url + '">' +
+                '   <span class="fa fa-eye"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var events = $('#events');
+
+      var table = $('#error_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 10, 25, 100 ],
+              'ajax': "{% url 'load:errors_api'  %}?format=datatables&source_session={{object.id}}",
+              'order': [[ 2, 'desc' ]],
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'error_text'},
+                  {'data': 'error_time'},
+
+              ],
+              
+              'drawCallback': function(settings, json) {
+                $(".view-error").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: "#modal1-content",
+                        modalForm: "#formError",
+                        submitBtn: "#ProcessID"
+                      }
+                    );
+                  });
+
+
+              }
+      });
+
+    });
+  </script>
+
+
+{% endblock %}
+
+{% block modal-footer %}
+  <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{% block button-close %}Close{% endblock button-close %}</button>
+{% endblock%}

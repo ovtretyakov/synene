@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Data Sources{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Data Sources</h1>
+
+
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+
+
+          <div class="btn-group mr-2">
+            <button type="button" class="create-author btn btn-sm btn-outline-secondary" name="button">Create Author</button>
+            <button type="button" class="create-background_author btn btn-sm btn-outline-secondary">Background</button>
+          </div>
+          <div class="dropdown">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span data-feather="calendar"></span>
+              This week
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" >
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+<!--       <div id="events">
+          Row selected count - new information added at the top
+      </div>
+ -->
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Rely lvl</th>
+              <th>Load date</th>
+              <th>Err limit</th>
+              <th>Loadable</th>
+              <th>Betting</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+
+    </main>
+{% endblock content %}
+
+
+
+
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var upd_url = "{% url 'load:update_load_source' 0 %}";
+          var proc_url = "{% url 'load:process_load_source' 0 %}";
+          var info_url = "{% url 'load:source_detail' 0 %}";
+          if ( type === 'display' ) {
+              // return '<img alt="Edit" src="/static/images/edit-16.png"><img alt="Delete" src="/static/images/trash-16.png">';
+              var r = '<button type="button" class="update-source btn btn-sm btn-outline-secondary" data-id="' + upd_url + '">' +
+                '   <span class="fa fa-pencil"></span>' +
+                '</button>' +
+                '<button type="button" class="process-source btn btn-sm btn-outline-secondary" data-id="' + proc_url + 
+                '" ' + (data == 1 ? ' disabled ' : '') + '>' +
+                '   <span class="fa fa-download"></span>' +
+                '</button>' +
+                '<button type="button" class="info-source btn btn-sm btn-outline-secondary" data-id="' + info_url +  '">' +
+                '   <span class="fa fa-info-circle"></span>' +
+                '</button>'
+              ;
+              // r = r.replace('/0/', '/'+data+'/');
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var events = $('#events');
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              // 'dom': 'Bfrtip',
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'load:source_list_api'  %}?format=datatables",
+              'order': [[ 2, 'asc' ]],
+              // 'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'6em'},
+                  {'data': 'name'},
+                  {'data': 'reliability', 'width':'8em'},
+                  {'data': 'load_date', 'width':'12em'},
+                  {'data': 'error_limit', 'width':'8em'},
+                  {'data': 'is_loadable', 'width':'8em'},
+                  {'data': 'is_betting', 'width':'8em'},
+                  {'data': 'error_text'}
+              ],
+              // 'buttons': [
+              //     {
+              //       text: 'Get selected data',
+              //       action: function () {
+              //         var count = table.rows( { selected: true } ).count();
+              //         events.prepend( '<div>'+count+' row(s) selected</div>' );
+              //       }
+              //     }
+              // ],
+              
+              'drawCallback': function(settings, json) {
+                $(".update-source").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                       modalContent: ".modal0-content"
+                      }
+                    );
+                  });
+
+                $(".process-source").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modalsm",
+                        modalContent: ".modalsm-content",
+                        modalForm: "#formProcess",
+                        submitBtn: "#ProcessID"
+                      }
+                    );
+                  });
+
+                $(".info-source").each(function () {
+                    $(this).modalForm( {formURL: $(this).data('id'), modalContent: ".modal0-content"});
+                  });
+
+              }
+      });
+
+
+      $(".create-author").modalForm({
+          formURL: "{% url 'load:source_list_api' %}",
+          modalContent: ".modal0-content"
+      });
+      $(".create-background_author").modalForm({
+          formURL: "{% url 'load:source_list_api' %}",
+          modalContent: ".modal0-content"
+      });
+    });
+  </script>
+{% endblock %}
+
+
