@@ -1,5 +1,6 @@
 import traceback
 from decimal import Decimal
+import logging
 
 from django.db import models
 from django.utils import timezone
@@ -10,6 +11,8 @@ from project.core.utils import (get_int, list_get,
                         get_match_result, 
                         get_total_over_result, get_total_under_result, 
                         get_handicap_result)
+
+logger = logging.getLogger(__name__)
 
 ###################################################################
 class ValueType(models.Model):
@@ -220,22 +223,46 @@ class Odd(Mergable, models.Model):
     def __str__(self):
         return f'M{self.match},BT{self.bet_type},BO{self.bookie},VT{self.value_type},PE{self.period},Y{self.yes},T{self.team},PA{self.param}'
 
-#<<<<<<< HEAD
     @classmethod
-    def get_object(cls, match=None,bet_type=None,bookie=None,value_type=None,period=None,yes=None,team=None,param=None, **kwargs):
-        try:
-            obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
-        except cls.DoesNotExist:
-            obj = None
+    def get_object(cls, match=None,
+                    bet_type=None,bet_type_slug=None,
+                    value_type=None,value_type_slug=None,
+                    bookie=None,period=0,yes="Y",team="",param="", 
+                    **kwargs):
+        if value_type_slug and not value_type:
+            value_type = ValueType.objects.get(slug=value_type_slug) 
+        if not value_type:
+            value_type = ValueType.objects.get(slug=ValueType.MAIN) 
+        if not bookie:
+            bookie = LoadSource.objects.get(slug="na")
+        if cls.own_bet_type():
+            #method is called from real class (not from class Odd)
+            bet_type = BetType.objects.get(slug=cls.own_bet_type()) 
+            try:
+                obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+            except cls.DoesNotExist:
+                obj = None
+        else:
+            #find real class
+            if bet_type_slug and not bet_type:
+                bet_type = BetType.objects.get(slug=bet_type_slug) 
+            real_cls = globals().get(bet_type.handler)
+            if not real_cls:
+                #cant find real class handler - create default class 
+                try:
+                    obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                except cls.DoesNotExist:
+                    obj = None
+            else:
+                try:
+                    obj = real_cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                except real_cls.DoesNotExist:
+                    obj = None
         return obj
 
-#    def add(cls, match, bet_type_slug, value_type_slug, load_source, bookie=None, 
-#                 period=0, yes='Y', team='', param='', odd_value=None, odd_bookie_config=None):
-#=======
     @classmethod
     def create(cls, match, bet_type_slug, value_type_slug, load_source, bookie=None, 
                     period=0, yes='Y', team='', param='', odd_value=None, odd_bookie_config=None):
-#>>>>>>> feature_create_odd_models
         # match
         if not match: raise ValueError('Missing parameter "match"')
         # bet_type
@@ -254,6 +281,8 @@ class Odd(Mergable, models.Model):
         if not load_source: raise ValueError('Missing parameter "load_source"')
         # bookie
         if bookie and not bookie.is_betting: raise ValueError('"%s" is not betting source' % bookie)
+        if not bookie:
+            bookie = LoadSource.objects.get(sport=load_source.sport, slug=LoadSource.SRC_UNKNOWN)
 
         cls = globals().get(bet_type.handler)
         if not cls: 
@@ -312,8 +341,8 @@ class Odd(Mergable, models.Model):
                                     )
         return odd
 
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return None
 
     @classmethod
@@ -346,13 +375,14 @@ class Odd(Mergable, models.Model):
 
     @classmethod
     def clean_value(cls, value):
+        value = round(Decimal(value),5)
         if value < 0:
             raise ValueError('Invalid bet value: %s' % value)
         return value
 
     def save(self, *args, **kwargs):
-        if self.own_bet_type:
-            self.bet_type = self.own_bet_type
+        if self.own_bet_type():
+            self.bet_type = self.own_bet_type()
         super(Odd, self).save(*args, **kwargs)
 
     def change_match(self, match_dst):
@@ -490,9 +520,10 @@ class Odd(Mergable, models.Model):
         match_value = self.get_match_handicap(period=period)
         if match_value == None: result_value = None
         else:
-            param_value = Decimal(self.param)
+            param_value = round(Decimal(self.param),5)
             result_value = get_handicap_result(param_value, match_value, self.odd_value)
         result = self.get_result_by_value(result_value)
+        logger.debug('get_match_handicap_result param_value=%s result_value=%s result=%s' % (param_value,result_value,result))
         return result, result_value
 
     def get_margin_win(self):
@@ -528,22 +559,22 @@ class Odd(Mergable, models.Model):
 class OddWDL(OddMixins.WDLResult, OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WDL)
 ###################################################################
 class OddWDLMinute(OddMixins.WDLResult, OddMixins.OnlyFootballMinutes, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WDL_MINUTE)
 ###################################################################
 class OddResultHalf1Full(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.Double1X2Param, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.RESULT_HALF1_FULL)
     def get_result(self):
         value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=0)
@@ -557,8 +588,8 @@ class OddResultHalf1Full(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixi
 class OddResultHalf1Half2(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.Double1X2Param, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.RESULT_HALF1_HALF2)
     def get_result(self):
         value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=2)
@@ -572,8 +603,8 @@ class OddResultHalf1Half2(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMix
 class OddWinBoth(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins.EmptyParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WIN_BOTH)
     def get_result(self):
         value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=2)
@@ -596,8 +627,8 @@ class OddWinBoth(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins
 class OddWinLeastOneHalf(OddMixins.Only0Period, OddMixins.HomeOrAwayTeam, OddMixins.EmptyParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WIN_LEAST_ONE_HALF)
     def get_result(self):
         value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=2)
@@ -615,8 +646,8 @@ class OddWinLeastOneHalf(OddMixins.Only0Period, OddMixins.HomeOrAwayTeam, OddMix
 class OddWinToNil(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.EmptyParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WIN_TO_NIL)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -639,8 +670,8 @@ class OddWinToNil(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddM
 class OddCorrectScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.ScoreListParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.CORRECT_SCORE)
     def get_result(self):
         value_h, value_a = self.get_odd_values()
@@ -653,8 +684,8 @@ class OddCorrectScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMix
 class OddTotalEvenOdd(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.EvenOddParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL_EVEN_ODD)
     def get_result(self):
         total_value = self.get_match_total()
@@ -671,8 +702,8 @@ class OddTotalEvenOdd(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, 
 class OddTotalOver(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.TotalParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL_OVER)
     def get_result(self):
         return self.get_match_total_over_result()
@@ -680,8 +711,8 @@ class OddTotalOver(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeA
 class OddTotalUnder(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.TotalParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL_UNDER)
     def get_result(self):
         return self.get_match_total_under_result()
@@ -689,8 +720,8 @@ class OddTotalUnder(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.Home
 class OddTotalBothHalvesOver(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL_BOTH_HALVES_OVER)
     def get_result(self):
         result_1, result_value_1 = self.get_match_total_over_result(period=1)
@@ -703,8 +734,8 @@ class OddTotalBothHalvesOver(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTea
 class OddTotalBothHalvesUnder(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL_BOTH_HALVES_UNDER)
     def get_result(self):
         result_1, result_value_1 = self.get_match_total_under_result(period=1)
@@ -718,8 +749,8 @@ class OddTotalOverMinutes(OddMixins.OnlyYes, OddMixins.OnlyFootballMinutes, OddM
                             OddMixins.TotalParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL_OVER_MINUTES)
     def get_result(self):
         return self.get_match_total_over_result()
@@ -728,8 +759,8 @@ class OddTotalUnderMinutes(OddMixins.OnlyYes, OddMixins.OnlyFootballMinutes, Odd
                             OddMixins.TotalParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL_UNDER_MINUTES)
     def get_result(self):
         return self.get_match_total_under_result()
@@ -737,8 +768,8 @@ class OddTotalUnderMinutes(OddMixins.OnlyYes, OddMixins.OnlyFootballMinutes, Odd
 class OddTotal(OddMixins.HomeAwayOrEmptyTeam, OddMixins.IntegerListParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TOTAL)
     def get_result(self):
         total_value = self.get_match_total()
@@ -750,8 +781,8 @@ class OddTotal(OddMixins.HomeAwayOrEmptyTeam, OddMixins.IntegerListParam, Odd):
 class OddHandicap(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HandicapParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.HANDICAP)
     def get_result(self):
         return self.get_match_handicap_result()
@@ -760,8 +791,8 @@ class OddHandicapMinutes(OddMixins.OnlyYes, OddMixins.OnlyFootballMinutes, OddMi
                             OddMixins.HandicapParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.HANDICAP_MINUTES)
     def get_result(self):
         return self.get_match_handicap_result()
@@ -769,8 +800,8 @@ class OddHandicapMinutes(OddMixins.OnlyYes, OddMixins.OnlyFootballMinutes, OddMi
 class OddConsecutiveGoals(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins.PositiveIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.CONSECUTIVE_GOALS)
     def get_result(self):
         def get_next(i_h, i_a):
@@ -815,8 +846,8 @@ class OddConsecutiveGoals(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, 
 class OddITotalBothOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_BOTH_OVER)
     def get_result(self):
         result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME)
@@ -829,8 +860,8 @@ class OddITotalBothOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddM
 class OddITotalBothUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_BOTH_UNDER)
     def get_result(self):
         result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME)
@@ -843,8 +874,8 @@ class OddITotalBothUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, Odd
 class OddITotalOnlyOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_ONLY_OVER)
     def get_result(self):
         result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME)
@@ -866,8 +897,8 @@ class OddITotalOnlyOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam
 class OddITotalOnlyUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_ONLY_UNDER)
     def get_result(self):
         result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME)
@@ -889,8 +920,8 @@ class OddITotalOnlyUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTea
 class OddITotalAtLeastOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_AT_LEAST_OVER)
     def get_result(self):
         result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME)
@@ -903,8 +934,8 @@ class OddITotalAtLeastOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, O
 class OddITotalAtLeastUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_AT_LEAST_UNDER)
     def get_result(self):
         result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME)
@@ -917,8 +948,8 @@ class OddITotalAtLeastUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, 
 class OddMargin(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.IntegerListParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.MARGIN)
     def get_result(self):
         win = self.get_margin_win()
@@ -927,8 +958,8 @@ class OddMargin(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMix
 class OddWAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.W_AND_TOTAL_OVER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -946,8 +977,8 @@ class OddWAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddM
 class OddWAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.W_AND_TOTAL_UNDER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -965,8 +996,8 @@ class OddWAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
 class OddWDAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WD_AND_TOTAL_OVER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -984,8 +1015,8 @@ class OddWDAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
 class OddWDAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WD_AND_TOTAL_UNDER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1003,8 +1034,8 @@ class OddWDAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
 class OddBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.BOTH_TO_SCORE_AND_TOTAL_OVER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1017,8 +1048,8 @@ class OddBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyT
 class OddBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.BOTH_TO_SCORE_AND_TOTAL_UNDER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1031,8 +1062,8 @@ class OddBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmpty
 class OddNotBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.NOT_BOTH_TO_SCORE_AND_TOTAL_OVER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1045,8 +1076,8 @@ class OddNotBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmp
 class OddNotBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.NOT_BOTH_TO_SCORE_AND_TOTAL_UNDER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1059,8 +1090,8 @@ class OddNotBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEm
 class OddWDLAndBothTeamsScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WDL_AND_BOTH_TEAMS_SCORE)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1078,8 +1109,8 @@ class OddWDLAndBothTeamsScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam
 class OddBothToScoreAt1_2(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.Two0or1Param, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.BOTH_TO_SCORE_AT_1_2)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1096,8 +1127,8 @@ class OddBothToScoreAt1_2(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMix
 class OddITotalBothOverInBothHalves(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_BOTH_OVER_IN_BOTH_HALVES)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1111,8 +1142,8 @@ class OddITotalBothOverInBothHalves(OddMixins.Only0Period, OddMixins.OnlyEmptyTe
 class OddITotalBothUnderInBothHalves(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_BOTH_UNDER_IN_BOTH_HALVES)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1126,8 +1157,8 @@ class OddITotalBothUnderInBothHalves(OddMixins.Only0Period, OddMixins.OnlyEmptyT
 class OddITotalOnlyOverInBothHalves(OddMixins.Only0Period, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_ONLY_OVER_IN_BOTH_HALVES)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1146,8 +1177,8 @@ class OddITotalOnlyOverInBothHalves(OddMixins.Only0Period, OddMixins.HomeOrAwayT
 class OddITotalOnlyUnderInBothHalves(OddMixins.Only0Period, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_ONLY_UNDER_IN_BOTH_HALVES)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1166,8 +1197,8 @@ class OddITotalOnlyUnderInBothHalves(OddMixins.Only0Period, OddMixins.HomeOrAway
 class OddITotalBothOverAndEitherWin(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.ITOTAL_BOTH_OVER_AND_EITHER_WIN)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1180,8 +1211,8 @@ class OddITotalBothOverAndEitherWin(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmp
 class OddRaceToGoals(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.PositiveIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.RACE_TO_GOALS)
     def get_result(self):
         def get_next(i_h, i_a):
@@ -1244,8 +1275,8 @@ class OddHalfToScoreFirstGoal(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTe
         if not param_ in('1','2'):
             raise ValueError('Invalid odd param (should 1 or 2): %s' % param)
         return param_
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.HALF_TO_SCORE_FIRST_GOAL)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1270,8 +1301,8 @@ class OddTimeToScoreFirstGoal(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTe
         if not param_ in('15','30','45','60','75','90'):
             raise ValueError('Invalid odd param (should be 15,30,45,60,75 or 90): %s' % param)
         return param_
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.TIME_TO_SCORE_FIRST_GOAL)
     def get_result(self):
         def get_next(i_h, i_a):
@@ -1328,8 +1359,8 @@ class OddTimeToScoreFirstGoal(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTe
 class OddDrawInEitherHalf(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.EmptyParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.DRAW_IN_EITHER_HALF)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1348,8 +1379,8 @@ class OddHighestValueHalf(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, 
         if not param_ in('1','x','2'):
             raise ValueError('Invalid odd param (should be 1,x or 2): %s' % param)
         return param_
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.HIGHEST_VALUE_HALF)
     def get_result(self):
         value1_h, value1_a = self.get_odd_int_values(period=1)
@@ -1382,8 +1413,8 @@ class OddWinNoBet(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOr
         if not param_ in('w','d'):
             raise ValueError('Invalid odd param (should be w or d): %s' % param)
         return param_
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WIN_NO_BET)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1413,15 +1444,15 @@ class OddWinNoBet(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOr
 # class OddDrawLeastOneHalf(Odd):
 #     class Meta:
 #         proxy = True
-#     @property
-#     def own_bet_type(self):
+#     @staticmethod
+#     def own_bet_type():
 #         return BetType.get(BetType.DRAW_LEAST_ONE_HALF)
 ###################################################################
 class OddWAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.W_AND_ITOTAL_OVER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1439,8 +1470,8 @@ class OddWAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
 class OddWAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.W_AND_ITOTAL_UNDER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1458,8 +1489,8 @@ class OddWAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
 class OddWDAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WD_AND_ITOTAL_OVER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1477,8 +1508,8 @@ class OddWDAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
 class OddWDAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.WD_AND_ITOTAL_UNDER)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1496,8 +1527,8 @@ class OddWDAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, O
 class OddWAndTotal(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.IntegerListParam, Odd):
     class Meta:
         proxy = True
-    @property
-    def own_bet_type(self):
+    @staticmethod
+    def own_bet_type():
         return BetType.get(BetType.W_AND_TOTAL)
     def get_result(self):
         value_h, value_a = self.get_odd_int_values()
@@ -1515,29 +1546,29 @@ class OddWAndTotal(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixin
 # class OddPenaltyAndRCard(Odd):
 #     class Meta:
 #         proxy = True
-#     @property
-#     def own_bet_type(self):
+#     @staticmethod
+#     def own_bet_type():
 #         return BetType.get(BetType.PENALTY_AND_R_CARD)
 ###################################################################
 # class OddPenaltyOrRCard(Odd):
 #     class Meta:
 #         proxy = True
-#     @property
-#     def own_bet_type(self):
+#     @staticmethod
+#     def own_bet_type():
 #         return BetType.get(BetType.PENALTY_OR_R_CARD)
 ###################################################################
 # class OddYAndRCardsOver(Odd):
 #     class Meta:
 #         proxy = True
-#     @property
-#     def own_bet_type(self):
+#     @staticmethod
+#     def own_bet_type():
 #         return BetType.get(BetType.Y_AND_R_CARDS_OVER)
 ###################################################################
 # class OddYAndRCardsUnder(Odd):
 #     class Meta:
 #         proxy = True
-#     @property
-#     def own_bet_type(self):
+#     @staticmethod
+#     def own_bet_type():
 #         return BetType.get(BetType.Y_AND_R_CARDS_UNDER)
 
 

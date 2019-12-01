@@ -4,7 +4,7 @@ from datetime import datetime, date, timedelta
 from django.test import TestCase
 from django.utils import timezone
 
-from project.core.models import Sport, TeamType, Country, League, Team, Match, MatchStats
+from project.core.models import Sport, TeamType, Country, League, Team, Match, MatchStats, Referee, MatchReferee
 from ..models import (
                         SourceSession, 
                         SourceDetail, 
@@ -254,14 +254,6 @@ class CommonHandlerModelTest(TestCase):
         do = handler.start_or_skip_match(name_h, name_a, match_date=match_date)
         self.assertTrue(do)
         
-        #delete team
-        handler.team_h.delete_object()
-        handler.finish_load()
-        result = handler.start_load(detail_slug)
-        self.assertTrue(result)
-        do = handler.start_or_skip_match(name_h, name_a, match_date=match_date)
-        self.assertFalse(do)
-
     #######################################################################
     def test_common_handler_save_match_stat(self):
         handler1 = ESPNHandler.get()
@@ -289,11 +281,12 @@ class CommonHandlerModelTest(TestCase):
         league.confirm(handler3)
 
         #prepare handler3
+        referee_name = 'test common handler referee'
         self.assertTrue(handler3.start_load(detail_slug))
         handler3.set_load_date(match_date)
         self.assertTrue(handler3.start_or_skip_league(league_name))
         self.assertEquals(handler3.league, league)
-        self.assertTrue(handler3.start_or_skip_match(name_h, name_a))
+        self.assertTrue(handler3.start_or_skip_match(name_h, name_a, referee='test common handler referee'))
         self.assertEquals(handler3.source_detail_match.status, SourceDetail.IN_PROCESS)
         team_h = handler3.team_h
         team_a = handler3.team_a
@@ -389,6 +382,9 @@ class CommonHandlerModelTest(TestCase):
         self.assertEquals(stat.value, '47.000')
         stat = MatchStats.get_object(match=match,stat_type=Match.POSSESSION,competitor=Match.COMPETITOR_AWAY,period=0)
         self.assertEquals(stat.value, '53.000')
+        #Check match referee
+        referee = Referee.objects.get(name=referee_name)
+        match_referee = MatchReferee.objects.get(match=match, referee=referee)
 
         #prepare handler2
         handler3.finish_load()

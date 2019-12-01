@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from project.core.factories import get_country 
-from project.core.models import Sport, LoadSource
+from project.core.models import Sport, LoadSource, TeamType
 
 from ..factories import get_football, get_football_team, get_football_referee
 from ..models import FootballLeague, FootballTeam, FootballReferee
@@ -18,13 +18,13 @@ class FootballLeagueModelTest(TestCase):
         prepare_data(self)
 
     def test_create_league(self):
-        league_test_create = FootballLeague.objects.create(name = 'test create league')
+        league_test_create = FootballLeague.objects.create(name = 'test create league', team_type = TeamType.objects.get(slug=TeamType.UNKNOWN))
         self.assertTrue(league_test_create.slug.startswith('test-create-league'))
         football = Sport.objects.get(league=league_test_create)
         self.assertEquals(football.slug, 'football')
 
     def test_save_league(self):
-        league_save_create = FootballLeague(name = 'test save league')
+        league_save_create = FootballLeague(name = 'test save league', team_type = TeamType.objects.get(slug=TeamType.UNKNOWN))
         league_save_create.save()
         self.assertTrue(league_save_create.slug.startswith('test-save-league'))
         football = Sport.objects.get(league=league_save_create)
@@ -51,7 +51,7 @@ class FootballTeamModelTest(TestCase):
     def test_create_team(self):
         russia = get_country('rus')
         football = get_football()
-        team_test_create = FootballTeam.objects.create(name = 'test create team', country=russia)
+        team_test_create = FootballTeam.objects.create(name = 'test create team', country=russia, team_type = TeamType.objects.get(slug=TeamType.UNKNOWN))
         created_team = get_football_team(country=russia, slug='test-create-team')
         self.assertIsNotNone(created_team, 'Cant find team with slug "test-create-team"')
         self.assertEquals(created_team.sport, football, 'Created team is not football team')
@@ -59,7 +59,7 @@ class FootballTeamModelTest(TestCase):
     def test_save_team(self):
         russia = get_country('rus')
         football = get_football()
-        team_test_save = FootballTeam(name = 'test save team', country=russia)
+        team_test_save = FootballTeam(name = 'test save team', country=russia, team_type = TeamType.objects.get(slug=TeamType.UNKNOWN))
         team_test_save.save()
         saved_team = get_football_team(country=russia, slug='test-save-team')
         self.assertIsNotNone(saved_team, 'Cant find team with slug "test-save-team"')

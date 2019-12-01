@@ -9,7 +9,8 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.conf import settings
 
-from project.core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats
+from project.core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats, Referee
+from project.betting.models import Odd, ValueType
 from .exceptions import LoadError, TooMamyErrors
 from .helpers import MatchDetail
 
@@ -327,6 +328,12 @@ class CommonHandler(MatchDetail, LoadSource):
                                         match_date=match_date, 
                                         match_name=str(self.match))
                 if do_action:
+                    if referee:
+                        referee = Referee.get_or_create(
+                                                sport=self.get_sport(),
+                                                name=referee,
+                                                country=self.league.country,
+                                                load_source=self)
                     self.clear_match_context(
                                         referee=referee,
                                         forecast_w=forecast_w, forecast_d=forecast_d, forecast_l=forecast_l,
@@ -394,6 +401,13 @@ class CommonHandler(MatchDetail, LoadSource):
                         self.match.set_referee(self.referee, self)
                     self._save_competitor_data(Match.COMPETITOR_HOME, self.h)
                     self._save_competitor_data(Match.COMPETITOR_AWAY, self.a)
+                    for odd in self.odds:
+                        bet_type_slug = odd.pop('bet_type',None)
+                        value_type_slug = odd.pop('value_type',None)
+                        if not value_type_slug:
+                            value_type_slug = ValueType.MAIN
+                        bookie = self if self.is_betting else None
+                        Odd.create(self.match, bet_type_slug, value_type_slug, load_source=self, bookie=bookie, **odd)
                     self.source_detail_match.refresh_from_db()
                     self.source_detail_match.status=SourceDetail.FINISHED
                     self.source_detail_match.save()

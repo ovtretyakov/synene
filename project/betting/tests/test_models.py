@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from project.football.models import FootballSource,FootballLeague,FootballTeam
 from project.core.models import Country,TeamType,Match,MatchStats
-from ..models import Odd,BetType,ValueType
+from ..models import Odd,BetType,ValueType,OddWDL
 
 
 def prepare_data(obj):
@@ -104,6 +104,25 @@ class OddModelTest(TestCase):
 
     def setUp(self):
         prepare_data(self)
+
+    #######################################################################
+    def test_odd_create_and_get(self):
+        match = Match.objects.create(league=self.league, team_h=self.team1, team_a=self.team2, 
+                              match_date=date(2010,10,3), 
+                              load_source=self.load_source_2)
+        odd1 = Odd.create(match=match,
+                            bet_type_slug=BetType.WDL, value_type_slug=ValueType.MAIN,
+                            load_source=self.load_source_2, bookie=self.bookie, 
+                            period=0, yes='Yes', team='', param='W', odd_value=1)        
+        self.assertEquals(odd1.__class__.__name__, OddWDL.__name__)
+        self.assertNotEquals(odd1.__class__.__name__, Odd.__name__)
+        odd2 = Odd.get_object(match=match,
+                            bet_type_slug=BetType.WDL, value_type_slug=ValueType.MAIN,
+                            load_source=self.load_source_2, bookie=self.bookie, 
+                            period=0, yes='Y', team='', param='w')
+        self.assertEquals(odd2.__class__.__name__, OddWDL.__name__)
+        self.assertNotEquals(odd2.__class__.__name__, Odd.__name__)
+        self.assertEquals(odd2.odd_value, 1)
 
     #######################################################################
     def test_odd_change_match(self):
@@ -442,7 +461,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1/2')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -487,7 +506,7 @@ class OddModelTest(TestCase):
         odd1.calculate_result()
         self.assertEquals(odd1.status, Odd.FINISHED)
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.status, Odd.FINISHED)
@@ -515,7 +534,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1/2')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -560,7 +579,7 @@ class OddModelTest(TestCase):
         odd1.calculate_result()
         self.assertEquals(odd1.status, Odd.FINISHED)
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.status, Odd.FINISHED)
@@ -575,7 +594,7 @@ class OddModelTest(TestCase):
         odd4.calculate_result()
         self.assertEquals(odd4.status, Odd.FINISHED)
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.2)
+        self.assertEquals(odd4.result_value, Decimal('3.2'))
 
     #######################################################################
     def test_odd_win_both_create(self):
@@ -588,7 +607,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match2,
@@ -637,7 +656,7 @@ class OddModelTest(TestCase):
         odd1.calculate_result()
         self.assertEquals(odd1.status, Odd.FINISHED)
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.status, Odd.FINISHED)
@@ -652,12 +671,12 @@ class OddModelTest(TestCase):
         odd4.calculate_result()
         self.assertEquals(odd4.status, Odd.FINISHED)
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
         #SUCCESS - team-any
         odd5.calculate_result()
         self.assertEquals(odd5.status, Odd.FINISHED)
         self.assertEquals(odd5.result, Odd.SUCCESS)
-        self.assertEquals(odd5.result_value, 3.1)
+        self.assertEquals(odd5.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_win_list_one_half_create(self):
@@ -670,7 +689,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, 'h')
         self.assertEquals(odd1.param, '')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -714,7 +733,7 @@ class OddModelTest(TestCase):
         odd1.calculate_result()
         self.assertEquals(odd1.status, Odd.FINISHED)
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.status, Odd.FINISHED)
@@ -729,7 +748,7 @@ class OddModelTest(TestCase):
         odd4.calculate_result()
         self.assertEquals(odd4.status, Odd.FINISHED)
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_win_to_nil_create(self):
@@ -742,7 +761,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, 'h')
         self.assertEquals(odd1.param, '')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -791,7 +810,7 @@ class OddModelTest(TestCase):
         odd1.calculate_result()
         self.assertEquals(odd1.status, Odd.FINISHED)
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.status, Odd.FINISHED)
@@ -806,12 +825,12 @@ class OddModelTest(TestCase):
         odd4.calculate_result()
         self.assertEquals(odd4.status, Odd.FINISHED)
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
         #SUCCESS - any team
         odd5.calculate_result()
         self.assertEquals(odd5.status, Odd.FINISHED)
         self.assertEquals(odd5.result, Odd.SUCCESS)
-        self.assertEquals(odd5.result_value, 3.1)
+        self.assertEquals(odd5.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_correct_score_create(self):
@@ -824,7 +843,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '2:1,1:1')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -873,7 +892,7 @@ class OddModelTest(TestCase):
         odd1.calculate_result()
         self.assertEquals(odd1.status, Odd.FINISHED)
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.status, Odd.FINISHED)
@@ -888,12 +907,12 @@ class OddModelTest(TestCase):
         odd4.calculate_result()
         self.assertEquals(odd4.status, Odd.FINISHED)
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
         #SUCCESS - any team
         odd5.calculate_result()
         self.assertEquals(odd5.status, Odd.FINISHED)
         self.assertEquals(odd5.result, Odd.SUCCESS)
-        self.assertEquals(odd5.result_value, 3.1)
+        self.assertEquals(odd5.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_total_even_odd_create(self):
@@ -906,7 +925,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, 'even')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -950,7 +969,7 @@ class OddModelTest(TestCase):
         odd1.calculate_result()
         self.assertEquals(odd1.status, Odd.FINISHED)
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.status, Odd.FINISHED)
@@ -965,7 +984,7 @@ class OddModelTest(TestCase):
         odd4.calculate_result()
         self.assertEquals(odd4.status, Odd.FINISHED)
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_total_over_create(self):
@@ -978,7 +997,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.75')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1038,29 +1057,29 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
         self.assertEquals(odd2.result_value, 0)
         #various parameters
         odd3.calculate_result()
-        expected_result = (odd_value/Decimal(2) + odd_value/Decimal(2))
+        expected_result = round((odd_value/Decimal(2) + odd_value/Decimal(2)),5)
         self.assertEquals(odd3.result, Odd.SUCCESS)
         self.assertEquals(odd3.result_value, expected_result)
         odd4.calculate_result()
-        expected_result = (odd_value/Decimal(2) + Decimal('1')/Decimal(2))
+        expected_result = round((odd_value/Decimal(2) + Decimal('1')/Decimal(2)),5)
         self.assertEquals(odd4.result, Odd.PART_SUCCESS)
         self.assertEquals(odd4.result_value, expected_result)
         odd5.calculate_result()
-        expected_result = (Decimal('1')/Decimal(2) + Decimal('1')/Decimal(2))
+        expected_result = round((Decimal('1')/Decimal(2) + Decimal('1')/Decimal(2)),5)
         self.assertEquals(odd5.result, Odd.RETURN)
         self.assertEquals(odd5.result_value, expected_result)
         odd6.calculate_result()
-        expected_result = (Decimal('1')/Decimal(2) + Decimal('0')/Decimal(2))
+        expected_result = round((Decimal('1')/Decimal(2) + Decimal('0')/Decimal(2)),5)
         self.assertEquals(odd6.result, Odd.PART_FAIL)
         self.assertEquals(odd6.result_value, expected_result)
         odd7.calculate_result()
-        expected_result = (Decimal('0')/Decimal(2) + Decimal('0')/Decimal(2))
+        expected_result = round((Decimal('0')/Decimal(2) + Decimal('0')/Decimal(2)),5)
         self.assertEquals(odd7.result, Odd.FAIL)
         self.assertEquals(odd7.result_value, expected_result)
 
@@ -1075,7 +1094,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.75')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1135,29 +1154,29 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
         self.assertEquals(odd2.result_value, 0)
         #various parameters
         odd3.calculate_result()
-        expected_result = (Decimal('0')/Decimal(2) + Decimal('0')/Decimal(2))
+        expected_result = round((Decimal('0')/Decimal(2) + Decimal('0')/Decimal(2)),5)
         self.assertEquals(odd3.result, Odd.FAIL)
         self.assertEquals(odd3.result_value, expected_result)
         odd4.calculate_result()
-        expected_result = (Decimal('1')/Decimal(2) + Decimal('0')/Decimal(2))
+        expected_result = round((Decimal('1')/Decimal(2) + Decimal('0')/Decimal(2)),5)
         self.assertEquals(odd4.result, Odd.PART_FAIL)
         self.assertEquals(odd4.result_value, expected_result)
         odd5.calculate_result()
-        expected_result = (Decimal('1')/Decimal(2) + Decimal('1')/Decimal(2))
+        expected_result = round((Decimal('1')/Decimal(2) + Decimal('1')/Decimal(2)),5)
         self.assertEquals(odd5.result, Odd.RETURN)
         self.assertEquals(odd5.result_value, expected_result)
         odd6.calculate_result()
-        expected_result = (odd_value/Decimal(2) + Decimal('1')/Decimal(2))
+        expected_result = round((odd_value/Decimal(2) + Decimal('1')/Decimal(2)),5)
         self.assertEquals(odd6.result, Odd.PART_SUCCESS)
         self.assertEquals(odd6.result_value, expected_result)
         odd7.calculate_result()
-        expected_result = (odd_value/Decimal(2) + odd_value/Decimal(2))
+        expected_result = round((odd_value/Decimal(2) + odd_value/Decimal(2)),5)
         self.assertEquals(odd7.result, Odd.SUCCESS)
         self.assertEquals(odd7.result_value, expected_result)
 
@@ -1172,7 +1191,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.5')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1220,7 +1239,7 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
@@ -1232,7 +1251,7 @@ class OddModelTest(TestCase):
         #SUCCESS - home
         odd4.calculate_result()
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_total_both_halves_under_create(self):
@@ -1245,7 +1264,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.5')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1293,7 +1312,7 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
@@ -1305,7 +1324,7 @@ class OddModelTest(TestCase):
         #SUCCESS - away
         odd4.calculate_result()
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_total_over_minutes_create(self):
@@ -1318,7 +1337,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.75')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1365,7 +1384,7 @@ class OddModelTest(TestCase):
         #calculate
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
         self.assertEquals(odd2.result_value, 0)
@@ -1374,7 +1393,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd3.result_value, 0)
         odd4.calculate_result()
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_total_under_minutes_create(self):
@@ -1387,7 +1406,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.75')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1429,7 +1448,7 @@ class OddModelTest(TestCase):
         #calculate
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
         self.assertEquals(odd2.result_value, 0)
@@ -1448,7 +1467,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1,2')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1501,7 +1520,7 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
@@ -1513,7 +1532,7 @@ class OddModelTest(TestCase):
         #SUCCESS - away
         odd4.calculate_result()
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_handicap_create(self):
@@ -1526,7 +1545,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, 'h')
         self.assertEquals(odd1.param, '+1.75')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1585,30 +1604,31 @@ class OddModelTest(TestCase):
         #calculate
         #SUCCESS
         odd1.calculate_result()
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
         self.assertEquals(odd2.result_value, 0)
         #various parameters
         odd3.calculate_result()
-        expected_result = (odd_value/Decimal(2) + odd_value/Decimal(2))
+        expected_result = round((odd_value/Decimal(2) + odd_value/Decimal(2)),5)
         self.assertEquals(odd3.result, Odd.SUCCESS)
         self.assertEquals(odd3.result_value, expected_result)
         odd4.calculate_result()
-        expected_result = (odd_value/Decimal(2) + Decimal('1')/Decimal(2))
+        expected_result = round((odd_value/Decimal(2) + Decimal('1')/Decimal(2)),5)
         self.assertEquals(odd4.result, Odd.PART_SUCCESS)
         self.assertEquals(odd4.result_value, expected_result)
         odd5.calculate_result()
-        expected_result = (Decimal('1')/Decimal(2) + Decimal('1')/Decimal(2))
+        expected_result = round((Decimal('1')/Decimal(2) + Decimal('1')/Decimal(2)),5)
         self.assertEquals(odd5.result, Odd.RETURN)
         self.assertEquals(odd5.result_value, expected_result)
         odd6.calculate_result()
-        expected_result = (Decimal('1')/Decimal(2) + Decimal('0')/Decimal(2))
+        expected_result = round((Decimal('1')/Decimal(2) + Decimal('0')/Decimal(2)),5)
         self.assertEquals(odd6.result, Odd.PART_FAIL)
         self.assertEquals(odd6.result_value, expected_result)
         odd7.calculate_result()
-        expected_result = (Decimal('0')/Decimal(2) + Decimal('0')/Decimal(2))
+        expected_result = round((Decimal('0')/Decimal(2) + Decimal('0')/Decimal(2)),5)
         self.assertEquals(odd7.result, Odd.FAIL)
         self.assertEquals(odd7.result_value, expected_result)
 
@@ -1623,7 +1643,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, 'h')
         self.assertEquals(odd1.param, '+0.50')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1666,13 +1686,13 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
         self.assertEquals(odd2.result_value, 0)
         odd3.calculate_result()
         self.assertEquals(odd3.result, Odd.SUCCESS)
-        self.assertEquals(odd3.result_value, 3.1)
+        self.assertEquals(odd3.result_value, Decimal('3.1'))
 
     #######################################################################
     def test_odd_consecutive_goals_create(self):
@@ -1685,7 +1705,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '2')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1738,7 +1758,7 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
@@ -1750,7 +1770,7 @@ class OddModelTest(TestCase):
         #SUCCESS - any team
         odd4.calculate_result()
         self.assertEquals(odd4.result, Odd.SUCCESS)
-        self.assertEquals(odd4.result_value, 3.1)
+        self.assertEquals(odd4.result_value, Decimal('3.1'))
         #FAIL - away
         odd5.calculate_result()
         self.assertEquals(odd5.result, Odd.FAIL)
@@ -1767,7 +1787,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.5')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1810,7 +1830,7 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)
@@ -1831,7 +1851,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, '1.5')
-        self.assertEquals(odd1.odd_value, 3.1)
+        self.assertEquals(odd1.odd_value, Decimal('3.1'))
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
@@ -1874,7 +1894,7 @@ class OddModelTest(TestCase):
         #SUCCESS
         odd1.calculate_result()
         self.assertEquals(odd1.result, Odd.SUCCESS)
-        self.assertEquals(odd1.result_value, 3.1)
+        self.assertEquals(odd1.result_value, Decimal('3.1'))
         #yes=N
         odd2.calculate_result()
         self.assertEquals(odd2.result, Odd.FAIL)

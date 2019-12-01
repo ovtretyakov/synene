@@ -105,6 +105,10 @@ class Loadable(Mergable, models.Model):
                 raise ValueError('Missing parameter "name"')
             slug = slugify(name)
             kwargs['slug'] = slug
+        if not slug:
+            raise ValueError('Missing parameter "slug"')
+        if len(slug) > 50:
+            raise ValueError('Too long slug: ' + slug)
         load_source = kwargs.get('load_source',None)
         if not load_source:
             raise ValueError('Missing parameter "load_source"')
@@ -234,6 +238,7 @@ class Sport(models.Model):
 class LoadSource(models.Model):
 
     SRC_MANUAL        = 'manual'
+    SRC_UNKNOWN       = 'na'
 
     SRC_ESPN          = 'espn'
     SRC_FOOTBALL_DATA = 'football_data'
@@ -1102,12 +1107,25 @@ class Match(Mergable, models.Model):
         else:
             value = None
         return value
+
     def get_competitors_values(self, stat_type, period):
         '''Get competitors values (goals, corners, ...)
            return home_value, away_value
         '''
         return MatchStats.get_competitors_values(match=self, stat_type=stat_type, period=period)
 
+    def get_referee(self):
+        try:
+            match_referee = MatchReferee.objects.select_related('referee').get(match=self)
+            referee = match_referee.referee
+        except MatchReferee.DoesNotExist as e:
+            referee = None
+        return referee
+
+    def get_odd(self, **kwargs):
+        from project.betting.models import Odd
+        kwargs["match"] = self
+        return Odd.get_object(**kwargs)
 
 ###################################################################
 class MatchReferee(models.Model):
