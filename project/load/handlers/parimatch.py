@@ -186,6 +186,8 @@ class ParimatchHandler(CommonHandler):
             header = [h.get_text() for h in header_tr.find_all("th")]
 
             # process matches
+            match_name = None
+            old_match_name = None
             for match in league_html.find_all("tbody", class_=["row1","row2"]):
                 self.context = match
                 if "props" not in(match["class"]):
@@ -196,11 +198,15 @@ class ParimatchHandler(CommonHandler):
                     else:
                         match_odds = [match]
                         self.context = match_odds
-                    self.process_match(match_odds, header, is_football_stats)
+                    match_name = self.process_match(match_odds, header, is_football_stats, old_match_name)
+                    if match_name:
+                        old_match_name = match_name
+            if old_match_name:
+                self.finish_match()
             self.finish_league() 
 
 
-    def process_match(self, match_odds, header, is_football_stats):
+    def process_match(self, match_odds, header, is_football_stats, old_match_name):
         date_pattern = re.compile(r"\d+/\d+/\d+") #evd 17/03/19 18:30 evd
         match_date   = None
         name_h       = None
@@ -208,6 +214,7 @@ class ParimatchHandler(CommonHandler):
         match_detail = None
         match_stat   = None
         is_main_line = None
+        match_name = None
         for match_odd in match_odds:
             self.context = match_odd
             if not name_h:
@@ -220,6 +227,7 @@ class ParimatchHandler(CommonHandler):
                 #get teams
                 teams_tag = match_odd.select_one("tr > td.l")
                 name_h, name_a, match_stat = self._get_teams(teams_tag, is_football_stats)
+                match_name = name_h + " - " + name_a
                 if is_football_stats and not match_stat:
                     #unknown match stat - skip
                     return
@@ -228,10 +236,14 @@ class ParimatchHandler(CommonHandler):
                     ):
                     #skip teams "home" and "away"
                     return
-                if not self.start_or_skip_match(name_h, name_a, match_status=Match.SCHEDULED, match_date=match_date):
-                    continue
+                if old_match_name and match_name != old_match_name:
+                    self.finish_match()
+                if not old_match_name or match_name != old_match_name:
+                    if not self.start_or_skip_match(name_h, name_a, match_status=Match.SCHEDULED, match_date=match_date):
+                        return
             else:
                 is_main_line = False
+
 
             #Process odd lines
             odd_prefix = ""  #contain period name if additional part is processing
@@ -260,8 +272,10 @@ class ParimatchHandler(CommonHandler):
                 except TooMamyErrors:
                     raise
                 except Exception as e:
+                    print("Exception", str(e))
                     self.handle_exception(e)
-        self.finish_match()
+        # self.finish_match()
+        return match_name
 
 
     def process_bk(self, tds, match_detail, header, match_stat, odd_prefix):
@@ -494,101 +508,101 @@ class ParimatchHandler(CommonHandler):
         for sibling in tag_i.next_siblings:
             team = team0
             if type(sibling) == element.Tag:
-              lines = sibling.get_text("\n", strip=True).splitlines()
-              if len(lines) > 1:
-                  suffix = lines[0]
-                  param, is_yes_no = self.clear_yes_no(suffix)
-                  search_obj_1 = name_pattern1.search(odd_name)
-                  if is_yes_no:
-                      suffix = param
-                      self.add_odd(odd_name, lines[1], team=team, param=suffix, value_type=match_stat)
-                  elif search_obj_1:
-                      #Total Goals 2,5 / Both teams to score
-                      param         = search_obj_1[1].replace(",",".")
-                      odd_name_real = re.sub(r"[0-9.,]+", "", odd_name) #remove param from name
-                      odd_name_real = " ".join(odd_name_real.split())   #remove double spaces
-                      suffix        = re.sub(r"[0-9., ]+", "", suffix)
-                      if suffix: odd_name_real = odd_name_real + " " + suffix
-                      self.add_odd(odd_name_real, lines[1], param=param, value_type=match_stat)
-                  elif odd_name.lower().find("correct score") >= 0:
-                      is_swap = (suffix.find(self.name_a) >= 0)
-                      scores0  = score_pattern.findall(suffix)
-                      if is_swap:
-                          scores = [s[1]+":"+s[0] for s in scores0]
-                      else:
-                          scores = [s[0]+":"+s[1] for s in scores0]
-                      param = ",".join(scores)
-                      self.add_odd(odd_name, lines[1], team=team, param=param, value_type=match_stat)
-                  elif odd_name == "1st Half Result / 2nd Half Result":
-                      search_obj = param_pattern.search(suffix)
-                      if search_obj:
-                          params_in = [search_obj[1].strip(),search_obj[2].strip()]
-                          params_out = []
-                          for p in params_in:
-                              if p.find(self.name_h) >=0: p_out = "1"
-                              elif p.find(self.name_a) >=0: p_out = "2"
-                              elif p == "Draw": p_out = "X"
-                              else: p_out = ""
-                              params_out.append(p_out)
-                          param = "/".join(params_out)
-                          self.add_odd(odd_name, lines[1], param=param, value_type=match_stat)
-                  elif odd_name.startswith("Match result / Total match goals"):
-                      odd_name = odd_name.replace(",",".")
-                      search_obj = param_pattern.search(suffix) #Tottenham or draw / over
-                      suffix = search_obj[1].strip()
-                      suffix, is_found = self.transform_by_team(suffix, self.name_h)
-                      if is_found:
-                          team = "h"
-                      else:
-                          suffix, is_found = self.transform_by_team(suffix, self.name_a)
-                          team = "a"
-                      if suffix and not suffix.startswith(" "): suffix = " " + suffix
-                      suffix = " win" + suffix + " " + search_obj[2].strip()
-                      self.add_odd(odd_name+suffix, lines[1], team=team, value_type=match_stat)
-                  elif odd_name == "Match result and both teams to score":
-                      if suffix.find(self.name_h) >=0: param = "w"
-                      elif suffix.find(self.name_a) >=0: param = "l"
-                      elif suffix.find("draw") >=0: param = "d"
-                      else: param = ""
-                      if param:
-                          self.add_odd(odd_name, lines[1], param=param, value_type=match_stat)
-                  elif odd_name == "Win No Bet":
-                      if suffix.lower().find("win") >=0: param = "w"
-                      elif suffix.lower().find("draw") >=0: param = "d"
-                      else: param = ""
-                      if param:
-                          self.add_odd(odd_name, lines[1], param=param, team=team, value_type=match_stat)
-                  else:
-                      suffix_h, is_found_h = self.transform_by_team(suffix, self.name_h)
-                      suffix_a, is_found_a = self.transform_by_team(suffix, self.name_a)
-                      param = None
-                      if odd_name.endswith("Minutes Betting"):
-                          if is_found_h:
-                              suffix = suffix_h
-                          elif is_found_a:
-                              suffix = "lose"
-                      else:
-                          if is_found_h and is_found_a:
-                              suffix = "both"
-                              team = team0
-                          elif is_found_h:
-                              team = "h"
-                              suffix = suffix_h
-                          elif is_found_a:
-                              team = "a"
-                              suffix = suffix_a
-                          else:
-                              team = team0
-                      #
-                      search_obj = over_under_pattern.search(suffix)
-                      if search_obj:
-                          param  = search_obj[2]
-                          suffix = suffix.replace(param,"")
-                          suffix = " ".join(suffix.split())  #remove double spaces and strip()
-                          param  = param.replace(",",".")
-                      if suffix: odd_name_real = odd_name + " " + suffix
-                      else: odd_name_real = odd_name
-                      self.add_odd(odd_name_real, lines[1], param=param, team=team, value_type=match_stat)
+                lines = sibling.get_text("\n", strip=True).splitlines()
+                if len(lines) > 1:
+                    suffix = lines[0]
+                    param, is_yes_no = self.clear_yes_no(suffix)
+                    search_obj_1 = name_pattern1.search(odd_name)
+                    if is_yes_no:
+                        suffix = param
+                        self.add_odd(odd_name, lines[1], team=team, param=suffix, value_type=match_stat)
+                    elif search_obj_1:
+                        #Total Goals 2,5 / Both teams to score
+                        param         = search_obj_1[1].replace(",",".")
+                        odd_name_real = re.sub(r"[0-9.,]+", "", odd_name) #remove param from name
+                        odd_name_real = " ".join(odd_name_real.split())   #remove double spaces
+                        suffix        = re.sub(r"[0-9., ]+", "", suffix)
+                        if suffix: odd_name_real = odd_name_real + " " + suffix
+                        self.add_odd(odd_name_real, lines[1], param=param, value_type=match_stat)
+                    elif odd_name.lower().find("correct score") >= 0:
+                        is_swap = (suffix.find(self.name_a) >= 0)
+                        scores0  = score_pattern.findall(suffix)
+                        if is_swap:
+                            scores = [s[1]+":"+s[0] for s in scores0]
+                        else:
+                            scores = [s[0]+":"+s[1] for s in scores0]
+                        param = ",".join(scores)
+                        self.add_odd(odd_name, lines[1], team=team, param=param, value_type=match_stat)
+                    elif odd_name == "1st Half Result / 2nd Half Result":
+                        search_obj = param_pattern.search(suffix)
+                        if search_obj:
+                            params_in = [search_obj[1].strip(),search_obj[2].strip()]
+                            params_out = []
+                            for p in params_in:
+                                if p.find(self.name_h) >=0: p_out = "1"
+                                elif p.find(self.name_a) >=0: p_out = "2"
+                                elif p == "Draw": p_out = "X"
+                                else: p_out = ""
+                                params_out.append(p_out)
+                            param = "/".join(params_out)
+                            self.add_odd(odd_name, lines[1], param=param, value_type=match_stat)
+                    elif odd_name.startswith("Match result / Total match goals"):
+                        odd_name = odd_name.replace(",",".")
+                        search_obj = param_pattern.search(suffix) #Tottenham or draw / over
+                        suffix = search_obj[1].strip()
+                        suffix, is_found = self.transform_by_team(suffix, self.name_h)
+                        if is_found:
+                            team = "h"
+                        else:
+                            suffix, is_found = self.transform_by_team(suffix, self.name_a)
+                            team = "a"
+                        if suffix and not suffix.startswith(" "): suffix = " " + suffix
+                        suffix = " win" + suffix + " " + search_obj[2].strip()
+                        self.add_odd(odd_name+suffix, lines[1], team=team, value_type=match_stat)
+                    elif odd_name == "Match result and both teams to score":
+                        if suffix.find(self.name_h) >=0: param = "w"
+                        elif suffix.find(self.name_a) >=0: param = "l"
+                        elif suffix.find("draw") >=0: param = "d"
+                        else: param = ""
+                        if param:
+                            self.add_odd(odd_name, lines[1], param=param, value_type=match_stat)
+                    elif odd_name == "Win No Bet":
+                        if suffix.lower().find("win") >=0: param = "w"
+                        elif suffix.lower().find("draw") >=0: param = "d"
+                        else: param = ""
+                        if param:
+                            self.add_odd(odd_name, lines[1], param=param, team=team, value_type=match_stat)
+                    else:
+                        suffix_h, is_found_h = self.transform_by_team(suffix, self.name_h)
+                        suffix_a, is_found_a = self.transform_by_team(suffix, self.name_a)
+                        param = None
+                        if odd_name.endswith("Minutes Betting"):
+                            if is_found_h:
+                                suffix = suffix_h
+                            elif is_found_a:
+                                suffix = "lose"
+                        else:
+                            if is_found_h and is_found_a:
+                                suffix = "both"
+                                team = team0
+                            elif is_found_h:
+                                team = "h"
+                                suffix = suffix_h
+                            elif is_found_a:
+                                team = "a"
+                                suffix = suffix_a
+                            else:
+                                team = team0
+                        #
+                        search_obj = over_under_pattern.search(suffix)
+                        if search_obj:
+                            param  = search_obj[2]
+                            suffix = suffix.replace(param,"")
+                            suffix = " ".join(suffix.split())  #remove double spaces and strip()
+                            param  = param.replace(",",".")
+                        if suffix: odd_name_real = odd_name + " " + suffix
+                        else: odd_name_real = odd_name
+                        self.add_odd(odd_name_real, lines[1], param=param, team=team, value_type=match_stat)
 
 
     def clear_yes_no(self, param):
