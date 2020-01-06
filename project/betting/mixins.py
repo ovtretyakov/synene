@@ -71,7 +71,7 @@ class IntegerListParam(object):
         if param_ == None: param_ = ''
         for value in param_.split(','):
             if value == '':
-                raise ValueError('Invalid odd param (must not be empty)')
+                continue
             try:
                 i = Decimal(value)
             except (ValueError, DecimalException):
@@ -229,6 +229,7 @@ class OnlyYes(object):
     def clean_yes(cls, yes):
         if yes in('y',): yes = yes.upper()
         elif yes.lower() == 'yes': yes = 'Y'
+        elif yes == '1': yes = 'Y'
         if not yes in('Y',):
             raise ValueError('Invalid yes-no param (should by "Y"): %s' % yes)
         return yes

@@ -1,5 +1,6 @@
 import random
 from datetime import timedelta
+import logging
 
 from django.utils import timezone
 from django.db import models
@@ -7,6 +8,8 @@ from django.db import connection
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.defaultfilters import slugify
+
+logger = logging.getLogger(__name__)
 
 
 ###################################################################
@@ -370,7 +373,7 @@ class TeamType(models.Model):
 ###################################################################
 class League(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.CharField(max_length=100)
     name = models.CharField('League', max_length=100)
     team_type = models.ForeignKey(TeamType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')

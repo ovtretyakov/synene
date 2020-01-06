@@ -113,7 +113,7 @@ class OddModelTest(TestCase):
         odd1 = Odd.create(match=match,
                             bet_type_slug=BetType.WDL, value_type_slug=ValueType.MAIN,
                             load_source=self.load_source_2, bookie=self.bookie, 
-                            period=0, yes='Yes', team='', param='W', odd_value=1)        
+                            period=0, yes='Yes', team='', param='W', odd_value=1.5)        
         self.assertEquals(odd1.__class__.__name__, OddWDL.__name__)
         self.assertNotEquals(odd1.__class__.__name__, Odd.__name__)
         odd2 = Odd.get_object(match=match,
@@ -122,7 +122,7 @@ class OddModelTest(TestCase):
                             period=0, yes='Y', team='', param='w')
         self.assertEquals(odd2.__class__.__name__, OddWDL.__name__)
         self.assertNotEquals(odd2.__class__.__name__, Odd.__name__)
-        self.assertEquals(odd2.odd_value, 1)
+        self.assertEquals(odd2.odd_value, 1.5)
 
     #######################################################################
     def test_odd_change_match(self):
@@ -225,7 +225,7 @@ class OddModelTest(TestCase):
         odd1 = Odd.create(match=self.match1,
                             bet_type_slug=BetType.WDL, value_type_slug=ValueType.MAIN,
                             load_source=self.load_source_2, bookie=self.bookie, 
-                            period=0, yes='Yes', team='', param='W', odd_value=1)
+                            period=0, yes='Yes', team='', param='W', odd_value=1.5)
         odd1_pk = odd1.pk
         self.assertEquals(odd1.match, self.match1)
         self.assertEquals(odd1.bet_type, BetType.objects.get(slug=BetType.WDL))
@@ -236,7 +236,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, 'w')
-        self.assertEquals(odd1.odd_value, 1)
+        self.assertEquals(odd1.odd_value, 1.5)
         #update value
         odd2 = Odd.create(match=self.match1,
                             bet_type_slug=BetType.WDL, value_type_slug=ValueType.MAIN,
@@ -347,7 +347,7 @@ class OddModelTest(TestCase):
         odd1 = Odd.create(match=self.match1,
                             bet_type_slug=BetType.WDL_MINUTE, value_type_slug=ValueType.MAIN,
                             load_source=self.load_source_2, bookie=self.bookie, 
-                            period=15, yes='Yes', team='', param='W', odd_value=1)
+                            period=15, yes='Yes', team='', param='W', odd_value=1.5)
         odd1_pk = odd1.pk
         self.assertEquals(odd1.match, self.match1)
         self.assertEquals(odd1.bet_type, BetType.objects.get(slug=BetType.WDL_MINUTE))
@@ -358,7 +358,7 @@ class OddModelTest(TestCase):
         self.assertEquals(odd1.yes, 'Y')
         self.assertEquals(odd1.team, '')
         self.assertEquals(odd1.param, 'w')
-        self.assertEquals(odd1.odd_value, 1)
+        self.assertEquals(odd1.odd_value, 1.5)
         #check errors
         with self.assertRaisesRegex(ValueError, 'Invalid period param'):
             odd = Odd.create(match=self.match1,
