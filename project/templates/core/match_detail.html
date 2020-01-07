@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Match detail{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Match detail</h2>
+      </div>
+
+
+      <!-- Row1 -->
+      <div class="form-row">
+        <div class="form-group col-sm-4">
+          <label for="league-id" class="col-form-label">League:</label>
+          <input type="text" class="form-control form-control-sm" id="league-id" value="{{object.league.name}}" disabled>
+        </div>
+        <div class="form-group col-sm-2">
+          <label for="match_date-id" class="col-form-label">Date:</label>
+          <input type="text" class="form-control form-control-sm" id="match_date-id" value="{{object.match_date}}" disabled>
+        </div>
+        <div class="form-group col-sm-2">
+          <label for="season-id" class="col-form-label">Season:</label>
+          <input type="text" class="form-control form-control-sm" id="season-id" value="{{object.season.name}}" disabled>
+        </div>
+      </div>
+
+      <!-- Row2 -->
+      <div class="form-row">
+        <div class="form-group col-sm-4">
+          <label for="match_name-id" class="col-form-label">Match:</label>
+          <input type="text" class="form-control form-control-sm" id="match_name-id" value="{{object.team_h.name}} - {{object.team_a.name}}" disabled>
+        </div>
+        <div class="form-group col-sm-2">
+          <label for="score-id" class="col-form-label">Score:</label>
+          <input type="text" class="form-control form-control-sm" id="score-id" value="{{object.score}}" disabled>
+        </div>
+        <div class="form-group col-sm-2">
+          <label for="status-id" class="col-form-label">Status:</label>
+          <input type="text" class="form-control form-control-sm" id="status-id" value="{{object.get_status_display}}" disabled>
+        </div>
+      </div>
+
+      <!-- Row3 -->
+      <div class="form-row">
+        <div class="form-group col-sm-4">
+          <label for="loas_source-id" class="col-form-label">Source:</label>
+          <input type="text" class="form-control form-control-sm" id="loas_source-id" value="{{object.load_source.name}}" disabled>
+        </div>
+        <div class="form-group col-sm-2">
+          <label for="referee-id" class="col-form-label">Referee:</label>
+          <input type="text" class="form-control form-control-sm" id="referee-id" value="{{object.matchreferee.referee.name}}" disabled>
+        </div>
+      </div>
+
+      <br>
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h4">Match stats</h4>
+      </div>
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>Stat</th>
+              <th>Team</th>
+              <th>Period</th>
+              <th>Value</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+
+    $(document).ready(function () {
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 10, 25, 50, 75, 100 ],
+              'ajax': "{% url 'core:match_stats_api' %}?format=datatables&match_id={{object.id}}",
+              'order': [[ 1 ],[ 3 ],[ 2,'desc' ], [ 0 ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id'},
+                  {'data': 'stat_type'},
+                  {'data': 'competitor'},
+                  {'data': 'period'},
+                  {'data': 'value'},
+                  {'data': 'load_source.name'},
+
+              ],
+
+      });
+
+    });
+  </script>
+
+{% endblock %}
+
+

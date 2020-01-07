@@ -16,6 +16,10 @@ urlpatterns = [
     path("users/", include("project.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
+    path("core/", include("project.core.urls", namespace="core")),
+    path("load/", include("project.load.urls", namespace="load")),
+    path("football/", include("project.football.urls", namespace="football")),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

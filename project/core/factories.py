@@ -1,14 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import (
-    Sport, 
-    Country, 
-    League, 
-    Team, 
-    )
-
 
 def get_sport(slug):
+    from .models import Sport
     try:
         sport = Sport.objects.get(slug=slug)
     except ObjectDoesNotExist:
@@ -16,6 +10,7 @@ def get_sport(slug):
     return sport
 
 def get_country(slug):
+    from .models import Country
     try:
         country = Country.objects.get(slug=slug)
     except ObjectDoesNotExist:
@@ -23,6 +18,7 @@ def get_country(slug):
     return country
 
 def get_league(sport, country, slug):
+    from .models import League
     try:
         league = League.objects.get(sport=sport,country=country,slug=slug)
     except ObjectDoesNotExist:
@@ -30,6 +26,7 @@ def get_league(sport, country, slug):
     return league
 
 def get_team(sport, country, slug):
+    from .models import Team
     try:
         team = Team.objects.get(sport=sport,country=country,slug=slug)
     except ObjectDoesNotExist:

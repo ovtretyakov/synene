@@ -6,10 +6,10 @@ from unittest import skip
 
 from django.test import TestCase
 
-from core.models import Country, League, Team, Match, MatchStats
-from betting.models import BetType, ValueType, Odd, OddWDL, OddTotalOver, OddTotalUnder, OddHandicap
-from load.models import ErrorLog
-from load.handlers.xscores import XScoresHandler 
+from project.core.models import Country, League, Team, Match, MatchStats
+from project.betting.models import BetType, ValueType, Odd, OddWDL, OddTotalOver, OddTotalUnder, OddHandicap
+from ..models import ErrorLog
+from ..handlers.xscores import XScoresHandler 
 
 def prepare_data(obj):
     obj.handler = XScoresHandler.get()

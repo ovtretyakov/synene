@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Football matches{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Football matches</h1>
+      </div>
+
+
+    <!-- Filter -->
+    <div class="pb-1 mb-1" >
+        <form  method="GET" id="league-filter-id">
+
+          <div class="form-row">
+
+          {% if selected_season %} 
+
+                <div class="col-3">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" for="sources">League</span>
+                    </div>
+                    <select name="selected_league" class="custom-select" id="selected_league" disabled="true">
+                      <option {% if selected_league == 0 %}selected{% endif %} value="0"> All leagues </option>
+                      {% for league in leagues %}
+                        <option {% if selected_league == league.id %}selected{% endif %} value="{{ league.id }}"> {{ league.name }} ({{ league.country.name }})</option>
+                      {% endfor %}                  
+                    </select>
+                  </div>
+                </div>
+
+                <input type="hidden" name="season_id" value="{{selected_season.id}}">
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="label_from">Season</span>
+                    </div>
+                    <input type="text" name="season_name" class="form-control" aria-describedby="label_season" value="{{selected_season.name}}" disabled="true">
+                  </div>
+                </div>
+
+          {% else %}
+
+                <div class="col-3">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" for="sources">League</span>
+                    </div>
+                    <select name="selected_league" class="custom-select" id="selected_league">
+                      <option {% if selected_league == 0 %}selected{% endif %} value="0"> All leagues </option>
+                      {% for league in leagues %}
+                        <option {% if selected_league == league.id %}selected{% endif %} value="{{ league.id }}"> {{ league.name }} ({{ league.country.name }})</option>
+                      {% endfor %}                  
+                    </select>
+                  </div>
+                </div>
+              
+          {% endif %}
+
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_from">From</span>
+                </div>
+                <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}">
+              </div>
+            </div>
+
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_to">To</span>
+                </div>
+                <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}">
+              </div>
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+            </div>
+          </div>
+        </form>
+    </div>
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>League</th>
+              <th>Season</th>
+              <th>Home</th>
+              <th>Away</th>
+              <th>Date</th>
+              <th>Score</th>
+              <th>Result</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var match_url = "{% url 'core:match_detail' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<a class="btn btn-sm btn-outline-secondary" href="' + match_url + '"><span class="fa fa-info-circle" title="Match detail"></span></a>'
+                ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'football:match_list_api'  %}?format=datatables&selected_league={{selected_league}}&season_id={{selected_season.id}}&date_from={{date_from}}&date_to={{date_to}}",
+              'order': [[ 5, 'asc' ]],
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'league.name'},
+                  {'data': 'season.name'},
+                  {'data': 'team_h.name'},
+                  {'data': 'team_a.name'},
+                  {'data': 'match_date'},
+                  {'data': 'score'},
+                  {'data': 'result'},
+                  {'data': 'load_source.name'},
+
+              ],
+
+              'drawCallback': function(settings, json) {
+                $(".update-league").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formUpdateLeague",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+                $(".merge-league").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formMergeLeague",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+              }
+      });
+
+    });
+
+    
+  </script>
+{% endblock %}
+
+

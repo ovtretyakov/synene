@@ -10,10 +10,10 @@ from urllib.request import urljoin
 
 from django.utils import timezone
 
-from core.models import Country
-from load.models import CommonHandler
-from betting.models import BetType
-from load.exceptions import TooMamyErrors
+from project.core.models import Country
+from project.betting.models import BetType
+from ..models import CommonHandler
+from ..exceptions import TooMamyErrors
 
 logger = logging.getLogger(__name__)
 

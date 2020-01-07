@@ -1,7 +1,7 @@
 from django.db import models
 
-from core.factories import get_sport
-from core.models import Sport
+from project.core.factories import get_sport
+from project.core.models import Sport
 
 ###################################################################
 class FootballManager(models.Manager):

@@ -4,17 +4,17 @@ from datetime import datetime, date, timedelta
 from django.test import TestCase
 from django.utils import timezone
 
-from core.models import Sport, TeamType, Country, League, Team, Match, MatchStats, Referee, MatchReferee
-from load.models import (
+from project.core.models import Sport, TeamType, Country, League, Team, Match, MatchStats, Referee, MatchReferee
+from ..models import (
                         SourceSession, 
                         SourceDetail, 
                         ErrorLog,
                         SourceDetailLeague,
                         SourceDetailMatch)
-from load.exceptions import LoadError, TooMamyErrors
-from load.handlers.espn import ESPNHandler
-from load.handlers.understat import UnderstatHandler
-from load.handlers.football_data import FootballDataHandler
+from ..exceptions import LoadError, TooMamyErrors
+from ..handlers.espn import ESPNHandler
+from ..handlers.understat import UnderstatHandler
+from ..handlers.football_data import FootballDataHandler
 
 
 def prepare_data(obj):
@@ -254,14 +254,6 @@ class CommonHandlerModelTest(TestCase):
         do = handler.start_or_skip_match(name_h, name_a, match_date=match_date)
         self.assertTrue(do)
         
-        #delete team
-        handler.team_h.delete_object()
-        handler.finish_load()
-        result = handler.start_load(detail_slug)
-        self.assertTrue(result)
-        do = handler.start_or_skip_match(name_h, name_a, match_date=match_date)
-        self.assertFalse(do)
-
     #######################################################################
     def test_common_handler_save_match_stat(self):
         handler1 = ESPNHandler.get()

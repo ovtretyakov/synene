@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     def create_parimatch_config(apps, schema_editor):
-        from betting.models import BetType as BType
+        from ..models import BetType as BType
         # from core.models import LoadSource
         # from betting.models import OddBookieConfig
         BetType = apps.get_model("betting", "BetType")

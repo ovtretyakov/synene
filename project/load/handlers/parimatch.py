@@ -12,10 +12,10 @@ from bs4 import BeautifulSoup, Comment, element
 
 from django.template.defaultfilters import slugify
 
-from core.models import Country, Match
-from load.models import CommonHandler
-from betting.models import ValueType, BetType
-from load.exceptions import TooMamyErrors
+from project.core.models import Country, Match
+from project.betting.models import ValueType, BetType
+from ..models import CommonHandler
+from ..exceptions import TooMamyErrors
 
 logger = logging.getLogger(__name__)
 

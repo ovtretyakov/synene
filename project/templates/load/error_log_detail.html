@@ -1,0 +1,69 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Error description{% endblock %}
+{% block form_id %}formError{% endblock form_id %}
+
+{% block modal-body %}
+  <!-- Row1 -->
+  <div class="form-row">
+    <!-- load_source -->
+    <div class="form-group col-sm">
+      <label for="load_source-id" class="col-form-label">Source:</label>
+      <input type="text" class="form-control form-control-sm" id="load_source-id" value="{{object.load_source.name}}" disabled>
+    </div>
+    <!-- error_time -->
+    <div class="form-group col-sm">
+      <label for="error_time-id" class="col-form-label">Time:</label>
+      <input type="text" class="form-control form-control-sm" id="error_time-id" value="{{object.error_time}}" disabled>
+    </div>
+  </div>
+  <!-- Row2 -->
+  <!-- error_text -->
+  <div class="form-row">
+    <div class="form-group col-sm">
+      <label for="error_text-id" class="col-form-label">Error:</label>
+      <input type="text" class="form-control form-control-sm" id="error_text-id" value="{{object.error_text}}" disabled>
+    </div>
+  </div>
+  <!-- Row3 -->
+  <div class="form-row">
+    <!-- league_name -->
+    <div class="form-group col-sm">
+      <label for="league_name-id" class="col-form-label">League:</label>
+      <input type="text" class="form-control form-control-sm" id="league_name-id" value="{{object.league_name}}" disabled>
+    </div>
+    <!-- match_name -->
+    <div class="form-group col-sm">
+      <label for="match_name-id" class="col-form-label">Match:</label>
+      <input type="text" class="form-control form-control-sm" id="match_name-id" value="{{object.match_name}}" disabled>
+    </div>
+  </div>
+  <!-- Row4 -->
+  <!-- file_name -->
+  <div class="form-row">
+    <div class="form-group col-sm">
+      <label for="file_name-id" class="col-form-label">File:</label>
+      <input type="text" class="form-control form-control-sm" id="file_name-id" value="{{object.file_name}}" disabled>
+    </div>
+  </div>
+  <!-- Row5 -->
+  <!-- error_traceback -->
+  <div class="form-row">
+    <div class="form-group col-sm">
+      <label for="error_traceback-id" class="col-form-label">Trace:</label>
+      <textarea class="form-control form-control-sm" id="error_traceback-id" rows="8" disabled>{{object.error_traceback}}</textarea>
+    </div>
+  </div>
+  <!-- Row6 -->
+  <!-- error_context -->
+  <div class="form-row">
+    <div class="form-group col-sm">
+      <label for="error_context-id" class="col-form-label">Context:</label>
+      <textarea class="form-control form-control-sm" id="error_context-id" rows="6" disabled>{{object.error_context}}</textarea>
+    </div>
+  </div>
+{% endblock %}
+
+{% block modal-footer %}
+  <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{% block button-close %}Close{% endblock button-close %}</button>
+{% endblock%}

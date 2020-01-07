@@ -32,9 +32,11 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
-USE_L10N = True
+USE_L10N = False
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
+
+DECIMAL_SEPARATOR='.'
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -70,6 +72,9 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "rest_framework",
+    "rest_framework_datatables",
+    "bootstrap_modal_forms",
+    'widget_tweaks',
 ]
 LOCAL_APPS = [
     "project.users.apps.UsersAppConfig",
@@ -243,3 +248,16 @@ SOCIALACCOUNT_ADAPTER = "project.users.adapters.SocialAccountAdapter"
 # ------------------------------------------------------------------------------
 #site source files
 SOURCE_DIR = ROOT_DIR.path("source")
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework_datatables.renderers.DatatablesRenderer',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework_datatables.filters.DatatablesFilterBackend',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
+    'PAGE_SIZE': 50,
+}

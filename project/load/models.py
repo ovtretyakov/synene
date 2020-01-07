@@ -11,8 +11,8 @@ from django.utils import timezone
 from django.conf import settings
 from django.template.defaultfilters import slugify
 
-from core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats, Referee
-from betting.models import Odd, ValueType, OddBookieConfig
+from project.core.models import Country, Sport, LoadSource, League, Team, Match, MatchStats, Referee
+from project.betting.models import Odd, ValueType, OddBookieConfig
 from .exceptions import LoadError, TooMamyErrors
 from .helpers import MatchDetail
 

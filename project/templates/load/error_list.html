@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Errors{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Errors</h1>
+      </div>
+
+
+    <!-- Filter -->
+    <div class="pb-1 mb-1" >
+        <form  method="GET">
+          <div class="form-row">
+            <div class="col-3">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="sources">Source</span>
+                </div>
+                <select name="source" class="custom-select" id="source">
+                  <option {% if selected_source == 0 %}selected{% endif %} value="0"> All sources </option>
+                  {% for source in sources %}
+                    <option {% if selected_source == source.id %}selected{% endif %} value="{{ source.id }}"> {{ source.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_from">From</span>
+                </div>
+                <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}">
+              </div>
+            </div>
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_to">To</span>
+                </div>
+                <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}">
+              </div>
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+            </div>
+          </div>
+        </form>
+    </div>
+
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Source</th>
+              <th>Error</th>
+              <th>Time</th>
+              <th>League</th>
+              <th>Match</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var upd_url = "{% url 'load:view_error' 0 %}";
+          if ( type === 'display' ) {
+              var r = '<button type="button" class="view-source btn btn-sm btn-outline-secondary" data-id="' + upd_url + '">' +
+                '   <span class="fa fa-eye"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var events = $('#events');
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'load:errors_api'  %}?format=datatables&selected_source={{selected_source}}&date_from={{date_from}}&date_to={{date_to}}",
+              'order': [[ 3, 'desc' ]],
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'load_source', 'name':'load_source.name'},
+                  {'data': 'error_text'},
+                  {'data': 'error_time'},
+                  {'data': 'league_name'},
+                  {'data': 'match_name'},
+
+              ],
+              
+              'drawCallback': function(settings, json) {
+                $(".view-source").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                       modalContent: ".modal0-content"
+                      }
+                    );
+                  });
+
+
+              }
+      });
+
+
+    });
+  </script>
+{% endblock %}
+
+

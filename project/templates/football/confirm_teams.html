@@ -1,0 +1,71 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Confirm teams{% endblock %}
+{% block form_id %}formConfirmTeams{% endblock form_id %}
+
+
+{% block modal-body %}
+
+
+  <div class="alert alert-info" role="alert">
+    <p class="lead">Would you like to confirm the following teams?</p>
+  </div>
+
+  <div class="form-row">
+    <!-- load_source -->
+    <div class="form-group col-sm">
+      <input type="hidden" class="form-control form-control-sm" id="teams_id" name="teams_id" value="{{teams_id}}">
+
+
+      {% render_field form.load_source|add_label_class:"col-form-label"  %}
+      {% render_field form.load_source|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.load_source.label %}
+      <div class="text-danger">{{form.load_source.errors}}</div>
+
+    </div>
+  </div>
+
+
+      <div class="table-responsive">
+        <table id="main-table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Country</th>
+              <th>Status</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+
+  <script>
+
+    $(document).ready(function () {
+
+      var table = $('#main-table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'football:team_list_api'  %}?format=datatables&teams={{teams_id}}",
+              'order': [[ 0, 'asc' ]],
+              'columns': [
+                  {'data': 'id'},
+                  {'data': 'name'},
+                  {'data': 'team_type.name'},
+                  {'data': 'country.name'},
+                  {'data': 'load_status'},
+                  {'data': 'load_source.name'},
+              ],
+      });
+
+
+    });
+  </script>
+
+
+{% endblock %}
+
+
+{% block button-action %}Confirm leagues{% endblock %}

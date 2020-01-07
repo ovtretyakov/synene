@@ -5,15 +5,14 @@ import logging
 from django.db import models
 from django.utils import timezone
 
-from core.models import Mergable, LoadSource, Match
+from project.core.models import Mergable, LoadSource, Match
 from . import mixins as OddMixins
-from core.utils import (get_int, list_get,
+from project.core.utils import (get_int, list_get,
                         get_match_result, 
                         get_total_over_result, get_total_under_result, 
                         get_handicap_result)
 
 logger = logging.getLogger(__name__)
-
 
 ###################################################################
 class ValueType(models.Model):
