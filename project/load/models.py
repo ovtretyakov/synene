@@ -6,6 +6,7 @@ import logging
 import requests
 
 from django.db import models, transaction
+from django.db.models import F
 from django.utils import timezone
 from django.conf import settings
 
@@ -191,6 +192,8 @@ class CommonHandler(MatchDetail, LoadSource):
         except SourceDetail.DoesNotExist:
             source_detail = None
         if source_detail:
+            if source_detail.status == SourceSession.FINISHED and source_detail.load_date > self.load_date:
+                source_detail.load_date = self.load_date
             #update old detail
             source_detail.last_update = timezone.now()
             source_detail.source_session = self.source_session
@@ -411,6 +414,9 @@ class CommonHandler(MatchDetail, LoadSource):
                     self.source_detail_match.refresh_from_db()
                     self.source_detail_match.status=SourceDetail.FINISHED
                     self.source_detail_match.save()
+                if self.source_session:
+                    SourceSession.objects.filter(pk=self.source_session.pk).update(match_cnt=F("match_cnt")+1)
+                    self.source_session.refresh_from_db()
         except Exception as e:
             self.handle_exception(e)
             raise LoadError
@@ -437,6 +443,7 @@ class CommonHandler(MatchDetail, LoadSource):
                     self.source_detail.status=SourceDetail.FINISHED
                     self.source_detail.last_update=timezone.now()
                     self.source_detail.save()
+                    SourceDetailLeague.objects.filter(source_detail=self.source_detail).delete()
         except Exception as e:
             self.handle_exception(e)
         finally:
