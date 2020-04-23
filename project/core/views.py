@@ -1,3 +1,6 @@
+import logging
+import traceback
+
 from django.views import generic
 from django.http import HttpResponseRedirect
 
@@ -16,6 +19,7 @@ from .forms import (LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfi
                    )
 from .serializers import SeasonSerializer, MatchSerializer, MatchStatsSerializer
 
+logger = logging.getLogger(__name__)
 
 
 ####################################################
@@ -71,8 +75,9 @@ class LeagueMergeView(BSModalUpdateView):
                 messages.error(self.request, "Merging error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
 
-class LeaguesDeleteView(generic.TemplateView):
+class LeaguesDeleteView(BSModalCreateView):
     form_class = LeaguesDeleteForm
+    template_name = "football/delete_leagues.html"
     success_message = "Success: %(cnt)s leagues were deleted."
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
@@ -258,10 +263,13 @@ class TeamMergeView(BSModalUpdateView):
                 self.object.api_merge_to(team_id)
                 messages.success(self.request, self.get_success_message(team_id))
             except Exception as e:
+                # logger.error(e) 
+                logger.error(traceback.format_exc())
                 messages.error(self.request, "Merging error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
 
-class TeamsDeleteView(generic.TemplateView):
+class TeamsDeleteView(BSModalCreateView):
+    model = Team
     form_class = TeamsDeleteForm
     success_message = "Success: %(cnt)s teams were deleted."
     def get_success_url(self):

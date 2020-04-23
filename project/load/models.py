@@ -308,14 +308,19 @@ class CommonHandler(MatchDetail, LoadSource):
                 match_date = self.match_date
             with transaction.atomic():
                 self.lock()
+                team_type = None
+                if self.league:
+                    team_type = self.league.team_type
                 self.team_h = Team.get_or_create(
                                         sport=self.get_sport(),
                                         name=name_h,
+                                        team_type = team_type,
                                         country=self.league.country,
                                         load_source=self)
                 self.team_a = Team.get_or_create(
                                         sport=self.get_sport(),
                                         name=name_a,
+                                        team_type = team_type,
                                         country=self.league.country,
                                         load_source=self)
                 do_action = (self.team_h != None and self.team_a != None)

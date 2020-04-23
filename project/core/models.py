@@ -194,7 +194,7 @@ class ObjectLoadSource(models.Model):
         (DELETED, 'Deleted'),
     )
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     sport = models.ForeignKey('Sport', on_delete=models.CASCADE, verbose_name='Sport', 
                               related_name="%(app_label)s_%(class)s_sport",)
     country = models.ForeignKey('Country', on_delete=models.CASCADE, verbose_name='Country',
@@ -249,7 +249,7 @@ class LoadSource(models.Model):
     SRC_1XBET         = '1xbet'
     SRC_PARIMATCH     = 'parimatch'
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     name = models.CharField('Source', max_length=100)
     reliability = models.IntegerField('Reliability')
@@ -387,7 +387,7 @@ class TeamType(models.Model):
 ###################################################################
 class League(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     name = models.CharField('League', max_length=100)
     team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
@@ -645,7 +645,7 @@ class Season(models.Model):
 ###################################################################
 class Team(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     name = models.CharField('Team', max_length=100)
     team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
@@ -707,9 +707,10 @@ class Team(SaveSlugCountryMixin, Loadable):
             if load_status == Loadable.CONFIRMED:
                 self.confirm(load_source)
 
-    def api_merge_to(self, league_dst):
+    def api_merge_to(self, team_dst_id):
         with transaction.atomic():
-            self.merge_to(league_dst)
+            team_dst = Team.objects.get(id = team_dst_id)
+            self.merge_to(team_dst)
 
 
     def get_season(self, match_date):
@@ -806,7 +807,7 @@ class TeamMembership(models.Model):
 ###################################################################
 class Referee(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     name = models.CharField('Referee', max_length=100)
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     country = models.ForeignKey(Country, on_delete=models.PROTECT, verbose_name='Country')

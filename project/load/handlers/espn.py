@@ -126,18 +126,19 @@ class ESPNHandler(CommonHandler):
                 calendar_type = league_json['calendarType']
                 start_date = None
                 end_date   = None
-                if calendar_type == 'day':
-                    start_date = min(calendar)
-                    end_date   = max(calendar)
-                else:
-                    calendar_entries = calendar[0]['entries']
-                    start_date = min([e['startDate'] for e in calendar_entries])
-                    end_date   = max([e['endDate'] for e in calendar_entries])
-                start_date=datetime.strptime(start_date[:10], "%Y-%m-%d").date()
-                end_date=datetime.strptime(end_date[:10], "%Y-%m-%d").date()
-                # season_name = score['season']['year']
-                season_name = None
-                self.create_league_session(start_date, end_date, self, name=season_name)
+                if calendar_type:
+                    if calendar_type == 'day':
+                        start_date = min(calendar)
+                        end_date   = max(calendar)
+                    else:
+                        calendar_entries = calendar[0]['entries']
+                        start_date = min([e['startDate'] for e in calendar_entries])
+                        end_date   = max([e['endDate'] for e in calendar_entries])
+                    start_date=datetime.strptime(start_date[:10], "%Y-%m-%d").date()
+                    end_date=datetime.strptime(end_date[:10], "%Y-%m-%d").date()
+                    # season_name = score['season']['year']
+                    season_name = None
+                    self.create_league_session(start_date, end_date, self, name=season_name)
                 events = score['events']
                 for event in events:
                     self.context = event

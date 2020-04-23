@@ -35,12 +35,13 @@ class LeaguesDeleteForm(BSModalForm):
     leagues_id = forms.CharField()
 
     class Meta:
+        model = League
         fields = []
 
     def clean(self):
         cleaned_data = super().clean()
         leagues_id = cleaned_data.get("leagues_id")
-        if not leaguse_id:
+        if not leagues_id:
             raise ValidationError(_("No leagues to delete"))
 
 
@@ -95,6 +96,7 @@ class TeamsDeleteForm(BSModalForm):
     teams_id = forms.CharField()
 
     class Meta:
+        model = Team
         fields = []
 
     def clean(self):
