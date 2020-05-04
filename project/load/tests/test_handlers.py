@@ -645,6 +645,8 @@ class ESPNHandlerTest(TestCase):
     def test_espn_10_days(self):
         unknown_country = Country.get_object('na')
         self.assertIsNotNone(unknown_country)
+        scotland = Country.get_object('sco')
+        self.assertIsNotNone(scotland)
         match_date = date(2010,1,4)
 
         # self.handler.process(is_debug=False, get_from_file=True, start_date=date(2010,1,1), is_debug_path=True, number_of_days=10)
@@ -656,14 +658,14 @@ class ESPNHandlerTest(TestCase):
         # self.assertEquals(source_session.match_cnt, 154)
         self.assertEquals(source_session.match_cnt, 1)
 
-        league1 = League.objects.get(name= 'International Friendly', load_source=self.handler)
-        self.assertEquals(league1.name, 'International Friendly')
-        self.assertEquals(league1.country, unknown_country)
+        league1 = League.objects.get(name= 'Scottish Championship', load_source=self.handler)
+        self.assertEquals(league1.name, 'Scottish Championship')
+        self.assertEquals(league1.country, scotland)
         season1 = league1.get_season(match_date)
-        self.assertEquals(season1.start_date, date(2010,1,2))
-        self.assertEquals(season1.end_date, date(2010,12,30))
+        self.assertEquals(season1.start_date, date(2009,8,8))
+        self.assertEquals(season1.end_date, date(2010,5,16))
         match_cnt = Match.objects.filter(league=league1, match_date=match_date).count()
-        self.assertEquals(match_cnt, 4)
+        self.assertEquals(match_cnt, 1)
 
 
 #######################################################################################

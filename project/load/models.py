@@ -192,7 +192,7 @@ class CommonHandler(MatchDetail, LoadSource):
         except SourceDetail.DoesNotExist:
             source_detail = None
         if source_detail:
-            if source_detail.status == SourceSession.FINISHED and source_detail.load_date > self.load_date:
+            if source_detail.status == SourceSession.FINISHED and (not source_detail.load_date or source_detail.load_date > self.load_date):
                 source_detail.load_date = self.load_date
             #update old detail
             source_detail.last_update = timezone.now()
