@@ -34,8 +34,12 @@ class FootballLeagueView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
         context = super(FootballLeagueView, self).get_context_data(**kwargs)
+
         load_sources = LoadSource.objects.all().order_by("pk")
         context["sources"] = load_sources
+
+        load_statuses = (("a", "All"),) + FootballLeague.STATUS_CHOICES
+        context["statuses"] = load_statuses
 
         date_to = self.request.GET.get("date_to", None)
         if date_to:
@@ -46,6 +50,11 @@ class FootballLeagueView(generic.TemplateView):
         selected_source = self.request.GET.get("source", None)
         if selected_source:
             context["selected_source"] = int(selected_source)
+        selected_status = self.request.GET.get("status", None)
+        if selected_status:
+            context["selected_status"] = selected_status
+        else:
+            context["selected_status"] = "a"
 
         return context    
 
@@ -66,6 +75,9 @@ class FootballLeagueAPI(ListAPIView):
         load_source_id = self.request.query_params.get("selected_source", None)
         if load_source_id and int(load_source_id) > 0:
             queryset = queryset.filter(load_source=load_source_id)
+        selected_status = self.request.query_params.get("selected_status", None)
+        if selected_status and selected_status != "a":
+            queryset = queryset.filter(load_status=selected_status)
         leagues = self.request.query_params.get("leagues", None)
         if leagues:
             leagues_id = leagues.split(",")
@@ -133,6 +145,9 @@ class FootballTeamView(generic.TemplateView):
         team_types = TeamType.objects.all().order_by("name")
         context["team_types"] = team_types
 
+        load_statuses = FootballLeague.STATUS_CHOICES
+        context["statuses"] = load_statuses
+
         selected_source = self.request.GET.get("source", None)
         if selected_source:
             context["selected_source"] = int(selected_source)
@@ -142,6 +157,12 @@ class FootballTeamView(generic.TemplateView):
         selected_team_type = self.request.GET.get("team_type", None)
         if selected_team_type:
             context["selected_team_type"] = int(selected_team_type)
+
+        selected_status = self.request.GET.get("status", None)
+        if selected_status:
+            context["selected_status"] = selected_status
+        else:
+            context["selected_status"] = "a"
 
         return context
 
@@ -161,6 +182,10 @@ class FootballTeamAPI(ListAPIView):
         load_source_id = self.request.query_params.get("selected_source", None)
         if load_source_id and int(load_source_id) > 0:
             queryset = queryset.filter(load_source=load_source_id)
+
+        selected_status = self.request.query_params.get("selected_status", None)
+        if selected_status and selected_status != "a":
+            queryset = queryset.filter(load_status=selected_status)
 
         country_id = self.request.query_params.get("selected_country", None)
         if country_id and int(country_id) > 0:

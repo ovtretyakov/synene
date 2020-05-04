@@ -48,7 +48,7 @@
       var table = $('#main-table').DataTable({
               'serverSide': true,
               'lengthMenu': [ 25, 50, 75, 100 ],
-              'ajax': "{% url 'football:team_list_api'  %}?format=datatables&teams={{teams_id}}",
+              'ajax': "{% url 'football:league_list_api'  %}?format=datatables&leagues={{leagues_id}}",
               'order': [[ 0, 'asc' ]],
               'columns': [
                   {'data': 'id'},
@@ -68,4 +68,4 @@
 {% endblock %}
 
 
-{% block button-action %}Confirm teams{% endblock %}
+{% block button-action %}Confirm leagues{% endblock %}

@@ -27,7 +27,8 @@
         <form  method="GET" id="league-filter-id">
           <div class="form-row">
 
-            <div class="col-3">
+            <!-- source -->
+            <div class="col-2">
               <div class="input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
                   <span class="input-group-text" for="sources">Source</span>
@@ -40,8 +41,22 @@
                 </select>
               </div>
             </div>
-
-            <div class="col-3">
+            <!-- status -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="status">Status</span>
+                </div>
+                <select name="status" class="custom-select" id="status">
+                  <option {% if selected_status == "a" %}selected{% endif %} value="a"> All statuses </option>
+                  {% for status in statuses %}
+                    <option {% if selected_status == status.0 %}selected{% endif %} value="{{ status.0 }}"> {{ status.1 }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+            <!-- country -->
+            <div class="col-2">
               <div class="input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
                   <span class="input-group-text" for="country">Country</span>
@@ -54,8 +69,8 @@
                 </select>
               </div>
             </div>
-
-            <div class="col-3">
+            <!-- team_type -->
+            <div class="col-2">
               <div class="input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
                   <span class="input-group-text" for="team_type">Team type</span>
@@ -132,8 +147,8 @@
       var table = $('#main_table').DataTable({
               'serverSide': true,
               'lengthMenu': [ 25, 50, 75, 100 ],
-              'ajax': "{% url 'football:team_list_api'  %}?format=datatables&selected_source={{selected_source}}&selected_country={{selected_country}}&selected_team_type={{selected_team_type}}",
-              'order': [[ 3, 'desc' ]],
+              'ajax': "{% url 'football:team_list_api'  %}?format=datatables&selected_source={{selected_source}}&selected_status={{selected_status}}&selected_country={{selected_country}}&selected_team_type={{selected_team_type}}",
+              'order': [[ 3, 'asc' ]],
               'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'3em'},

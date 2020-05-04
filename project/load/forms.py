@@ -18,7 +18,7 @@ class LoadSourceForm(BSModalForm):
         model = LoadSource
         fields = ["slug", "name", "reliability", "source_handler", "source_url",
                     "is_loadable", "is_betting", "is_error", "error_text", 
-                    "load_date", "min_odd", "max_odd", "error_limit",]
+                    "load_date", "min_odd", "max_odd", "error_limit",  "load_days",]
         widgets = {
                     "min_odd": forms.TextInput(attrs={"localization": True}),
                     "max_odd": forms.TextInput(attrs={"localization": True}),
@@ -44,6 +44,11 @@ class LoadSourceForm(BSModalForm):
         return data
     def clean_error_limit(self):
         data = self.cleaned_data["error_limit"]
+        if data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_load_days(self):
+        data = self.cleaned_data["load_days"]
         if data < 0:
             raise ValidationError(_("This field must be greater than 0"))
         return data

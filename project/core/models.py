@@ -131,7 +131,8 @@ class Loadable(Mergable, models.Model):
             if source_obj.status==ObjectLoadSource.DELETED:
                 obj = None
             else:
-                obj = cls.objects.get(object=source_obj)
+                # obj = cls.objects.get(object=source_obj)
+                obj = source_obj.get_main_object()
             found = True
         except load_source_class.DoesNotExist:
             obj = None
@@ -196,7 +197,7 @@ class ObjectLoadSource(models.Model):
         (DELETED, 'Deleted'),
     )
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     sport = models.ForeignKey('Sport', on_delete=models.CASCADE, verbose_name='Sport', 
                               related_name="%(app_label)s_%(class)s_sport",)
     country = models.ForeignKey('Country', on_delete=models.CASCADE, verbose_name='Country',
@@ -251,7 +252,7 @@ class LoadSource(models.Model):
     SRC_1XBET         = '1xbet'
     SRC_PARIMATCH     = 'parimatch'
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     name = models.CharField('Source', max_length=100)
     reliability = models.IntegerField('Reliability')
@@ -266,6 +267,7 @@ class LoadSource(models.Model):
     min_odd = models.DecimalField('Min odd', max_digits=10, decimal_places=3, default=1.1)
     max_odd = models.DecimalField('Max odd', max_digits=10, decimal_places=3, default=10)
     error_limit = models.IntegerField('Error limit', default=10)
+    load_days = models.IntegerField('Load days', default=10)
 
     class Meta:
         constraints = [
@@ -286,7 +288,7 @@ class LoadSource(models.Model):
             raise ValueError('Unknonwn source handler "%s"' % self.source_handler)
 
         handler = cls.objects.get(pk=self.pk)
-        handler.process()
+        handler.process(number_of_days=handler.load_days)
 
 ###################################################################
 class Country(Loadable):
@@ -363,6 +365,9 @@ class CountryLoadSource(ObjectLoadSource):
         self.country_obj = real_object
         self.save()
 
+    def get_main_object(self):
+        return self.country_obj
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['sport','slug','load_source'], name='unique_country_load_source'),
@@ -385,7 +390,7 @@ class TeamType(models.Model):
 ###################################################################
 class League(SaveSlugCountryMixin, Loadable):
 
-    slug = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100)
     name = models.CharField('League', max_length=100)
     team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
@@ -421,6 +426,10 @@ class League(SaveSlugCountryMixin, Loadable):
             slug = slugify(name)
         league = League(slug=slug, name=name, team_type=team_type, sport=sport, country=country)
         league._create(**kwargs)
+
+        league_cnt = League.objects.all().count()
+        load_league_cnt = LeagueLoadSource.objects.all().count()
+
         return league
 
     @staticmethod
@@ -515,6 +524,9 @@ class LeagueLoadSource(ObjectLoadSource):
     def init_object(self, real_object):
         self.league = real_object
         self.save()
+
+    def get_main_object(self):
+        return self.league
 
     class Meta:
         constraints = [
@@ -636,7 +648,7 @@ class Season(models.Model):
 ###################################################################
 class Team(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     name = models.CharField('Team', max_length=100)
     team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
@@ -698,9 +710,10 @@ class Team(SaveSlugCountryMixin, Loadable):
             if load_status == Loadable.CONFIRMED:
                 self.confirm(load_source)
 
-    def api_merge_to(self, league_dst):
+    def api_merge_to(self, team_dst_id):
         with transaction.atomic():
-            self.merge_to(league_dst)
+            team_dst = Team.objects.get(id = team_dst_id)
+            self.merge_to(team_dst)
 
 
     def get_season(self, match_date):
@@ -772,6 +785,9 @@ class TeamLoadSource(ObjectLoadSource):
         self.team = real_object
         self.save()
 
+    def get_main_object(self):
+        return self.team
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['sport','country','slug','load_source'], name='unique_team_load_source'),
@@ -794,7 +810,7 @@ class TeamMembership(models.Model):
 ###################################################################
 class Referee(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     name = models.CharField('Referee', max_length=100)
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     country = models.ForeignKey(Country, on_delete=models.PROTECT, verbose_name='Country')
@@ -860,6 +876,9 @@ class RefereeLoadSource(ObjectLoadSource):
     def init_object(self, real_object):
         self.referee = real_object
         self.save()
+
+    def get_main_object(self):
+        return self.referee
 
     class Meta:
         constraints = [

@@ -10,6 +10,7 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalUpdateView,
                                            BSModalReadView,
                                            BSModalDeleteView)
+from background_task import background
 
 from project.core.utils import get_date_from_string
 from project.core.models import LoadSource
@@ -21,6 +22,11 @@ from .serializers import   (LoadSourceSerializer,
                             SourceAllSessionsSerializer,
                             )
 from .forms import LoadSourceForm, LoadSourceProcessForm
+
+@background
+def load_source_download(load_source_pk):
+    load_source = LoadSource.objects.get(pk=load_source_pk)
+    load_source.download()
 
 
 ####################################################
@@ -91,7 +97,8 @@ class LoadSourceProcessView(BSModalUpdateView):
 
         if self.request.method == "POST" and not self.request.is_ajax():
             try:
-                self.object.download()
+                load_source_download(self.object.pk)
+                # self.object.download()
                 messages.success(self.request, self.get_success_message())
             except Exception as e:
                 messages.error(self.request, "Processing error :\n" + str(e))

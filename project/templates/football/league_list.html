@@ -25,6 +25,7 @@
     <div class="pb-1 mb-1" >
         <form  method="GET" id="league-filter-id">
           <div class="form-row">
+            <!-- source -->
             <div class="col-3">
               <div class="input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
@@ -38,6 +39,20 @@
                 </select>
               </div>
             </div>
+            <!-- status -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="statuses">Status</span>
+                </div>
+                <select name="status" class="custom-select" id="status">
+                  {% for status in statuses %}
+                    <option {% if selected_status == status.0 %}selected{% endif %} value="{{ status.0 }}"> {{ status.1 }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+            <!-- date_from -->
             <div class="col-2">
               <div class="input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
@@ -46,6 +61,7 @@
                 <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}">
               </div>
             </div>
+            <!-- date_to -->
             <div class="col-2">
               <div class="input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
@@ -54,9 +70,11 @@
                 <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}">
               </div>
             </div>
+
             <div class="col-auto">
               <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
             </div>
+
           </div>
         </form>
     </div>
@@ -122,8 +140,8 @@
       var table = $('#main_table').DataTable({
               'serverSide': true,
               'lengthMenu': [ 25, 50, 75, 100 ],
-              'ajax': "{% url 'football:league_list_api'  %}?format=datatables&selected_source={{selected_source}}&date_from={{date_from}}&date_to={{date_to}}",
-              'order': [[ 3, 'desc' ]],
+              'ajax': "{% url 'football:league_list_api'  %}?format=datatables&selected_source={{selected_source}}&selected_status={{selected_status}}&date_from={{date_from}}&date_to={{date_to}}",
+              'order': [[ 3, 'asc' ]],
               'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'7em'},

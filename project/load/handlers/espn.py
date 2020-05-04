@@ -25,7 +25,8 @@ def _get_statistics(data, name_field, param_field, value_field):
 class ESPNHandler(CommonHandler):
 
     DEBUG_DATE = date(2019, 2, 2)
-    matches_file = 'espn_matches.html'
+    debug_matches_file = 'espn_matches.html'
+    matches_file = 'espn_matches_%s.html'
 
     class Meta:
         proxy = True
@@ -42,12 +43,12 @@ class ESPNHandler(CommonHandler):
         return hdir.path('espn') 
 
 
-    def process(self, is_debug=False, get_from_file=False, is_debug_path=True, start_date=None):
+    def process(self, is_debug=False, get_from_file=False, is_debug_path=True, start_date=None, number_of_days=10):
         '''Main method to load site''' 
 
         source_session = None
         try:
-            self.start_load('Main handler', is_debug=is_debug)
+            self.start_load(is_debug=is_debug)
             source_session = self.source_session
 
             if is_debug and not start_date:
@@ -61,13 +62,15 @@ class ESPNHandler(CommonHandler):
             i = 0
             while dat <= timezone.now().date():
 
+                self.start_detail('Main handler')
                 self.set_load_date(load_date=dat, is_set_main=True)
                 self.process_date(dat, is_debug, get_from_file, is_debug_path)
+                self.finish_detail()
 
                 i += 1
                 dat += timedelta(days=1)
                 if is_debug: break
-                if i>= 10: break #!!!
+                if i>= number_of_days: break
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
         finally:
@@ -86,7 +89,12 @@ class ESPNHandler(CommonHandler):
         '''
 
         url = 'http://www.espn.com/soccer/scoreboard/_/league/all/date/' + match_date.strftime('%Y%m%d')
-        html = self.get_html(self.matches_file, url, get_from_file, is_debug_path)
+        file_name = None
+        if is_debug_path and is_debug:
+            file_name = self.debug_matches_file
+        else:
+            file_name = self.matches_file % match_date.strftime('%d-%m-%y')
+        html = self.get_html(file_name, url, get_from_file, is_debug_path)
         self.context = html
 
         soup = BeautifulSoup(html, 'html.parser')
@@ -113,23 +121,24 @@ class ESPNHandler(CommonHandler):
                 if not self.start_or_skip_league(league_name):
                     #skip league
                     continue
-                    
+
                 calendar = league_json['calendar']
                 calendar_type = league_json['calendarType']
                 start_date = None
                 end_date   = None
-                if calendar_type == 'day':
-                    start_date = min(calendar)
-                    end_date   = max(calendar)
-                else:
-                    calendar_entries = calendar[0]['entries']
-                    start_date = min([e['startDate'] for e in calendar_entries])
-                    end_date   = max([e['endDate'] for e in calendar_entries])
-                start_date=datetime.strptime(start_date[:10], "%Y-%m-%d").date()
-                end_date=datetime.strptime(end_date[:10], "%Y-%m-%d").date()
-                # season_name = score['season']['year']
-                season_name = None
-                self.create_league_session(start_date, end_date, self, name=season_name)
+                if calendar_type:
+                    if calendar_type == 'day':
+                        start_date = min(calendar)
+                        end_date   = max(calendar)
+                    else:
+                        calendar_entries = calendar[0]['entries']
+                        start_date = min([e['startDate'] for e in calendar_entries])
+                        end_date   = max([e['endDate'] for e in calendar_entries])
+                    start_date=datetime.strptime(start_date[:10], "%Y-%m-%d").date()
+                    end_date=datetime.strptime(end_date[:10], "%Y-%m-%d").date()
+                    # season_name = score['season']['year']
+                    season_name = None
+                    self.create_league_session(start_date, end_date, self, name=season_name)
                 events = score['events']
                 for event in events:
                     self.context = event
@@ -215,18 +224,21 @@ class ESPNHandler(CommonHandler):
                                 self.context = detail
                                 #"clock":{"displayValue":"65&amp;#39;","value":3885}
                                 time_row = detail['clock']['displayValue']
-                                minute = int(time_pattern.search(time_row)[1])
-                                team_id = detail['team']['id']
-                                if team_id == id_h:
-                                    # Home team
-                                    t = self.h
-                                elif team_id == id_a:
-                                    # Away team
-                                    t = self.a
-                                if detail['redCard']:      t.add_event(minute, r_cards=1)
-                                if detail['yellowCard']:   t.add_event(minute, y_cards=1)
-                                if detail['scoringPlay']:  t.add_event(minute, goals=1)
-                                if detail['penaltyKick']:  t.add_event(minute, penalties=1)
+                                if time_row:
+                                    minute = int(time_pattern.search(time_row)[1])
+                                    team = detail.get("team",None)
+                                    if team:
+                                        team_id = team['id']
+                                        if team_id == id_h:
+                                            # Home team
+                                            t = self.h
+                                        elif team_id == id_a:
+                                            # Away team
+                                            t = self.a
+                                        if detail['redCard']:      t.add_event(minute, r_cards=1)
+                                        if detail['yellowCard']:   t.add_event(minute, y_cards=1)
+                                        if detail['scoringPlay']:  t.add_event(minute, goals=1)
+                                        if detail['penaltyKick']:  t.add_event(minute, penalties=1)
 
                             self.finish_match()
 
