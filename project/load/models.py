@@ -227,7 +227,9 @@ class CommonHandler(MatchDetail, LoadSource):
         except SourceDetail.DoesNotExist:
             source_detail = None
         if source_detail:
-            if source_detail.status == SourceSession.FINISHED and (not source_detail.load_date or source_detail.load_date > self.load_date):
+            if source_detail.status == SourceSession.FINISHED and (not source_detail.load_date or 
+                                                                   self.load_date and source_detail.load_date > self.load_date
+                                                                   ):
                 source_detail.load_date = self.load_date
             #update old detail
             source_detail.last_update = timezone.now()
@@ -681,7 +683,7 @@ class SourceDetailLeague(models.Model):
         ]
 
     def __str__(self):
-        return str(source_detail) + ' ' + self.season_name + ' ' + self.league_name
+        return str(self.source_detail) + ' ' + self.season_name + ' ' + self.league_name
 
 ###################################################################
 class SourceDetailMatch(models.Model):
@@ -700,7 +702,7 @@ class SourceDetailMatch(models.Model):
         ]
 
     def __str__(self):
-        return str(source_detail) + ' ' + self.match_date.strftime("%d.%m.%Y") + ' ' + self.match_name
+        return str(self.source_detail) + ' ' + self.match_date.strftime("%d.%m.%Y") + ' ' + self.match_name
 
 #######################################################s############
 class ErrorLog(models.Model):

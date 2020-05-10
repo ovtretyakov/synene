@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
             name='slug',
             field=models.SlugField(max_length=100),
         ),
-        migrations.AlterField(
-            model_name='league',
-            name='slug',
-            field=models.SlugField(max_length=100),
-        ),
+        # migrations.AlterField(
+        #     model_name='league',
+        #     name='slug',
+        #     field=models.SlugField(max_length=100),
+        # ),
         migrations.AlterField(
             model_name='leagueloadsource',
             name='slug',
