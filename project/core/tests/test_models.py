@@ -319,7 +319,7 @@ class LeagueModelTest(TestCase):
         season_2017 = league.get_season(date(2017, 9, 1))
         self.assertEquals(season_2017.name, '2017/2018')
         season_none = league.get_season(date(2017, 7, 1))
-        self.assertIsNone(season_none)
+        self.assertEquals(season_none.name, Season.UNKNOWN)
         season_2018 = league.get_season(date(2018, 8, 2))
         self.assertEquals(season_2018.name, '2018/2019')
 
@@ -561,7 +561,7 @@ class LeagueModelTest(TestCase):
         self.assertEquals(match1.league, league_dst)
         self.assertEquals(match1.season, season1)
         self.assertEquals(match2.league, league_dst)
-        self.assertIsNone(match2.season)
+        self.assertEquals(match2.season.name, Season.UNKNOWN)
 
     #######################################################################
     def test_league_process_empty_season(self):
@@ -586,7 +586,7 @@ class LeagueModelTest(TestCase):
         match1.refresh_from_db()
         match2.refresh_from_db()
         self.assertEquals(match1.season, self.season1)
-        self.assertIsNone(match2.season)
+        self.assertEquals(match2.season.name, Season.UNKNOWN)
 
         season = self.league.get_or_create_season(
                                                   start_date=date(2011,6,1), 

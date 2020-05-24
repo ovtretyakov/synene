@@ -145,10 +145,13 @@ class CommonHandler(MatchDetail, LoadSource):
                 self.source_session = None
         #Save error
         with transaction.atomic():
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Load Error"
             ErrorLog.objects.create(
                                 load_source = self,
                                 source_session = self.source_session,
-                                error_text = str(e)[:255],
+                                error_text = error_text,
                                 error_context = str(self.context),
                                 error_traceback = traceback.format_exc(),
                                 error_time = timezone.now(),
@@ -156,6 +159,9 @@ class CommonHandler(MatchDetail, LoadSource):
                                 match_name = '' if not self.match_name else self.match_name[:100],
                                 file_name = '' if not self.file_name else self.file_name[:100],
                                 source_detail = self.source_detail)
+            self.is_error = True
+            self.error_text = error_text
+            self.save()
         if self.source_session:
             #check error count
             finish_loading = False
@@ -167,8 +173,8 @@ class CommonHandler(MatchDetail, LoadSource):
                     self.source_session.status = SourceSession.ERROR
                     finish_loading = True
                 self.source_session.save()
-            if finish_loading and raise_finish_error:
-                raise TooMamyErrors
+        if finish_loading and raise_finish_error:
+            raise TooMamyErrors("Too many errors")
 
     def _start_or_skip_league(self, league_name, season_name='NA'):
         try:
@@ -475,7 +481,7 @@ class CommonHandler(MatchDetail, LoadSource):
         finally:
             self.source_detail_match = None
 
-
+    
     def start_detail(self, slug):
         try:
             with transaction.atomic():
@@ -666,6 +672,7 @@ class SourceDetail(models.Model):
     def set_load_date(self, load_date):
         self.load_date = load_date
         self.save()
+        self.refresh_from_db()
 
 ###################################################################
 class SourceDetailLeague(models.Model):
