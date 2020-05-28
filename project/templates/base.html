@@ -99,6 +99,11 @@
                 <span class="fa fa-users"></span>
                 Teams
               </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'referee_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'football:referee_list' %}">
+                <span class="fa fa-hand-stop-o"></span>
+                Referees
+              </a>
             </div>
           </li>          
 

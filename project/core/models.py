@@ -860,6 +860,34 @@ class Referee(SaveSlugCountryMixin, Loadable):
         referee._create(**kwargs)
         return referee
 
+    @staticmethod
+    def api_delete_referees(referees_str):
+        for referee_str in referees_str.split(","):
+            with transaction.atomic():
+                referee =  Referee.objects.get(pk=int(referee_str))
+                referee.delete_object()
+
+    @staticmethod
+    def api_confirm_referees(referees_str, load_source):
+        for referee_str in referees_str.split(","):
+            with transaction.atomic():
+                referee =  Referee.objects.get(pk=int(referee_str))
+                referee.confirm(load_source)
+
+    def api_update(self, slug, name, country, load_status, load_source):
+        with transaction.atomic():
+            self.slug = slug
+            self.name = name
+            self.save()
+            self.change_country(country)
+            if load_status == Loadable.CONFIRMED:
+                self.confirm(load_source)
+
+    def api_merge_to(self, referee_dst_id):
+        with transaction.atomic():
+            referee_dst = Referee.objects.get(id = referee_dst_id)
+            self.merge_to(referee_dst)
+
     def delete_object(self):
         ''' Delete referee '''
         # 1. Block load source

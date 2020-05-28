@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from bootstrap_modal_forms.forms import BSModalForm
 
-from .models import League, Team
+from .models import League, Team, Referee
 
 ######################################################################
 class LeagueForm(BSModalForm):
@@ -124,4 +124,63 @@ class TeamsConfirmForm(BSModalForm):
         teams_id = cleaned_data.get("teams_id")
         if not teams_id:
             raise ValidationError(_("No teams to confirm"))
+
+
+
+######################################################################
+class RefereeForm(BSModalForm):
+
+    class Meta:
+        model = Referee
+        fields = ["slug", "name", "country", "load_status", "load_source",]
+
+######################################################################
+class RefereeMergeForm(BSModalForm):
+
+    referee_id = forms.IntegerField()
+
+    class Meta:
+        model = Referee
+        fields = []
+
+    def clean(self):
+        cleaned_data = super().clean()
+        referee_id = cleaned_data.get("referee_id")
+        if not referee_id:
+            raise ValidationError(_("Choose referee to merge"))
+
+######################################################################
+class RefereesDeleteForm(BSModalForm):
+
+    referees_id = forms.CharField()
+
+    class Meta:
+        model = Referee
+        fields = []
+
+    def clean(self):
+        cleaned_data = super().clean()
+        rferees_id = cleaned_data.get("rferees_id")
+        if not rferees_id:
+            raise ValidationError(_("No referees to delete"))
+
+######################################################################
+class RefereesConfirmForm(BSModalForm):
+
+    referees_id = forms.CharField()
+
+    class Meta:
+        model = Referee
+        fields = ["load_source",]
+
+    def clean_load_source(self):
+        load_source = self.cleaned_data["load_source"]
+        if not load_source:
+            raise ValidationError(_("No data source specified"))
+        return load_source
+    def clean(self):
+        cleaned_data = super().clean()
+        referees_id = cleaned_data.get("referees_id")
+        if not referees_id:
+            raise ValidationError(_("No referees to confirm"))
 

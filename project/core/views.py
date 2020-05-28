@@ -13,9 +13,10 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from .utils import get_date_from_string
-from .models import League, Match, MatchStats, Team
+from .models import League, Match, MatchStats, Team, Referee
 from .forms import (LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfirmForm,
                     TeamForm, TeamMergeForm, TeamsDeleteForm, TeamsConfirmForm,
+                    RefereeForm, RefereeMergeForm, RefereesDeleteForm, RefereesConfirmForm,
                    )
 from .serializers import SeasonSerializer, MatchSerializer, MatchStatsSerializer
 
@@ -187,6 +188,10 @@ class MatchAPI(ListAPIView):
         season_id = self.request.query_params.get("season_id", None)
         if season_id and int(season_id) > 0:
             queryset = queryset.filter(season=season_id)
+        referee_id = self.request.query_params.get("referee_id", None)
+        print("!!!!! referee_id", referee_id)
+        if referee_id and int(referee_id) > 0:
+            queryset = queryset.filter(matchreferee__referee__pk=referee_id)
 
         return queryset
 
@@ -328,3 +333,123 @@ class TeamsConfirmView(BSModalCreateView):
             except Exception as e:
                 messages.error(self.request, "Confirming error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
+
+####################################################
+#  Referee
+####################################################
+class RefereeUpdateView(BSModalUpdateView):
+    model = Referee
+    template_name = "core/update_referee.html"
+    form_class = RefereeForm
+    success_message = "Success: Referee was updated."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def get_success_message(self):
+        return self.success_message
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                self.object.api_update(slug=cleaned_data["slug"], 
+                                        name=cleaned_data["name"], 
+                                        country=cleaned_data["country"], 
+                                        load_status=cleaned_data["load_status"], 
+                                        load_source=cleaned_data["load_source"]
+                                        )
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Updating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class RefereeMergeView(BSModalUpdateView):
+    model = Referee
+    template_name = "core/merge_referee.html"
+    form_class = RefereeMergeForm
+    success_message = "Success: Referee was merged to %(id)s."
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, referee_id):
+        return self.success_message % {"id":referee_id,}
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                referee_id = cleaned_data["referee_id"]
+                self.object.api_merge_to(referee_id)
+                messages.success(self.request, self.get_success_message(referee_id))
+            except Exception as e:
+                # logger.error(e) 
+                logger.error(traceback.format_exc())
+                messages.error(self.request, "Merging error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+class RefereesDeleteView(BSModalCreateView):
+    model = Referee
+    form_class = RefereesDeleteForm
+    success_message = "Success: %(cnt)s referees were deleted."
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, cnt):
+        return self.success_message % {"cnt":cnt,}
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(RefereesDeleteView, self).get_context_data(**kwargs)
+
+        referees_id = self.request.GET.get("referees", None)
+        if referees_id:
+            context["referees_id"] = referees_id
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                referees_id = cleaned_data["referees_id"]
+                Referee.api_delete_referees(referees_id)
+                cnt = len(referees_id.split(","))
+                messages.success(self.request, self.get_success_message(cnt))
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class RefereesConfirmView(BSModalCreateView):
+    form_class = RefereesConfirmForm
+    success_message = "Success: %(cnt)s referees were confirmed."
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, cnt):
+        return self.success_message % {"cnt":cnt,}
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(RefereesConfirmView, self).get_context_data(**kwargs)
+
+        referees_id = self.request.GET.get("referees", None)
+        if referees_id:
+            context["referees_id"] = referees_id
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                referees_id = cleaned_data["referees_id"]
+                load_source = cleaned_data["load_source"]
+                Referee.api_confirm_referees(referees_id, load_source)
+                cnt = len(referees_id.split(","))
+                messages.success(self.request, self.get_success_message(cnt))
+            except Exception as e:
+                messages.error(self.request, "Confirming error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+
+
+
