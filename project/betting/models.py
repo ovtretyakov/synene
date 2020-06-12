@@ -5,7 +5,7 @@ import logging
 from django.db import models
 from django.utils import timezone
 
-from project.core.models import Mergable, LoadSource, Match
+from project.core.models import Mergable, LoadSource, Match, League, Country, Team
 from . import mixins as OddMixins
 from project.core.utils import (get_int, list_get,
                         get_match_result, 
@@ -154,6 +154,7 @@ class OddBookieConfig(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 ###################################################################
@@ -565,6 +566,64 @@ class Odd(Mergable, models.Model):
             result = self.FAIL
             result_value = 0
         return result, result_value
+
+
+###################################################################
+class VOdd(models.Model):
+
+    id = models.IntegerField('pk', primary_key=True)
+
+    period = models.IntegerField('Period')
+    yes = models.CharField(r'Yes\No', max_length=1, choices=Odd.YES_CHOICES)
+    team = models.CharField('Team', max_length=10, blank=True, choices=Odd.TEAM_CHOICES)
+    param = models.CharField('Param', max_length=255, blank=True)
+    odd_value = models.DecimalField('Odd', max_digits=10, decimal_places=3)
+    status = models.CharField('Status', max_length=5, choices=Odd.STATUS_CHOICES)
+    result = models.CharField('Result', max_length=5, choices=Odd.RESULT_CHOICES)
+    result_value = models.DecimalField('Result value', max_digits=10, decimal_places=3)
+    odd_update = models.DateTimeField('Odd update', null=True, blank=True)
+    result_update = models.DateTimeField('Result update', null=True, blank=True)
+
+    bet_type_id = models.IntegerField('Bet type')
+    bet_type_name = models.CharField('Bet type name', max_length=100)
+    bet_type_description = models.CharField('Bet type description', max_length=2000, null=True, blank=True)
+    bet_type_handler = models.CharField('Bet type handler', max_length=100, null=True, blank=True)
+
+    bookie_id = models.IntegerField('Bookie')
+    bookie_name = models.CharField('Bookie name', max_length=100)
+
+    odd_bookie_config_id = models.IntegerField('Bookie Odd')
+    odd_bookie_config_code = models.CharField('Bookie odd code', max_length=100)
+    odd_bookie_config_name = models.CharField('Bookie odd name', max_length=255, null=True, blank=True)
+
+    value_type_id = models.IntegerField('Value type')
+    value_type_name = models.CharField('Value type name', max_length=100)
+
+    load_source_id = models.IntegerField('Source')
+    load_source_name = models.CharField('Load source name', max_length=100)
+
+    match_id = models.IntegerField('Match')
+    match_name = models.CharField('Match name', max_length=255, null=True, blank=True)
+    match_date = models.DateField('Match date')
+    match_result = models.CharField('Match result', max_length=5, choices=Match.RESULT_CHOICES, null=True, blank=True)
+    score = models.CharField('Score', max_length=100, null=True, blank=True)
+ 
+    league_id = models.IntegerField('League')
+    league_name = models.CharField('League name', max_length=100)
+
+    country_id = models.IntegerField('Country')
+    country_code = models.CharField('Country Code', max_length=100)
+    country_name = models.CharField('Country Name', max_length=100)
+
+    team_h_id = models.IntegerField('Home team')
+    team_h_name = models.CharField('Home Team Name', max_length=100)
+    team_a_id = models.IntegerField('Away team')
+    team_a_name = models.CharField('Away Team Name', max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'v_odd'
+
 
 ###################################################################
 class OddWDL(OddMixins.WDLResult, OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):

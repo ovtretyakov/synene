@@ -189,7 +189,6 @@ class MatchAPI(ListAPIView):
         if season_id and int(season_id) > 0:
             queryset = queryset.filter(season=season_id)
         referee_id = self.request.query_params.get("referee_id", None)
-        print("!!!!! referee_id", referee_id)
         if referee_id and int(referee_id) > 0:
             queryset = queryset.filter(matchreferee__referee__pk=referee_id)
 
