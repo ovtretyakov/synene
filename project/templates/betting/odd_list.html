@@ -239,11 +239,12 @@
 {{ block.super }} 
   <script>
     var editIcons = function ( data, type, row ) {
-          var match_url = "{% url 'core:match_detail' 0 %}";
+          var odd_url = "{% url 'betting:odd_detail' 0 %}";
           if ( type === 'display' ) {
-              var r = 
-                '<a class="btn btn-sm btn-outline-secondary" href="' + match_url + '"><span class="fa fa-info-circle" title="Odd info"></span></a>'
-                ;
+              var r = '<button type="button" class="view-source btn btn-sm btn-outline-secondary" data-id="' + odd_url + '">' +
+                '   <span class="fa fa-info-circle"></span>' +
+                '</button>'
+              ;
               r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
               return r;
           }
@@ -274,6 +275,17 @@
                   {'data': 'result'},
                   {'data': 'result_value'},
               ],
+
+              'drawCallback': function(settings, json) {
+                $(".view-source").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                       modalContent: ".modal0-content"
+                      }
+                    );
+                  });
+              }
+
       });
 
     });

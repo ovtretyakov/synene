@@ -1,0 +1,130 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Odd information{% endblock %}
+{% block form_id %}formOddDeatail{% endblock form_id %}
+
+{% block modal-body %}
+  <!-- Row1 -->
+  <div class="form-row">
+      <!-- match_name -->
+      <div class="form-group col-sm">
+        <label for="match-name-id" class="col-form-label">Match:</label>
+        <input type="text" class="form-control form-control-sm" id="match-name-id" value="{{object.match_name}}" disabled>
+      </div>
+      <!-- league_name -->
+      <div class="form-group col-sm">
+        <label for="league-id" class="col-form-label">League:</label>
+        <input type="text" class="form-control form-control-sm" id="league-id" value="{{object.league_name}}" disabled>
+      </div>
+  </div>
+  <!-- Row2 -->
+  <div class="form-row">
+      <!-- match_date -->
+      <div class="form-group col-sm-3">
+        <label for="match_date-id" class="col-form-label">Date:</label>
+        <input type="text" class="form-control form-control-sm" id="match_date-id" value="{{object.match_date | date:'d.m.Y'}}" disabled>
+      </div>
+      <!-- score -->
+      <div class="form-group col-sm-3">
+        <label for="score-id" class="col-form-label">Score:</label>
+        <input type="text" class="form-control form-control-sm" id="score-id" value="{{object.score}}" disabled>
+      </div>
+      <!-- country -->
+      <div class="form-group col-sm">
+        <label for="country-id" class="col-form-label">Country:</label>
+        <input type="text" class="form-control form-control-sm" id="country-id" value="{{object.country_name}}" disabled>
+      </div>
+  </div>
+
+  <hr>
+  <!-- Row3 -->
+  <div class="form-row">
+      <!-- bookie -->
+      <div class="form-group col-sm">
+        <label for="bookie-id" class="col-form-label">Bookie:</label>
+        <input type="text" class="form-control form-control-sm" id="bookie-id" value="{{object.bookie_name}}" disabled>
+      </div>
+      <!-- source -->
+      <div class="form-group col-sm">
+        <label for="source-id" class="col-form-label">Source:</label>
+        <input type="text" class="form-control form-control-sm" id="source-id" value="{{object.source_name}}" disabled>
+      </div>
+  </div>
+  <!-- Row4 -->
+  <div class="form-row">
+      <!-- config -->
+      <div class="form-group col-sm">
+        <label for="config-id" class="col-form-label">Original name:</label>
+        <input type="text" class="form-control form-control-sm" id="config-id" value="{{object.odd_bookie_config_name}}" disabled>
+      </div>
+  </div>
+
+  <hr>
+  <!-- Row5 -->
+  <div class="form-row">
+      <!-- value_type -->
+      <div class="form-group col-sm-3">
+        <label for="value_type-id" class="col-form-label">Section:</label>
+        <input type="text" class="form-control form-control-sm" id="value_type-id" value="{{object.value_type_name}}" disabled>
+      </div>
+      <!-- bet_type -->
+      <div class="form-group col-sm">
+        <label for="bet_type-id" class="col-form-label">Type:</label>
+        <input type="text" class="form-control form-control-sm" id="bet_type-id" value="{{object.bet_type_name}}" disabled>
+      </div>
+      <!-- odd -->
+      <div class="form-group col-sm-3">
+        <label for="odd-id" class="col-form-label">Odd:</label>
+        <input type="text" class="form-control form-control-sm" id="odd-id" value="{{object.odd_value}}" disabled>
+      </div>
+  </div>
+
+  <!-- Row6 -->
+  <div class="form-row">
+      <!-- period -->
+      <div class="form-group col-sm">
+        <label for="period-id" class="col-form-label">Period:</label>
+        <input type="text" class="form-control form-control-sm" id="period-id" value="{{object.period}}" disabled>
+      </div>
+      <!-- team -->
+      <div class="form-group col-sm">
+        <label for="team-id" class="col-form-label">Team:</label>
+        <input type="text" class="form-control form-control-sm" id="team-id" value="{{object.team}}" disabled>
+      </div>
+      <!-- yes -->
+      <div class="form-group col-sm">
+        <label for="yes-id" class="col-form-label">Yes\No:</label>
+        <input type="text" class="form-control form-control-sm" id="yes-id" value="{{object.yes}}" disabled>
+      </div>
+      <!-- param -->
+      <div class="form-group col-sm">
+        <label for="param-id" class="col-form-label">Param:</label>
+        <input type="text" class="form-control form-control-sm" id="param-id" value="{{object.param}}" disabled>
+      </div>
+  </div>
+
+  <!-- Row7 -->
+  <div class="form-row">
+      <!-- status -->
+      <div class="form-group col-sm-3">
+        <label for="status-id" class="col-form-label">Status:</label>
+        <input type="text" class="form-control form-control-sm" id="status-id" value="{{object.get_status_display}}" disabled>
+      </div>
+      <!-- result -->
+      <div class="form-group col-sm">
+        <label for="result-id" class="col-form-label">Result:</label>
+        <input type="text" class="form-control form-control-sm" id="result-id" value="{{object.get_result_display}}" disabled>
+      </div>
+      <!-- value -->
+      <div class="form-group col-sm-3">
+        <label for="value-id" class="col-form-label">Value:</label>
+        <input type="text" class="form-control form-control-sm" id="value-id" value="{{object.value}}" disabled>
+      </div>
+  </div>
+
+
+{% endblock %}
+
+{% block modal-footer %}
+  <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{% block button-close %}Close{% endblock button-close %}</button>
+{% endblock%}

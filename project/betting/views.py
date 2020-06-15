@@ -153,3 +153,8 @@ class OddAPI(ListAPIView):
             queryset = queryset.filter(match_id=match_id)
 
         return queryset
+
+
+class OddDetail(BSModalReadView):
+    model = VOdd
+    template_name = 'betting/odd_detail.html'
