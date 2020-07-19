@@ -280,7 +280,7 @@ class LoadSource(models.Model):
     def lock(self):
         obj = LoadSource.objects.select_for_update().get(pk=self.pk)
 
-    def download(self):
+    def download(self, local_files):
         from project.load.handlers.espn import ESPNHandler
         from project.load.handlers.football_data import FootballDataHandler
 
@@ -289,7 +289,10 @@ class LoadSource(models.Model):
             raise ValueError('Unknonwn source handler "%s"' % self.source_handler)
 
         handler = cls.objects.get(pk=self.pk)
-        handler.process(number_of_days=handler.load_days)
+        if local_files:
+            handler.process(number_of_days=handler.load_days, get_from_file=True, is_debug_path=False, debug_level=1)
+        else:
+            handler.process(number_of_days=handler.load_days)
 
 ###################################################################
 class Country(Loadable):
@@ -570,6 +573,8 @@ class Season(models.Model):
     def get_or_create(league, start_date, end_date, load_source, name=None):
         if not league:
             raise ValueError('Missing league')
+        if not load_source:
+            load_source = LoadSource.objects.get(sport=league.sport, slug=LoadSource.SRC_UNKNOWN)
         if name == Season.UNKNOWN:
             # get or create Unknown season
             try:
@@ -611,9 +616,10 @@ class Season(models.Model):
                                                load_source=load_source,
                                                name=name)
             else:
-                if load_source and (not season.load_source or 
-                                    load_source.reliability <= season.load_source.reliability
-                                    ):
+                if (load_source.slug != LoadSource.SRC_UNKNOWN and 
+                              (season.load_source.slug == LoadSource.SRC_UNKNOWN or 
+                              load_source.reliability <= season.load_source.reliability)
+                    ):
                     changed = False
                     if season.start_date != start_date: season.start_date=start_date; changed = True;
                     if season.end_date != end_date: season.end_date=end_date; changed = True;
@@ -825,6 +831,8 @@ class TeamMembership(models.Model):
             models.UniqueConstraint(fields=['team', 'season'], name='unique_team_membership'),
         ]
 
+    def __str__(self):
+        return str(self.team) + ":" + str(self.season)        
 
 ###################################################################
 class Referee(SaveSlugCountryMixin, Loadable):

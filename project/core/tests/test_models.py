@@ -280,13 +280,15 @@ class LeagueModelTest(TestCase):
             name='2017/2018',
             league=self.league,
             start_date=date(2017, 8, 1),
-            end_date=date(2018, 6, 10)
+            end_date=date(2018, 6, 10),
+            load_source=self.load_source
         )
         self.season2 = Season.objects.create(
             name='2018/2019',
             league=self.league,
             start_date=date(2018, 8, 2),
-            end_date=date(2019, 6, 8)
+            end_date=date(2019, 6, 8),
+            load_source=self.load_source
         )
 
     #######################################################################
@@ -588,12 +590,14 @@ class LeagueModelTest(TestCase):
         self.assertEquals(match1.season, self.season1)
         self.assertEquals(match2.season.name, Season.UNKNOWN)
 
+        match2.refresh_from_db()
         season = self.league.get_or_create_season(
                                                   start_date=date(2011,6,1), 
                                                   end_date=date(2012,5,1), 
                                                   load_source=self.load_source_1)
         self.assertFalse(TeamMembership.objects.filter(team=team1,season=season).exists())
         self.assertFalse(TeamMembership.objects.filter(team=team2,season=season).exists())
+        match2.refresh_from_db()
         self.league.process_empty_season()
         match1.refresh_from_db()
         match2.refresh_from_db()

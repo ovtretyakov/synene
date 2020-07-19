@@ -472,6 +472,10 @@ class CommonHandler(MatchDetail, LoadSource):
                     self.source_detail_match.refresh_from_db()
                     self.source_detail_match.status=SourceDetail.FINISHED
                     self.source_detail_match.save()
+                odds = Odd.objects.filter(match=self.match)
+                for odd in odds:
+                    # print('odd=', odd)
+                    odd.calculate_result()
                 if self.source_session:
                     SourceSession.objects.filter(pk=self.source_session.pk).update(match_cnt=F("match_cnt")+1)
                     self.source_session.refresh_from_db()

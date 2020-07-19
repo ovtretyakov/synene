@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL("""
 BEGIN;
-CREATE OR REPLACE VIEW synene.v_odd
+CREATE OR REPLACE VIEW v_odd
 AS
 SELECT o.id, o.period, o.yes, o.team, o.param, o.odd_value, o.status, o.result, o.result_value, o.odd_update, o.result_update,
        o.bet_type_id, bt.name AS bet_type_name, bt.handler AS bet_type_handler, bt.description AS bet_type_description,
@@ -25,19 +25,19 @@ SELECT o.id, o.period, o.yes, o.team, o.param, o.odd_value, o.status, o.result, 
        l.country_id, c.code AS country_code, c.name AS country_name,
        m.team_h_id, th.name AS team_h_name,
        m.team_a_id, ta.name AS team_a_name
-  FROM synene.betting_odd o 
-  JOIN synene.core_match m ON(o.match_id = m.id)
-  JOIN synene.core_team th ON(m.team_h_id = th.id)
-  JOIN synene.core_team ta ON(m.team_a_id = ta.id)
-  JOIN synene.core_league l ON(m.league_id = l.id)
-  JOIN synene.core_country c ON(l.country_id = c.id)
-  JOIN synene.betting_bettype bt ON(o.bet_type_id = bt.id)
-  JOIN synene.core_loadsource boo ON(o.bookie_id = boo.id)
-  LEFT JOIN synene.betting_oddbookieconfig bc ON(o.odd_bookie_config_id = bc.id)
-  JOIN synene.betting_valuetype vt ON(o.value_type_id = vt.id)
-  LEFT JOIN synene.core_loadsource ls ON(o.load_source_id = ls.id)
+  FROM betting_odd o 
+  JOIN core_match m ON(o.match_id = m.id)
+  JOIN core_team th ON(m.team_h_id = th.id)
+  JOIN core_team ta ON(m.team_a_id = ta.id)
+  JOIN core_league l ON(m.league_id = l.id)
+  JOIN core_country c ON(l.country_id = c.id)
+  JOIN betting_bettype bt ON(o.bet_type_id = bt.id)
+  JOIN core_loadsource boo ON(o.bookie_id = boo.id)
+  LEFT JOIN betting_oddbookieconfig bc ON(o.odd_bookie_config_id = bc.id)
+  JOIN betting_valuetype vt ON(o.value_type_id = vt.id)
+  LEFT JOIN core_loadsource ls ON(o.load_source_id = ls.id)
 ;
-GRANT SELECT ON synene.v_odd TO PUBLIC;
+GRANT SELECT ON v_odd TO PUBLIC;
 COMMIT;
             """)
     ]

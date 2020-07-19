@@ -417,6 +417,7 @@ class Odd(Mergable, models.Model):
         self.odd_update = src.odd_update
         self.result_update = src.result_update
         self.save()
+        self.calculate_result()
 
     def merge_related(self, dst):
         pass
@@ -446,14 +447,28 @@ class Odd(Mergable, models.Model):
         '''Method for obtaining the result of odd
            Reurining result and result_value
         '''
-        raise NotImplementedError("Subclasses should implement this")
+        raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
 
     def calculate_result(self):
-        if self.status == Odd.WAITING:
-            #only in waiting status
-            #if not - just skip
-            result, result_value = self.get_result()
-            if result != None and result_value != None and result != Odd.UNKNOWN:
+        if self.own_bet_type():
+            #known bet_type
+            odd = self
+        else:
+            #trasform common class Odd to end class
+            cls = globals().get(self.bet_type.handler)
+            if not cls: 
+                raise ValueError('Unknonwn bet handler "%s"' % self.bet_type.handler)
+            try:
+                odd = cls.objects.get(pk=self.pk)
+            except cls.DoesNotExist:
+                raise ValueError('Cant find odd %s for bet handler "%s"' % (self.pk, bet_type.handler))
+
+        result, result_value = odd.get_result()
+        if result is not None and result_value is not None and result != Odd.UNKNOWN:
+            if (self.result is None or self.result != result or 
+                self.result_value is None or self.result_value != result_value or
+                self.status != Odd.FINISHED
+                ) :
                 self.result = result
                 self.result_value = result_value
                 self.status = Odd.FINISHED
@@ -530,7 +545,9 @@ class Odd(Mergable, models.Model):
 
     def get_match_handicap_result(self, period=None):
         match_value = self.get_match_handicap(period=period)
-        if match_value == None: result_value = None
+        if match_value == None: 
+            param_value = None
+            result_value = None
         else:
             param_value = round(Decimal(self.param),5)
             result_value = get_handicap_result(param_value, match_value, self.odd_value)
@@ -541,6 +558,7 @@ class Odd(Mergable, models.Model):
     def get_margin_win(self):
         value_h, value_a = self.get_odd_int_values()
         if value_h == None or value_a == None: 
+            win = None
             result = None
             result_value = None
         else:
