@@ -177,12 +177,14 @@ class CommonHandler(MatchDetail, LoadSource):
             raise TooMamyErrors("Too many errors")
 
     def _start_or_skip_league(self, league_name, season_name='NA'):
+        logger.debug("Load._start_or_skip_league league_name=<%s>, season_name=<%s>" % (league_name,season_name))
         try:
             source_detail_league = SourceDetailLeague.objects.get(
                                         source_detail = self.source_detail,
                                         season_name = season_name,
                                         league_name = league_name)
         except SourceDetailLeague.DoesNotExist:
+            logger.debug("Load._start_or_skip_league Not found")
             source_detail_league = None
         if not source_detail_league:
             source_detail_league = SourceDetailLeague.objects.create(
@@ -191,8 +193,10 @@ class CommonHandler(MatchDetail, LoadSource):
                                         league_name = league_name,
                                         status = SourceDetail.IN_PROCESS)
             do_action = True
+            logger.debug("Load._start_or_skip_league do_action = True")
         else:
             do_action = (source_detail_league.status == SourceDetail.IN_PROCESS)
+            logger.debug("Load._start_or_skip_league status=<%s> do_action=<%s>" % (source_detail_league.status,do_action))
         self.source_detail_league = source_detail_league
         if do_action and self.source_detail:
             self.source_detail.league_name = league_name
@@ -234,13 +238,14 @@ class CommonHandler(MatchDetail, LoadSource):
             source_detail = None
         if source_detail:
             if source_detail.status == SourceSession.FINISHED and (not source_detail.load_date or 
-                                                                   self.load_date and source_detail.load_date > self.load_date
+                                                                   self.load_date and source_detail.load_date <= self.load_date
                                                                    ):
                 source_detail.load_date = self.load_date
             #update old detail
             source_detail.last_update = timezone.now()
             source_detail.source_session = self.source_session
             source_detail.status = SourceSession.IN_PROCESS
+            logger.debug("Do source_detail IN_PROCESS pk=<%s>" % source_detail.pk)
             source_detail.save()
         else:
             #create new detail
@@ -291,7 +296,7 @@ class CommonHandler(MatchDetail, LoadSource):
                         if i > 1:
                             country = None
 
-                logger.debug("League.get_or_create name=<%s> slug=<%s>" % (league_name,league_slug))
+                logger.debug("League.get_or_create name=<%s>, detail_slug=<%s>, slug=<%s>" % (league_name,detail_slug,league_slug))
                 self.league = League.get_or_create(
                                             sport=self.get_sport(),
                                             name=league_name,

@@ -127,7 +127,7 @@ class FootballDataHandler(CommonHandler):
 
         finish_date = start_date + timedelta(days=number_of_days)
         finish_year = finish_date.year
-        logger.info('Start date: %s, Start year: %s, Finish date: %s' % (start_date, start_year, finish_date))
+        logger.info('Start country: %s, date: %s, Start year: %s, Finish date: %s' % (country_name, start_date, start_year, finish_date))
 
         soup = BeautifulSoup(html, 'html.parser')
         pattern = re.compile(r'(\d+)/(\d+)')   #<i>Season 1993/1994</i>
@@ -144,10 +144,12 @@ class FootballDataHandler(CommonHandler):
                 end_season_year_str = search_result[2]
                 end_season_year = int(end_season_year_str)
                 season_name = season.get_text().strip()
+                logger.debug('Season: %s, end_season_year: %s, start_year: %s, start_season_year: %s, finish_year: %s' % (season_name, end_season_year, start_year, start_season_year, finish_year))
                 if end_season_year >= start_year and start_season_year <= finish_year:
                     for tag in season.find_next_siblings(['a','i']):
                         if tag.name == 'i':
                             # found tag i - start next season
+                            logger.debug('Break i')
                             break
                         elif tag.name == 'a':
                             #<a href="mmz4281/9798/E0.csv">Premier League</a>
@@ -156,25 +158,33 @@ class FootballDataHandler(CommonHandler):
                             if not league_href.startswith('http'): league_href = urljoin(country_url, league_href)
                             if league_href.find('csv') < 0:
                                 #not csv file - exit from for
+                                logger.debug('Break csv')
                                 break
+                        logger.info('Start process1 league: %s - %s' % (country_name, league_name))
                         league_last_date = self.process_league(country, country_name, league_name, league_href, start_date, finish_date,
                                                         start_season_year_str, 
                                                         debug_level=debug_level, get_from_file=get_from_file, is_debug_path=is_debug_path)
+                        logger.info('Finish process1 league: %s - %s' % (country_name, league_name))
                         if debug_level >= 2:
+                            logger.debug('Break level 2')
                             break
                         if league_last_date and (not last_date or league_last_date > last_date):
                                 last_date = league_last_date
                     if debug_level >= 1:
+                        logger.debug('Break level 1')
                         break
+                logger.debug('Next season')
         else:
             CSV = soup.find('a', string='CSV')
             self.context = CSV
             league_name = ''
             league_href = CSV['href']
             if not league_href.startswith('http'): league_href = urljoin(country_url, league_href)
+            logger.info('Start process2 league: %s - %s' % (country_name, league_name))
             last_date = self.process_league(
                             country, country_name, league_name, league_href, start_date=start_date, finish_date=finish_date, 
                             debug_level=debug_level, get_from_file=get_from_file, is_debug_path=is_debug_path)
+            logger.info('Finish process2 league: %s - %s' % (country_name, league_name))
         return last_date
 
 
@@ -198,11 +208,14 @@ class FootballDataHandler(CommonHandler):
         reader = csv.DictReader(html.splitlines())
 
         if league_name:
+            logger.info('start_or_skip_league: %s - %s' % (country_name, league_name))
             if not self.start_or_skip_league(country_name + ' ' + league_name, 
-                                            country = country, 
+                                            country = country, season_name = start_year,
                                             detail_slug = country_name + ' ' + league_name):
+                logger.info('Skip ...')
                 return None
         else:
+            logger.info('start_detail: %s' % (country_name))
             self.start_detail(country_name) 
         last_date = None
         match_date = None
@@ -213,7 +226,9 @@ class FootballDataHandler(CommonHandler):
             self.context = row
 
             try:
+                logger.info('process_match')
                 league_name, match_date = self.process_match(country, country_name, league_name, start_date, finish_date, row)
+                logger.info('end process_match: %s - %s' % (league_name, match_date))
             except TooMamyErrors:
                 raise
             except Exception as e:
@@ -284,6 +299,7 @@ class FootballDataHandler(CommonHandler):
             away_team = match_data['AwayTeam']
         except KeyError:
             away_team = match_data['Away']
+        logger.info('match: %s - %s' % (home_team, away_team))
 
 
         #h_goals
@@ -435,7 +451,17 @@ class FootballDataHandler(CommonHandler):
             handicap_h = match_data.get('BbAvAHH', None)
             handicap_a = match_data.get('BbAvAHA', None)
 
-        if handicap_h:
+        if handicap_h or handicap_a:
+            #find parameter like "0,+0.5"
+            i = handicap_param.find(",")
+            if i >= 0:
+                p1 = handicap_param[i+1:]
+                p2 = handicap_param[:i]
+                v1 = Decimal(p1)
+                v2 = Decimal(p2)
+                handicap_param = str((v1+v2)/2)
+
+        if handicap_h and handicap_param != -1.2 and handicap_param != 1.2:
             self.odds.append(
                     {
                         'bet_type':BetType.HANDICAP, 
@@ -443,7 +469,7 @@ class FootballDataHandler(CommonHandler):
                         'odd_value':handicap_h, 
                         'param':handicap_param
                     })
-        if handicap_a:
+        if handicap_a and handicap_param != -1.2 and handicap_param != 1.2:
             param = Decimal(handicap_param)
             param = '0' if param==0 else str(-1*param)
             self.odds.append(
