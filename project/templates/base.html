@@ -41,6 +41,7 @@
       <div class="sidebar-sticky">
         <ul class="nav flex-column">
 
+          <!-- Load -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'source_list,errors,all_sessions' %}active{% endif %}" 
               href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
@@ -71,6 +72,7 @@
             </div>
           </li>          
 
+          <!-- Football -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'league_list,season_list,match_list,team_list' %}active{% endif %}" 
               href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
@@ -98,6 +100,28 @@
                 id="navbarSources"  href="{% url 'football:team_list' %}">
                 <span class="fa fa-users"></span>
                 Teams
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'referee_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'football:referee_list' %}">
+                <span class="fa fa-hand-stop-o"></span>
+                Referees
+              </a>
+            </div>
+          </li>          
+
+          <!-- Betting -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'odd_list' %}active{% endif %}" 
+              href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
+            >
+            <span class="fa fa-bitcoin"></span>
+            Betting
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarLoad">
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'odd_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:odd_list' %}">
+                <span class="fa fa-clone"></span>
+                Odd list
               </a>
             </div>
           </li>          

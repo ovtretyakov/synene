@@ -64,9 +64,11 @@ class LoadSourceForm(BSModalForm):
 ######################################################################
 class LoadSourceProcessForm(BSModalForm):
 
+    local_files = forms.BooleanField(required=False)
+
     class Meta:
         model = LoadSource
-        fields = []
+        fields = ["local_files",]
 
     # def clean(self):
     #     cleaned_data = super().clean()

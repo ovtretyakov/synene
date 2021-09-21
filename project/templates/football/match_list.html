@@ -17,6 +17,20 @@
 
           <div class="form-row">
 
+
+          {% if selected_referee %} 
+                <input type="hidden" name="referee_id" value="{{selected_referee.id}}">
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="label_from">Referee</span>
+                    </div>
+                    <input type="text" name="referee_name" class="form-control" aria-describedby="label_referee" value="{{selected_referee.name}}" disabled="true">
+                  </div>
+                </div>
+          {% endif %}
+
+
           {% if selected_season %} 
 
                 <div class="col-3">
@@ -119,15 +133,20 @@
   <script>
     var editIcons = function ( data, type, row ) {
           var match_url = "{% url 'core:match_detail' 0 %}";
+          var odd_url = "{% url 'betting:odd_list' %}?match_id=0";
           if ( type === 'display' ) {
               var r = 
-                '<a class="btn btn-sm btn-outline-secondary" href="' + match_url + '"><span class="fa fa-info-circle" title="Match detail"></span></a>'
+                '<a class="btn btn-sm btn-outline-secondary" href="' + match_url + '"><span class="fa fa-info-circle" title="Match detail"></span></a>' +
+                '<a class="btn btn-sm btn-outline-secondary" href="' + odd_url + '"><span class="fa fa-clone" title="Match odds"></span></a>'
                 ;
               r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
               return r;
           }
         return data;
     };
+
+
 
     $(document).ready(function () {
       // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
@@ -136,10 +155,10 @@
       var table = $('#main_table').DataTable({
               'serverSide': true,
               'lengthMenu': [ 25, 50, 75, 100 ],
-              'ajax': "{% url 'football:match_list_api'  %}?format=datatables&selected_league={{selected_league}}&season_id={{selected_season.id}}&date_from={{date_from}}&date_to={{date_to}}",
+              'ajax': "{% url 'football:match_list_api'  %}?format=datatables&selected_league={{selected_league}}&season_id={{selected_season.id}}&date_from={{date_from}}&date_to={{date_to}}&referee_id={{selected_referee.id}}",
               'order': [[ 5, 'asc' ]],
               'columns': [
-                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'3em'},
                   {'data': 'league.name'},
                   {'data': 'season.name'},
                   {'data': 'team_h.name'},

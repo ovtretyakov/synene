@@ -24,9 +24,9 @@ from .serializers import   (LoadSourceSerializer,
 from .forms import LoadSourceForm, LoadSourceProcessForm
 
 @background
-def load_source_download(load_source_pk):
+def load_source_download(load_source_pk, local_files):
     load_source = LoadSource.objects.get(pk=load_source_pk)
-    load_source.download()
+    load_source.download(local_files)
 
 
 ####################################################
@@ -96,8 +96,9 @@ class LoadSourceProcessView(BSModalUpdateView):
         # remember the import: from django.http import HttpResponseRedirect
 
         if self.request.method == "POST" and not self.request.is_ajax():
+            cleaned_data = form.cleaned_data
             try:
-                load_source_download(self.object.pk)
+                load_source_download(self.object.pk, cleaned_data["local_files"])
                 # self.object.download()
                 messages.success(self.request, self.get_success_message())
             except Exception as e:

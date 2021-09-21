@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}All odds{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">All odds</h1>
+      </div>
+
+
+    <!-- Filter -->
+    <div class="pb-3 mb-1" >
+        <form  method="GET" id="odd-filter-id">
+
+          {% if match_id %} 
+            <!-- row0 -->
+            <div class="form-row">
+                <input type="hidden" name="match_id" value="{{match_id}}">
+                <!-- match_name -->
+                <div class="col-4">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="label_match_name">Match</span>
+                    </div>
+                    <input type="text" name="match_name" class="form-control" aria-describedby="label_match_name" value="{{match_name}}" disabled="true">
+                  </div>
+                </div>
+                <!-- match_date -->
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="match_date">Date</span>
+                    </div>
+                    <input type="text" name="match_date" class="form-control" aria-describedby="label_match_date" value="{{match_date}}" disabled="true">
+                  </div>
+                </div>
+            </div>
+          {% endif %}
+
+
+
+          
+          <!-- row1 -->
+          <div class="form-row">
+            <!-- date from -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_from">From</span>
+                </div>
+                <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}" {{date_from_disabled}}>
+              </div>
+            </div>
+            <!-- date to -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_to">To</span>
+                </div>
+                <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}" {{date_to_disabled}}>
+              </div>
+            </div>
+            <!-- bookies -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="bookie">Bookie</span>
+                </div>
+                <select name="bookie" class="custom-select" id="bookie">
+                  <option {% if selected_bookie == 0 %}selected{% endif %} value="0"> All bookies </option>
+                  {% for source in sources %}
+                    <option {% if selected_bookie == source.id %}selected{% endif %} value="{{ source.id }}"> {{ source.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+            <!-- leagues -->
+            <div class="col-3">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="sources">League</span>
+                </div>
+                <select name="selected_league" class="custom-select" id="selected_league" {{league_disabled}}>
+                  <option {% if selected_league == 0 %}selected{% endif %} value="0"> All leagues </option>
+                  {% for league in leagues %}
+                    <option {% if selected_league == league.id %}selected{% endif %} value="{{ league.id }}"> {{ league.name }} ({{ league.country.name }})</option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- row2 -->
+          <div class="form-row">
+            <!-- Section -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="section">Sect</span>
+                </div>
+                <select name="section" class="custom-select" id="section">
+                  <option {% if selected_section == 0 %}selected{% endif %} value="0"> All sections </option>
+                  {% for section in sections %}
+                    <option {% if selected_section == section.id %}selected{% endif %} value="{{ section.id }}"> {{ section.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+            <!-- Type -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="type">Type</span>
+                </div>
+                <select name="type" class="custom-select" id="type">
+                  <option {% if selected_type == 0 %}selected{% endif %} value="0"> All types </option>
+                  {% for type in types %}
+                    <option {% if selected_type == type.id %}selected{% endif %} value="{{ type.id }}"> {{ type.name }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+            <!-- Per -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_per">Per</span>
+                </div>
+                <input type="text" name="per" class="form-control" placeholder="0,1,2 ..." aria-describedby="label_per" value="{{per}}">
+              </div>
+            </div>
+            <!-- odd_from -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_odd_from">Odd from</span>
+                </div>
+                <input type="text" name="odd_from" class="form-control" aria-describedby="label_odd_from" value="{{odd_from}}">
+              </div>
+            </div>
+            <!-- odd_to -->
+            <div class="col-1">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_odd_to">To</span>
+                </div>
+                <input type="text" name="odd_to" class="form-control" aria-describedby="label_odd_to" value="{{odd_to}}">
+              </div>
+            </div>
+          </div>
+
+          <!-- row4 -->
+          <div class="form-row">
+            <!-- Team -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="team">Team</span>
+                </div>
+                <select name="team" class="custom-select" id="team">
+                  <option {% if selected_team == "all" %}selected{% endif %} value="all"> All teams </option>
+                  <option {% if selected_team == "h" %}selected{% endif %} value="h"> Home </option>
+                  <option {% if selected_team == "a" %}selected{% endif %} value="a"> Away </option>
+                  <option {% if selected_team == "empty" %}selected{% endif %} value="empty"> </option>
+                </select>
+              </div>
+            </div>
+            <!-- par -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_par">Par</span>
+                </div>
+                <input type="text" name="par" class="form-control" aria-describedby="label_par" value="{{par}}">
+              </div>
+            </div>
+            <!-- result -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="result">Res</span>
+                </div>
+                <select name="result" class="custom-select" id="result">
+                  {% for result in results %}
+                    <option {% if selected_result == result.0 %}selected{% endif %} value="{{ result.0 }}"> {{ result.1 }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- row5 -->
+          <div class="form-row">
+            <div class="input-group input-group-sm mb-3">
+              <button type="submit" class="btn btn-sm btn-outline-primary col-2">Set Filter</button>
+            </div>
+          </div>
+
+        </form>
+    </div>
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Date</th>
+              <th>Match</th>
+              <th>League</th>
+              <th>Bookie</th>
+              <th>Sect</th>
+              <th>Type</th>
+              <th>Per</th>
+              <th>Team</th>
+              <th>Par</th>
+              <th>Odd</th>
+              <th>Res</th>
+              <th>Win</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var odd_url = "{% url 'betting:odd_detail' 0 %}";
+          if ( type === 'display' ) {
+              var r = '<button type="button" class="view-source btn btn-sm btn-outline-secondary" data-id="' + odd_url + '">' +
+                '   <span class="fa fa-info-circle"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'betting:odd_list_api'  %}?format=datatables&date_from={{date_from}}&date_to={{date_to}}&selected_league={{selected_league}}&selected_bookie={{selected_bookie}}&selected_section={{selected_section}}&selected_type={{selected_type}}&per={{per}}&odd_from={{odd_from}}&odd_to={{odd_to}}&selected_team={{selected_team}}&par={{par}}&selected_result={{selected_result}}&match_id={{match_id}}",
+              'order': [[1,'asc'], [3,'asc'], [2,'asc'], [4,'asc'], [5,'asc'], [6,'asc'], [7,'asc'], [8,'asc'], [9,'asc'],],
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'match_date'},
+                  {'data': 'match_name'},
+                  {'data': 'league_name'},
+                  {'data': 'bookie_name'},
+                  {'data': 'value_type_name'},
+                  {'data': 'bet_type_name'},
+                  {'data': 'period'},
+                  {'data': 'team'},
+                  {'data': 'param'},
+                  {'data': 'odd_value'},
+                  {'data': 'result'},
+                  {'data': 'result_value'},
+              ],
+
+              'drawCallback': function(settings, json) {
+                $(".view-source").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                       modalContent: ".modal0-content"
+                      }
+                    );
+                  });
+              }
+
+      });
+
+    });
+
+    
+  </script>
+{% endblock %}
+
+
