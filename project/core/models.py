@@ -558,9 +558,8 @@ class Season(models.Model):
 
     @staticmethod
     def get_season(league, match_date):
-        try:
-            season = Season.objects.get(league=league, start_date__lte=match_date, end_date__gte=match_date)
-        except ObjectDoesNotExist:
+        season = Season.objects.filter(league=league, start_date__lte=match_date, end_date__gte=match_date).order_by('-start_date').first()
+        if season == None:
             # get or create Unknown season
             season = Season.get_or_create(league=league, 
                                           start_date=None, 
