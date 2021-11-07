@@ -43,7 +43,7 @@ class UnderstatHandler(CommonHandler):
 
 
 
-    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None):
+    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, number_of_days=10):
         ''' Process all leagues
             Site https://understat.com/
 
@@ -72,7 +72,7 @@ class UnderstatHandler(CommonHandler):
                         continue
 
                     #process league
-                    self.process_league(league_name, league_href, debug_level, get_from_file, is_debug_path, start_date)
+                    self.process_league(league_name, league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
 
                     self.finish_league()
                     self.finish_detail()
@@ -96,7 +96,7 @@ class UnderstatHandler(CommonHandler):
 
     def process_league(self, league_name, league_url, 
                         debug_level=0, get_from_file=False, is_debug_path=True, 
-                        init_start_date=None):
+                        init_start_date=None, number_of_days=10):
         ''' Process single league
             Site https://understat.com/
 
@@ -121,26 +121,29 @@ class UnderstatHandler(CommonHandler):
             start_date = init_start_date
         else:
             start_date = self.get_load_date()
-        logger.info('Start date: %s' % start_date)
         if start_date.month <= 6:
             start_year = start_date.year-1
         else:
             start_year = start_date.year
+        finish_date = start_date + timedelta(days=number_of_days)
+        finish_year = finish_date.year
+        logger.info('Start date: %s, finish date: %s' % (start_date,finish_date))
+
         for season in sorted(soup.select('select[name="season"] > option'), key=lambda x: x['value']):
             self.context = season
             season_name = season.get_text().strip()
             season_value = season['value']
             season_year = int(season_value)
-            if int(season_value) >= start_year:
+            if int(season_value) >= start_year and int(season_value) <= finish_year:
                 logger.debug('Process %s year %s' % (season_name, season_value))
                 self.process_league_year(
-                                    league_url, season_year, start_date, 
+                                    league_url, season_year, start_date, finish_date,
                                     debug_level, get_from_file, is_debug_path)
                 if debug_level >= 1: 
                     break
 
 
-    def process_league_year(self, league_url, season_year, start_date, 
+    def process_league_year(self, league_url, season_year, start_date, finish_date,
                             debug_level=0, get_from_file=False, is_debug_path=True):
         ''' Process single league year
             Site https://understat.com/
@@ -175,6 +178,8 @@ class UnderstatHandler(CommonHandler):
                 if match_date < start_date:
                     continue
                 elif debug_level == 1 and match_date > start_date: 
+                    break
+                if match_date > finish_date:
                     break
 
                 self.set_load_date(match_date)

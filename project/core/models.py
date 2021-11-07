@@ -283,6 +283,7 @@ class LoadSource(models.Model):
     def download(self, local_files):
         from project.load.handlers.espn import ESPNHandler
         from project.load.handlers.football_data import FootballDataHandler
+        from project.load.handlers.understat import UnderstatHandler
 
         cls = locals().get(self.source_handler)
         if not cls: 
