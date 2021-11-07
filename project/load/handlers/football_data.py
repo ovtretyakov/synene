@@ -226,9 +226,7 @@ class FootballDataHandler(CommonHandler):
             self.context = row
 
             try:
-                logger.info('process_match')
                 league_name, match_date = self.process_match(country, country_name, league_name, start_date, finish_date, row)
-                logger.info('end process_match: %s - %s' % (league_name, match_date))
             except TooMamyErrors:
                 raise
             except Exception as e:
@@ -266,7 +264,9 @@ class FootballDataHandler(CommonHandler):
         elif len(match_date_str) == 10:
             match_date=datetime.strptime(match_date_str, "%d/%m/%Y").date()
         else:
-            raise ValueError('Empty match date')
+            # Skip empty match date
+            logger.info('Skip empty match date. League: %s' % league_name)
+            return league_name, None
         if match_date < start_date:
             return league_name, None
         if match_date > finish_date:
@@ -280,10 +280,10 @@ class FootballDataHandler(CommonHandler):
                 if row_league_name != league_name:
                     self.finish_league()
                     if not self.start_or_skip_league(country_name + ' ' + row_league_name, country=country):
-                        return row_league_name, None
+                        return league_name, None
             else:
                 if not self.start_or_skip_league(country_name + ' ' + row_league_name, country=country):
-                    return row_league_name, None
+                    return league_name, None
             league_name = row_league_name
         else:
             #setting load date only for main league_name
