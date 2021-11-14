@@ -59,6 +59,7 @@ class UnderstatHandler(CommonHandler):
             soup = BeautifulSoup(html, 'html.parser')
 
             #select all leagues
+            load_date = None
             for league in soup.select('nav.m-navigation > ul > li > a'):
                 self.context = league
                 league_name = league.get_text().strip()
@@ -72,7 +73,11 @@ class UnderstatHandler(CommonHandler):
                         continue
 
                     #process league
-                    self.process_league(league_name, league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
+                    league_load_date = self.process_league(league_name, league_href, debug_level, get_from_file, 
+                                                           is_debug_path, start_date, number_of_days
+                                                           )
+                    if not load_date or league_load_date < load_date:
+                        load_date = league_load_date
 
                     self.finish_league()
                     self.finish_detail()
@@ -84,6 +89,9 @@ class UnderstatHandler(CommonHandler):
                     self.context = None
                     if debug_level >= 2: 
                         break
+            if load_date:
+                self.set_load_date(load_date=load_date, is_set_main=True)
+
 
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
@@ -129,6 +137,7 @@ class UnderstatHandler(CommonHandler):
         finish_year = finish_date.year
         logger.info('Start date: %s, finish date: %s' % (start_date,finish_date))
 
+        load_date = None
         for season in sorted(soup.select('select[name="season"] > option'), key=lambda x: x['value']):
             self.context = season
             season_name = season.get_text().strip()
@@ -136,11 +145,13 @@ class UnderstatHandler(CommonHandler):
             season_year = int(season_value)
             if int(season_value) >= start_year and int(season_value) <= finish_year:
                 logger.debug('Process %s year %s' % (season_name, season_value))
-                self.process_league_year(
+                load_date = self.process_league_year(
                                     league_url, season_year, start_date, finish_date,
                                     debug_level, get_from_file, is_debug_path)
                 if debug_level >= 1: 
                     break
+        logger.info('Load date: %s' % load_date)
+        return load_date
 
 
     def process_league_year(self, league_url, season_year, start_date, finish_date,
@@ -168,6 +179,7 @@ class UnderstatHandler(CommonHandler):
         datesData = (datesData_pattern.search(script.string)[1]).encode('utf8').decode('unicode_escape')
         matches = json.loads(datesData)
         i = 0
+        load_date = None
         for match in matches:
             self.context = match
             i += 1
@@ -183,7 +195,8 @@ class UnderstatHandler(CommonHandler):
                     break
 
                 self.set_load_date(match_date)
-                self.process_match(match, debug_level, get_from_file, is_debug_path, match_date_str)
+                if self.process_match(match, debug_level, get_from_file, is_debug_path, match_date_str):
+                    load_date = match_date
             except TooMamyErrors:
                 raise
             except Exception as e:
@@ -192,6 +205,7 @@ class UnderstatHandler(CommonHandler):
                 self.context = None
                 if debug_level >= 2: 
                     break
+        return load_date
 
 
     def process_match(self, match_data, debug_level=0, get_from_file=False, is_debug_path=True, match_date_str=None):
@@ -211,7 +225,7 @@ class UnderstatHandler(CommonHandler):
   
         # prepare match_detail
         if not match_data['isResult']:
-            return
+            return False
         match_id = match_data['id']
         team     = match_data['h']
         name_h   = team['title']
@@ -250,6 +264,7 @@ class UnderstatHandler(CommonHandler):
             self.process_match_html(html)
 
             self.finish_match()
+        return True
 
 
     def process_match_html(self, html):
