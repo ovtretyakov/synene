@@ -145,9 +145,12 @@ class UnderstatHandler(CommonHandler):
             season_year = int(season_value)
             if int(season_value) >= start_year and int(season_value) <= finish_year:
                 logger.debug('Process %s year %s' % (season_name, season_value))
-                load_date = self.process_league_year(
-                                    league_url, season_year, start_date, finish_date,
-                                    debug_level, get_from_file, is_debug_path)
+                league_load_date = self.process_league_year(
+                                        league_url, season_year, start_date, finish_date,
+                                        debug_level, get_from_file, is_debug_path)
+                logger.info('Leageu load date: %s' % league_load_date)
+                if league_load_date:
+                    load_date = league_load_date
                 if debug_level >= 1: 
                     break
         logger.info('Load date: %s' % load_date)
