@@ -73,3 +73,11 @@ class LoadSourceProcessForm(BSModalForm):
     # def clean(self):
     #     cleaned_data = super().clean()
     #     raise ValidationError(_("Processing error"))
+
+######################################################################
+class LoadSourceProcessAllForm(BSModalForm):
+
+    class Meta:
+        model = LoadSource
+        fields = []
+

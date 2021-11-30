@@ -15,8 +15,8 @@
 
 
           <div class="btn-group mr-2">
-            <button type="button" class="create-author btn btn-sm btn-outline-secondary" name="button">Create Author</button>
-            <button type="button" class="create-background_author btn btn-sm btn-outline-secondary">Background</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Load all sources" id="load-all" 
+            onclick="load_all_dlg()">Load All Sources</button >
           </div>
           <div class="dropdown">
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -83,14 +83,14 @@
           var info_url = "{% url 'load:source_detail' 0 %}";
           if ( type === 'display' ) {
               // return '<img alt="Edit" src="/static/images/edit-16.png"><img alt="Delete" src="/static/images/trash-16.png">';
-              var r = '<button type="button" class="update-source btn btn-sm btn-outline-secondary" data-id="' + upd_url + '">' +
+              var r = '<button type="button" class="update-source btn btn-sm btn-outline-secondary" data-id="' + upd_url + '" title="Edit Source">' +
                 '   <span class="fa fa-pencil"></span>' +
                 '</button>' +
                 '<button type="button" class="process-source btn btn-sm btn-outline-secondary" data-id="' + proc_url + 
-                '" ' + (data == 1 ? ' disabled ' : '') + '>' +
+                '" ' + (data == 1 ? ' disabled ' : '') + ' title="Load Source">' +
                 '   <span class="fa fa-download"></span>' +
                 '</button>' +
-                '<button type="button" class="info-source btn btn-sm btn-outline-secondary" data-id="' + info_url +  '">' +
+                '<button type="button" class="info-source btn btn-sm btn-outline-secondary" data-id="' + info_url +  '" title="Information">' +
                 '   <span class="fa fa-info-circle"></span>' +
                 '</button>'
               ;
@@ -171,6 +171,20 @@
           modalContent: ".modal0-content"
       });
     });
+
+
+    function load_all_dlg() 
+      {
+        var url = "{% url 'load:load_all_sources' %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formLoadAll",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
   </script>
 {% endblock %}
 
