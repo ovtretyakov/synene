@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^source/detail/(?P<pk>\d+)/$', views.LoadSourceDetail.as_view(), name='source_detail'),
     url(r'^source/detail/api/(?P<load_source>\d+)/$', views.LoadSourcesDetailAPI.as_view(), name='source_detail_api'),
     url(r'^source/session/api/(?P<load_source>\d+)/$', views.SourceSessionsAPI.as_view(), name='source_sessions_api'),
+    url(r'^source/load_all/$', views.LoadSourceProcessAllView.as_view(), name='load_all_sources'),
 
     #Errors
     url(r'^errors$', views.ErrorLogView.as_view(), name='errors'),
