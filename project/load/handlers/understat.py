@@ -190,6 +190,8 @@ class UnderstatHandler(CommonHandler):
             try:
                 match_date_str = match['datetime'][:10]
                 match_date = datetime.strptime(match_date_str, "%Y-%m-%d").date()
+                if match_date > date.today():
+                    break
                 if match_date < start_date:
                     continue
                 elif debug_level == 1 and match_date > start_date: 
@@ -197,8 +199,7 @@ class UnderstatHandler(CommonHandler):
                 if match_date > finish_date:
                     break
 
-                self.set_load_date(match_date)
-                if self.process_match(match, debug_level, get_from_file, is_debug_path, match_date_str):
+                if self.process_match(match, debug_level, get_from_file, is_debug_path, match_date_str, match_date):
                     load_date = match_date
             except TooMamyErrors:
                 raise
@@ -211,7 +212,7 @@ class UnderstatHandler(CommonHandler):
         return load_date
 
 
-    def process_match(self, match_data, debug_level=0, get_from_file=False, is_debug_path=True, match_date_str=None):
+    def process_match(self, match_data, debug_level=0, get_from_file=False, is_debug_path=True, match_date_str=None, match_date=None):
         ''' Process single match
             Site https://understat.com/
 
@@ -229,6 +230,7 @@ class UnderstatHandler(CommonHandler):
         # prepare match_detail
         if not match_data['isResult']:
             return False
+        self.set_load_date(match_date)
         match_id = match_data['id']
         team     = match_data['h']
         name_h   = team['title']

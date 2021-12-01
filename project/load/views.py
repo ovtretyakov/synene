@@ -88,6 +88,19 @@ class LoadSourceUpdateView(BSModalUpdateView):
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
 
+    def form_valid(self, form):
+
+        if self.request.method == "POST" and not self.request.is_ajax():
+            cleaned_data = form.cleaned_data
+            new_load_date = cleaned_data["load_date"] 
+            if new_load_date:
+                (SourceDetail.objects.filter(load_source=self.object)
+                                    .filter(load_date__isnull=False)
+                                    .filter(load_date__gt=new_load_date)
+                                    .update(load_date=new_load_date)
+                )
+        return super().form_valid(form)
+
 class LoadSourceProcessView(BSModalUpdateView):
     model = LoadSource
     template_name = "load/process_load_source.html"
