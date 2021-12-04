@@ -270,6 +270,7 @@ class CommonHandler(MatchDetail, LoadSource):
                     league_upper = league_name.upper()
                     if not (league_upper.find('WORLD') >= 0):
                         i = 0
+                        #find by nationality
                         for c in Country.objects.raw(
                                     "SELECT * FROM core_country WHERE %s LIKE '%%' || UPPER(nationality) || '%%'",
                                     [league_upper]):
@@ -279,6 +280,17 @@ class CommonHandler(MatchDetail, LoadSource):
                                 break
                         if i > 1:
                             country = None
+                        #find by country name
+                        if i==0 and not country:
+                            for c in Country.objects.raw(
+                                        "SELECT * FROM core_country WHERE %s LIKE '%%' || UPPER(name) || '%%'",
+                                        [league_upper]):
+                                country = c
+                                i += 1
+                                if i >= 2:
+                                    break
+                            if i > 1:
+                                country = None
 
                 logger.debug("League.get_or_create name=<%s> slug=<%s>" % (league_name,league_slug))
                 self.league = League.get_or_create(

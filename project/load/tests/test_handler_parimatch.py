@@ -25,7 +25,7 @@ class ParimatchHandlerTest(TestCase):
         prepare_data(self)
 
     #######################################################################
-    def test_espn_handler_get(self):
+    def test_parimatch_handler_get(self):
         handler = ParimatchHandler.get()
         self.assertEquals(handler.slug, ParimatchHandler.SRC_PARIMATCH)
 

@@ -139,7 +139,7 @@ class OddBookieConfig(models.Model):
     bookie = models.ForeignKey(LoadSource, on_delete=models.CASCADE, verbose_name='Bookie')
     code = models.CharField('Odd code', max_length=100)
     name = models.CharField('Odd name', max_length=255, null=True, blank=True)
-    bet_type = models.ForeignKey(BetType, on_delete=models.CASCADE, verbose_name='Bet type')
+    bet_type = models.ForeignKey(BetType, on_delete=models.CASCADE, verbose_name='Bet type', null=True)
     period = models.IntegerField('Period', null=True, blank=True)
     param = models.CharField('Param', max_length=255, blank=True)
     team = models.CharField('Team', max_length=10, blank=True)
