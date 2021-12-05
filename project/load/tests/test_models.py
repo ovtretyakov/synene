@@ -105,6 +105,7 @@ class CommonHandlerModelTest(TestCase):
         detail_slug = 'test_details1'
         # 1
         result = handler.start_load(detail_slug)
+        self.assertTrue(result, 'start 1')
         self.assertIsNotNone(handler.source_detail)
         source_session_1 = handler.source_session
         source_detail_1 = handler.source_detail
@@ -129,11 +130,17 @@ class CommonHandlerModelTest(TestCase):
         handler.start_detail(detail_slug)
         self.assertEquals(handler.source_detail.status, SourceDetail.IN_PROCESS)
         self.assertEquals(handler.source_detail.pk, source_detail_pk)
-        start_load = handler.start_or_skip_league('common_handler_details_league 1')
-        start_load = handler.start_or_skip_league('common_handler_details_league 2')
-        start_load = handler.start_or_skip_match('common_handler_details_team 11','common_handler_details_team 12')
-        start_load = handler.start_or_skip_match('common_handler_details_team 21','common_handler_details_team 22')
-        start_load = handler.start_or_skip_match('common_handler_details_team 31','common_handler_details_team 32')
+        do_action = handler.start_or_skip_league('common_handler_details_league 1')
+        self.assertTrue(do_action, 'start league 1')
+        do_action = handler.start_or_skip_league('common_handler_details_league 2')
+        self.assertTrue(do_action, 'start league 2')
+        do_action = handler.start_or_skip_match('common_handler_details_team 11','common_handler_details_team 12')
+        self.assertTrue(do_action, 'start match 12')
+        do_action = handler.start_or_skip_match('common_handler_details_team 21','common_handler_details_team 22')
+        self.assertTrue(do_action, 'start match 22')
+        do_action = handler.start_or_skip_match('common_handler_details_team 31','common_handler_details_team 32')
+        self.assertTrue(do_action, 'start match 32')
+
         league_cnt = SourceDetailLeague.objects.filter(source_detail__load_source=handler).count()
         match_cnt = SourceDetailMatch.objects.filter(source_detail__load_source=handler).count()
         self.assertEquals(league_cnt, 2)
@@ -145,14 +152,14 @@ class CommonHandlerModelTest(TestCase):
         self.assertEquals(source_detail.status, SourceDetail.FINISHED)
         league_cnt = SourceDetailLeague.objects.filter(source_detail__load_source=handler).count()
         match_cnt = SourceDetailMatch.objects.filter(source_detail__load_source=handler).count()
-        self.assertEquals(league_cnt, 2)
-        self.assertEquals(match_cnt, 3)
+        self.assertEquals(league_cnt, 0)
+        self.assertEquals(match_cnt, 0)
         ## 2 - finish_load
         handler.finish_load()
         league_cnt = SourceDetailLeague.objects.filter(source_detail__load_source=handler).count()
         match_cnt = SourceDetailMatch.objects.filter(source_detail__load_source=handler).count()
-        self.assertEquals(league_cnt, 2)
-        self.assertEquals(match_cnt, 3)
+        self.assertEquals(league_cnt, 0)
+        self.assertEquals(match_cnt, 0)
         ## 2 - start_load
         handler.start_load()
         league_cnt = SourceDetailLeague.objects.filter(source_detail__load_source=handler).count()

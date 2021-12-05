@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from project.core.models import Country
 from project.betting.models import BetType
-from ..models import CommonHandler
+from ..models import CommonHandler, SourceDetail
 from ..exceptions import TooMamyErrors
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class FootballDataHandler(CommonHandler):
         return hdir.path('football_data') 
 
 
-    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None):
+    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, number_of_days=10):
         source_session = None
         try:
             source_session = self.start_load(is_debug=debug_level)
@@ -55,10 +55,14 @@ class FootballDataHandler(CommonHandler):
             soup = BeautifulSoup(html, 'html.parser')
             main_leagues_p = soup.find('b', string='Main Leagues').parent
 
+            if not start_date:
+                start_date = self.get_load_date()
+
             main_leagues_table = main_leagues_p.find_next_sibling('table')
             extra_leagues_table = main_leagues_table.find_next_sibling('table')
             leagues = main_leagues_table.find_all('tr') + extra_leagues_table.find_all('tr')
             # for row in main_leagues_table.find_all('tr'):
+            last_date = None
             for league in leagues:
                 self.context = html
                 league_a = league.select('td:nth-child(2) > a')[0]
@@ -66,23 +70,30 @@ class FootballDataHandler(CommonHandler):
                 country_name = league_name.split()[0]
                 league_href = league_a['href']
                 if not league_href.startswith('http'): league_href = urljoin(main_url, league_href)
-                self.process_country_league(country_name, league_href, 
+                league_last_date = self.process_country_league(
+                                            country_name, league_href, 
                                             debug_level, get_from_file, is_debug_path, 
-                                            start_date)
+                                            start_date, number_of_days)
+                
                 if debug_level == 2:
                     break
+                if league_last_date and (not last_date or league_last_date > last_date):
+                        last_date = league_last_date
+            if last_date:
+                self.set_load_date(load_date=last_date, is_set_main=True)
 
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
         finally:
             self.finish_load()
+        
         return source_session
 
 
 
     def process_country_league(self, country_name, country_url, 
                                 debug_level=0, get_from_file=False, is_debug_path=True,
-                                init_start_date=None):
+                                init_start_date=None, number_of_days=10):
         ''' Process all country leagues 
             Site http://www.football-data.co.uk
 
@@ -104,29 +115,42 @@ class FootballDataHandler(CommonHandler):
             start_date = init_start_date
         else:
             start_date = self.get_load_date()
-        if start_date.month <= 6:
-            start_year = start_date.year-1
+        if debug_level >= 2:
+            # if debug - get only one season of league
+            # beacause no file with prevoous season
+            if start_date.month <= 6:
+                start_year = start_date.year
+            else:
+                start_year = start_date.year+1
         else:
             start_year = start_date.year
-        logger.info('Start date: %s, Start year: %s' % (start_date, start_year))
+
+        finish_date = start_date + timedelta(days=number_of_days)
+        finish_year = finish_date.year
+        logger.info('Start country: %s, date: %s, Start year: %s, Finish date: %s' % (country_name, start_date, start_year, finish_date))
 
         soup = BeautifulSoup(html, 'html.parser')
-        pattern = re.compile(r'(\d+)/')   #<i>Season 1993/1994</i>
+        pattern = re.compile(r'(\d+)/(\d+)')   #<i>Season 1993/1994</i>
 
         # <i>Season 2000/2001</i>
         seasons = soup.find_all('i', string=re.compile('Season'))
+        last_date = None
         if seasons:
             for season in sorted(seasons, key=str):
                 self.context = season
-                start_season_year_str = int(pattern.search(season.string)[1])
+                search_result = pattern.search(season.string)
+                start_season_year_str = search_result[1]
                 start_season_year = int(start_season_year_str)
+                end_season_year_str = search_result[2]
+                end_season_year = int(end_season_year_str)
                 season_name = season.get_text().strip()
-                if start_season_year >= start_year :
+                logger.debug('Season: %s, end_season_year: %s, start_year: %s, start_season_year: %s, finish_year: %s' % (season_name, end_season_year, start_year, start_season_year, finish_year))
+                if end_season_year >= start_year and start_season_year <= finish_year:
                     for tag in season.find_next_siblings(['a','i']):
                         if tag.name == 'i':
                             # found tag i - start next season
-                            if debug_level:
-                                break
+                            logger.debug('Break i')
+                            break
                         elif tag.name == 'a':
                             #<a href="mmz4281/9798/E0.csv">Premier League</a>
                             league_name = str(tag.string)
@@ -134,25 +158,37 @@ class FootballDataHandler(CommonHandler):
                             if not league_href.startswith('http'): league_href = urljoin(country_url, league_href)
                             if league_href.find('csv') < 0:
                                 #not csv file - exit from for
+                                logger.debug('Break csv')
                                 break
-                        self.process_league(country, country_name, league_name, league_href, start_date, 
-                                        start_season_year_str, 
-                                        debug_level=debug_level, get_from_file=get_from_file, is_debug_path=is_debug_path)
+                        logger.info('Start process1 league: %s - %s' % (country_name, league_name))
+                        league_last_date = self.process_league(country, country_name, league_name, league_href, start_date, finish_date,
+                                                        start_season_year_str, 
+                                                        debug_level=debug_level, get_from_file=get_from_file, is_debug_path=is_debug_path)
+                        logger.info('Finish process1 league: %s - %s' % (country_name, league_name))
                         if debug_level >= 2:
+                            logger.debug('Break level 2')
                             break
+                        if league_last_date and (not last_date or league_last_date > last_date):
+                                last_date = league_last_date
                     if debug_level >= 1:
+                        logger.debug('Break level 1')
                         break
+                logger.debug('Next season')
         else:
             CSV = soup.find('a', string='CSV')
             self.context = CSV
             league_name = ''
             league_href = CSV['href']
             if not league_href.startswith('http'): league_href = urljoin(country_url, league_href)
-            self.process_league(country, country_name, league_name, league_href, start_date=start_date, 
+            logger.info('Start process2 league: %s - %s' % (country_name, league_name))
+            last_date = self.process_league(
+                            country, country_name, league_name, league_href, start_date=start_date, finish_date=finish_date, 
                             debug_level=debug_level, get_from_file=get_from_file, is_debug_path=is_debug_path)
+            logger.info('Finish process2 league: %s - %s' % (country_name, league_name))
+        return last_date
 
 
-    def process_league(self, country, country_name, league_name, league_url, start_date, start_year='', 
+    def process_league(self, country, country_name, league_name, league_url, start_date, finish_date, start_year='', 
                         debug_level=0, get_from_file=False, is_debug_path=True):
         ''' Process single league
             Site http://www.football-data.co.uk
@@ -172,16 +208,25 @@ class FootballDataHandler(CommonHandler):
         reader = csv.DictReader(html.splitlines())
 
         if league_name:
-            if not self.start_or_skip_league(country_name + ' ' + league_name, country=country, detail_slug=league_name):
-                return
+            logger.info('start_or_skip_league: %s - %s' % (country_name, league_name))
+            if not self.start_or_skip_league(country_name + ' ' + league_name, 
+                                            country = country, season_name = start_year,
+                                            detail_slug = country_name + ' ' + league_name):
+                logger.info('Skip ...')
+                return None
         else:
+            logger.info('start_detail: %s' % (country_name))
             self.start_detail(country_name) 
         last_date = None
+        match_date = None
+        exists = False
         for row in reader:
+            if not row:
+                continue
             self.context = row
 
             try:
-                league_name, last_date = self.process_match(country, country_name, league_name, start_date, row)
+                league_name, match_date = self.process_match(country, country_name, league_name, start_date, finish_date, row)
             except TooMamyErrors:
                 raise
             except Exception as e:
@@ -189,13 +234,21 @@ class FootballDataHandler(CommonHandler):
             finally:
                 self.context = None
 
-        if last_date:
+            if match_date and match_date > finish_date:
+                #date too big
+                break
+            elif match_date:
+                last_date = match_date
+                exists = True
+
+        if exists and last_date:
             self.set_load_date(last_date)
         self.finish_league() 
-        self.finish_detail() 
+        # self.finish_detail()
+        return last_date 
 
 
-    def process_match(self, country, country_name, league_name, start_date, match_data):
+    def process_match(self, country, country_name, league_name, start_date, finish_date, match_data):
         ''' Process single match
             Site http://www.football-data.co.uk
 
@@ -211,9 +264,13 @@ class FootballDataHandler(CommonHandler):
         elif len(match_date_str) == 10:
             match_date=datetime.strptime(match_date_str, "%d/%m/%Y").date()
         else:
-            raise ValueError('Empty match date')
+            # Skip empty match date
+            logger.info('Skip empty match date. League: %s' % league_name)
+            return league_name, None
         if match_date < start_date:
             return league_name, None
+        if match_date > finish_date:
+            return league_name, match_date
 
 
         row_league_name = match_data.get('League', '')
@@ -223,10 +280,10 @@ class FootballDataHandler(CommonHandler):
                 if row_league_name != league_name:
                     self.finish_league()
                     if not self.start_or_skip_league(country_name + ' ' + row_league_name, country=country):
-                        return row_league_name, None
+                        return league_name, None
             else:
                 if not self.start_or_skip_league(country_name + ' ' + row_league_name, country=country):
-                    return row_league_name, None
+                    return league_name, None
             league_name = row_league_name
         else:
             #setting load date only for main league_name
@@ -242,6 +299,7 @@ class FootballDataHandler(CommonHandler):
             away_team = match_data['AwayTeam']
         except KeyError:
             away_team = match_data['Away']
+        logger.info('match: %s - %s' % (home_team, away_team))
 
 
         #h_goals
@@ -393,7 +451,17 @@ class FootballDataHandler(CommonHandler):
             handicap_h = match_data.get('BbAvAHH', None)
             handicap_a = match_data.get('BbAvAHA', None)
 
-        if handicap_h:
+        if handicap_h or handicap_a:
+            #find parameter like "0,+0.5"
+            i = handicap_param.find(",")
+            if i >= 0:
+                p1 = handicap_param[i+1:]
+                p2 = handicap_param[:i]
+                v1 = Decimal(p1)
+                v2 = Decimal(p2)
+                handicap_param = str((v1+v2)/2)
+
+        if handicap_h and handicap_param != -1.2 and handicap_param != 1.2:
             self.odds.append(
                     {
                         'bet_type':BetType.HANDICAP, 
@@ -401,7 +469,7 @@ class FootballDataHandler(CommonHandler):
                         'odd_value':handicap_h, 
                         'param':handicap_param
                     })
-        if handicap_a:
+        if handicap_a and handicap_param != -1.2 and handicap_param != 1.2:
             param = Decimal(handicap_param)
             param = '0' if param==0 else str(-1*param)
             self.odds.append(

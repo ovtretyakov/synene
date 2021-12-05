@@ -131,7 +131,8 @@ class Loadable(Mergable, models.Model):
             if source_obj.status==ObjectLoadSource.DELETED:
                 obj = None
             else:
-                obj = cls.objects.get(object=source_obj)
+                # obj = cls.objects.get(object=source_obj)
+                obj = source_obj.get_main_object()
             found = True
         except load_source_class.DoesNotExist:
             obj = None
@@ -196,7 +197,7 @@ class ObjectLoadSource(models.Model):
         (DELETED, 'Deleted'),
     )
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     sport = models.ForeignKey('Sport', on_delete=models.CASCADE, verbose_name='Sport', 
                               related_name="%(app_label)s_%(class)s_sport",)
     country = models.ForeignKey('Country', on_delete=models.CASCADE, verbose_name='Country',
@@ -251,7 +252,7 @@ class LoadSource(models.Model):
     SRC_1XBET         = '1xbet'
     SRC_PARIMATCH     = 'parimatch'
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     name = models.CharField('Source', max_length=100)
     reliability = models.IntegerField('Reliability')
@@ -266,6 +267,7 @@ class LoadSource(models.Model):
     min_odd = models.DecimalField('Min odd', max_digits=10, decimal_places=3, default=1.1)
     max_odd = models.DecimalField('Max odd', max_digits=10, decimal_places=3, default=10)
     error_limit = models.IntegerField('Error limit', default=10)
+    load_days = models.IntegerField('Load days', default=10)
 
     class Meta:
         constraints = [
@@ -278,15 +280,21 @@ class LoadSource(models.Model):
     def lock(self):
         obj = LoadSource.objects.select_for_update().get(pk=self.pk)
 
-    def download(self):
+    def download(self, local_files):
         from project.load.handlers.espn import ESPNHandler
+        from project.load.handlers.football_data import FootballDataHandler
+        from project.load.handlers.understat import UnderstatHandler
+        from project.load.handlers.xscores import XScoresHandler
 
         cls = locals().get(self.source_handler)
         if not cls: 
             raise ValueError('Unknonwn source handler "%s"' % self.source_handler)
 
         handler = cls.objects.get(pk=self.pk)
-        handler.process()
+        if local_files:
+            handler.process(number_of_days=handler.load_days, get_from_file=True, is_debug_path=False, debug_level=1)
+        else:
+            handler.process(number_of_days=handler.load_days)
 
 ###################################################################
 class Country(Loadable):
@@ -363,6 +371,9 @@ class CountryLoadSource(ObjectLoadSource):
         self.country_obj = real_object
         self.save()
 
+    def get_main_object(self):
+        return self.country_obj
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['sport','slug','load_source'], name='unique_country_load_source'),
@@ -385,7 +396,7 @@ class TeamType(models.Model):
 ###################################################################
 class League(SaveSlugCountryMixin, Loadable):
 
-    slug = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100)
     name = models.CharField('League', max_length=100)
     team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
@@ -421,6 +432,10 @@ class League(SaveSlugCountryMixin, Loadable):
             slug = slugify(name)
         league = League(slug=slug, name=name, team_type=team_type, sport=sport, country=country)
         league._create(**kwargs)
+
+        league_cnt = League.objects.all().count()
+        load_league_cnt = LeagueLoadSource.objects.all().count()
+
         return league
 
     @staticmethod
@@ -453,8 +468,9 @@ class League(SaveSlugCountryMixin, Loadable):
             if load_status == Loadable.CONFIRMED:
                 self.confirm(load_source)
 
-    def api_merge_to(self, league_dst):
+    def api_merge_to(self, league_dst_id):
         with transaction.atomic():
+            league_dst = League.objects.get(id = league_dst_id)
             self.merge_to(league_dst)
 
 
@@ -503,7 +519,9 @@ class League(SaveSlugCountryMixin, Loadable):
         return Season.get_or_create(self, start_date, end_date, load_source, name)
 
     def process_empty_season(self, load_source=None):
-        for match in Match.objects.filter(league=self, season__isnull=True):
+        matches_1 = Match.objects.filter(league=self, season__isnull=True)
+        matches_2 = Match.objects.filter(league=self, season__name=Season.UNKNOWN)
+        for match in matches_1.union(matches_2, all=True):
             match.set_season(load_source=load_source)
 
 
@@ -516,6 +534,9 @@ class LeagueLoadSource(ObjectLoadSource):
         self.league = real_object
         self.save()
 
+    def get_main_object(self):
+        return self.league
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['sport','country','slug','load_source'], name='unique_league_load_source'),
@@ -525,6 +546,8 @@ class LeagueLoadSource(ObjectLoadSource):
 
 ###################################################################
 class Season(models.Model):
+
+    UNKNOWN = "Unknown"
 
     name = models.CharField('Season', max_length=100)
     league = models.ForeignKey(League, on_delete=models.CASCADE, verbose_name='League')
@@ -537,18 +560,34 @@ class Season(models.Model):
 
     @staticmethod
     def get_season(league, match_date):
-        try:
-            season = Season.objects.get(league=league, start_date__lte=match_date, end_date__gte=match_date)
-        except ObjectDoesNotExist:
-            season = None
+        season = Season.objects.filter(league=league, start_date__lte=match_date, end_date__gte=match_date).order_by('-start_date').first()
+        if season == None:
+            # get or create Unknown season
+            season = Season.get_or_create(league=league, 
+                                          start_date=None, 
+                                          end_date=None, 
+                                          load_source=None, 
+                                          name=Season.UNKNOWN)
         return season
 
     @staticmethod
     def get_or_create(league, start_date, end_date, load_source, name=None):
         if not league:
             raise ValueError('Missing league')
-        if not start_date or not end_date:
-            season = Season.objects.filter(league=league).order_by('start_date').first()
+        if not load_source:
+            load_source = LoadSource.objects.get(sport=league.sport, slug=LoadSource.SRC_UNKNOWN)
+        if name == Season.UNKNOWN:
+            # get or create Unknown season
+            try:
+                season = Season.objects.get(league=league, name=Season.UNKNOWN)
+            except ObjectDoesNotExist:
+                season = Season.objects.create(league=league, 
+                                               start_date=None,
+                                               end_date=None,
+                                               load_source=load_source,
+                                               name=Season.UNKNOWN)
+        elif not start_date or not end_date:
+            season = Season.objects.filter(league=league).exclude(name=Season.UNKNOWN).order_by('start_date').first()
             if season:
                 raise ValueError('Season already exists "%s"' % season)
             else:
@@ -566,18 +605,22 @@ class Season(models.Model):
                 name = str(start_date.year) + '\\' + str(end_date.year)
             mid_date = (start_date + (end_date-start_date)/2)
             season = Season.get_season(league, mid_date)
-            if not season:
-                season = Season.get_season(league, start_date)
-            if not season:
+            if season.name == Season.UNKNOWN:
+                season_prev = Season.get_season(league, start_date)
+                if season_prev.name != Season.UNKNOWN:
+                    start_date = season_prev.end_date + timedelta(days=1)
+                if start_date > end_date:
+                    raise ValueError('Incorrect season dates: previous season end (%s) is greater than start date (%s)' % (start_date,end_date))
                 season = Season.objects.create(league=league, 
                                                start_date=start_date,
                                                end_date=end_date,
                                                load_source=load_source,
                                                name=name)
             else:
-                if load_source and (not season.load_source or 
-                                    load_source.reliability <= season.load_source.reliability
-                                    ):
+                if (load_source.slug != LoadSource.SRC_UNKNOWN and 
+                              (season.load_source.slug == LoadSource.SRC_UNKNOWN or 
+                              load_source.reliability <= season.load_source.reliability)
+                    ):
                     changed = False
                     if season.start_date != start_date: season.start_date=start_date; changed = True;
                     if season.end_date != end_date: season.end_date=end_date; changed = True;
@@ -591,19 +634,14 @@ class Season(models.Model):
         if league_dst == None or league_dst == self.league:
             return
 
-        change_season = (self.load_source.reliability < league_dst.load_source.reliability)
+        # change_season = (self.load_source.reliability < league_dst.load_source.reliability)
 
-        if self.start_date==None or self.end_date==None:
+        if self.name == Season.UNKNOWN or self.start_date==None or self.end_date==None:
             #unknown season date interval
             #delete all team membership
             #later all teams of this league should connected with season (after changing teams league)
             TeamMembership.objects.filter(season=self).delete()
-            seasons_dst = Season.objects.all()
-            if seasons_dst.exists():
-                self.delete()
-            else:
-                self.league = league_dst
-                self.save()
+            self.delete()
         else:
             #define date interval
             #check - if there are seasons in interval self.start_date and self.end_date
@@ -636,7 +674,7 @@ class Season(models.Model):
 ###################################################################
 class Team(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     name = models.CharField('Team', max_length=100)
     team_type = models.ForeignKey(TeamType, on_delete=models.PROTECT, verbose_name='Team type')
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
@@ -698,9 +736,10 @@ class Team(SaveSlugCountryMixin, Loadable):
             if load_status == Loadable.CONFIRMED:
                 self.confirm(load_source)
 
-    def api_merge_to(self, league_dst):
+    def api_merge_to(self, team_dst_id):
         with transaction.atomic():
-            self.merge_to(league_dst)
+            team_dst = Team.objects.get(id = team_dst_id)
+            self.merge_to(team_dst)
 
 
     def get_season(self, match_date):
@@ -772,6 +811,9 @@ class TeamLoadSource(ObjectLoadSource):
         self.team = real_object
         self.save()
 
+    def get_main_object(self):
+        return self.team
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['sport','country','slug','load_source'], name='unique_team_load_source'),
@@ -790,11 +832,13 @@ class TeamMembership(models.Model):
             models.UniqueConstraint(fields=['team', 'season'], name='unique_team_membership'),
         ]
 
+    def __str__(self):
+        return str(self.team) + ":" + str(self.season)        
 
 ###################################################################
 class Referee(SaveSlugCountryMixin, Loadable):
 
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     name = models.CharField('Referee', max_length=100)
     sport = models.ForeignKey(Sport, on_delete=models.PROTECT, verbose_name='Sport')
     country = models.ForeignKey(Country, on_delete=models.PROTECT, verbose_name='Country')
@@ -824,6 +868,34 @@ class Referee(SaveSlugCountryMixin, Loadable):
         referee = Referee(slug=slug, name=name, sport=sport, country=country)
         referee._create(**kwargs)
         return referee
+
+    @staticmethod
+    def api_delete_referees(referees_str):
+        for referee_str in referees_str.split(","):
+            with transaction.atomic():
+                referee =  Referee.objects.get(pk=int(referee_str))
+                referee.delete_object()
+
+    @staticmethod
+    def api_confirm_referees(referees_str, load_source):
+        for referee_str in referees_str.split(","):
+            with transaction.atomic():
+                referee =  Referee.objects.get(pk=int(referee_str))
+                referee.confirm(load_source)
+
+    def api_update(self, slug, name, country, load_status, load_source):
+        with transaction.atomic():
+            self.slug = slug
+            self.name = name
+            self.save()
+            self.change_country(country)
+            if load_status == Loadable.CONFIRMED:
+                self.confirm(load_source)
+
+    def api_merge_to(self, referee_dst_id):
+        with transaction.atomic():
+            referee_dst = Referee.objects.get(id = referee_dst_id)
+            self.merge_to(referee_dst)
 
     def delete_object(self):
         ''' Delete referee '''
@@ -860,6 +932,9 @@ class RefereeLoadSource(ObjectLoadSource):
     def init_object(self, real_object):
         self.referee = real_object
         self.save()
+
+    def get_main_object(self):
+        return self.referee
 
     class Meta:
         constraints = [
@@ -970,8 +1045,19 @@ class Match(Mergable, models.Model):
                                 load_source.reliability <= match.load_source.reliability
                                 ):
                 changed = False
+                if not season:
+                    season = Season.get_or_create(league=league, 
+                                          start_date=None, 
+                                          end_date=None, 
+                                          load_source=None, 
+                                          name=Season.UNKNOWN)
                 if status and match.status != status: match.status=status; changed = True;
-                if season and match.season != season: match.season=season; changed = True;
+                if match.season != season: 
+                    match.season=season; 
+                    if season and season.name != Season.UNKNOWN:
+                        team_h.set_membership(season=season, load_source=load_source)
+                        team_a.set_membership(season=season, load_source=load_source)
+                    changed = True;
                 if match.load_source != load_source: match.load_source=load_source; changed = True;
                 if changed: match.save()
         else:
@@ -981,7 +1067,7 @@ class Match(Mergable, models.Model):
             if not team_a: raise ValueError('Missing away team')
             if team_h==team_a: raise ValueError('Teams are the same')
             if not match_date: raise ValueError('Missing match date')
-            if not season: season = league.get_season(match_date)
+            if not season or season.name == Season.UNKNOWN: season = league.get_season(match_date)
             match = Match.objects.create(league=league, 
                                          season=season,
                                          team_h=team_h,
@@ -990,7 +1076,7 @@ class Match(Mergable, models.Model):
                                          status=status,
                                          load_source=load_source
                                          )
-            if season:
+            if season and season.name != Season.UNKNOWN:
                 team_h.set_membership(season=season, load_source=load_source)
                 team_a.set_membership(season=season, load_source=load_source)
         return match
@@ -1009,6 +1095,7 @@ class Match(Mergable, models.Model):
             self.merge_to(match_dst)
         else:
             self.league = league_dst
+            self.season = league_dst.get_season(self.match_date)
             self.save()
 
     def change_team_h(self, team_dst):
@@ -1054,7 +1141,7 @@ class Match(Mergable, models.Model):
     def set_season(self, season=None, load_source=None):
         if not season:
             season = Season.get_season(self.league, self.match_date)
-        if season:
+        if season and season.name != Season.UNKNOWN:
             if season != self.season:
                 self.season = season
                 self.save()

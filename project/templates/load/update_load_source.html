@@ -29,7 +29,7 @@
     <!-- reliability -->
     <div class="form-group col-sm">
       {% render_field form.reliability|add_label_class:"col-form-label"  %}
-      {% render_field form.reliability|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.reliability.label %}
+      {% render_field form.reliability|add_error_class:"is-invalid" class="form-control form-control-sm text-right" placeholder=form.reliability.label %}
       <div class="text-danger">{{form.reliability.errors}}</div>
     </div>
   </div>
@@ -63,6 +63,12 @@
       {% render_field form.is_betting|add_label_class:"col-form-label"  %}
       {% render_field form.is_betting|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.is_betting.label %}
       <div class="text-danger">{{form.is_betting.errors}}</div>
+    </div>
+    <!-- load_days -->
+    <div class="form-group col-sm">
+      {% render_field form.load_days|add_label_class:"col-form-label"  %}
+      {% render_field form.load_days|add_error_class:"is-invalid" class="form-control form-control-sm text-right" placeholder=form.load_days.label %}
+      <div class="text-danger">{{form.load_days.errors}}</div>
     </div>
   </div>
 

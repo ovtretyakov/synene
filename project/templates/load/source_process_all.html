@@ -1,0 +1,56 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Load All Sources{% endblock %}
+{% block form_id %}formLoadAll{% endblock form_id %}
+
+
+{% block modal-body %}
+
+
+  <div class="alert alert-info" role="alert">
+    <p class="lead">The following sources are prepared for queuing.<br>Process?</p>
+  </div>
+
+
+  <input type="hidden" class="form-control form-control-sm" id="leagues_id" name="leagues_id" value="{{leagues_id}}">
+
+      <div class="table-responsive">
+        <table id="main-table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Rely lvl</th>
+              <th>Load date</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+
+  <script>
+
+    $(document).ready(function () {
+
+      var table = $('#main-table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'load:source_list_api'  %}?format=datatables&loadable=1",
+              'order': [[ 0, 'asc' ]],
+              'columns': [
+                  {'data': 'id', 'width':'6em'},
+                  {'data': 'name'},
+                  {'data': 'reliability', 'width':'8em'},
+                  {'data': 'load_date', 'width':'12em'},
+              ],
+      });
+
+
+    });
+  </script>
+
+
+{% endblock %}
+
+
+{% block button-action %}Load sources{% endblock %}

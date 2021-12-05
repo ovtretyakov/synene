@@ -17,11 +17,12 @@ from project.core.views import (LeagueMergeView, LeaguesDeleteView, LeaguesConfi
                                 SeasonAPI,
                                 MatchAPI,
                                 TeamMergeView, TeamsDeleteView, TeamsConfirmView,
+                                RefereeMergeView, RefereesDeleteView, RefereesConfirmView,
                                 )
 from project.core.mixins import LeagueGetContextMixin
 
-from .models import FootballLeague, FootballTeam
-from .serializers import FootballLeagueSerializer, FootballTeamSerializer
+from .models import FootballLeague, FootballTeam, FootballReferee
+from .serializers import FootballLeagueSerializer, FootballTeamSerializer, FootballRefereeSerializer
 
 
 
@@ -34,8 +35,12 @@ class FootballLeagueView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
         context = super(FootballLeagueView, self).get_context_data(**kwargs)
+
         load_sources = LoadSource.objects.all().order_by("pk")
         context["sources"] = load_sources
+
+        load_statuses = (("a", "All"),) + FootballLeague.STATUS_CHOICES
+        context["statuses"] = load_statuses
 
         date_to = self.request.GET.get("date_to", None)
         if date_to:
@@ -46,6 +51,11 @@ class FootballLeagueView(generic.TemplateView):
         selected_source = self.request.GET.get("source", None)
         if selected_source:
             context["selected_source"] = int(selected_source)
+        selected_status = self.request.GET.get("status", None)
+        if selected_status:
+            context["selected_status"] = selected_status
+        else:
+            context["selected_status"] = "a"
 
         return context    
 
@@ -66,6 +76,9 @@ class FootballLeagueAPI(ListAPIView):
         load_source_id = self.request.query_params.get("selected_source", None)
         if load_source_id and int(load_source_id) > 0:
             queryset = queryset.filter(load_source=load_source_id)
+        selected_status = self.request.query_params.get("selected_status", None)
+        if selected_status and selected_status != "a":
+            queryset = queryset.filter(load_status=selected_status)
         leagues = self.request.query_params.get("leagues", None)
         if leagues:
             leagues_id = leagues.split(",")
@@ -133,6 +146,9 @@ class FootballTeamView(generic.TemplateView):
         team_types = TeamType.objects.all().order_by("name")
         context["team_types"] = team_types
 
+        load_statuses = FootballLeague.STATUS_CHOICES
+        context["statuses"] = load_statuses
+
         selected_source = self.request.GET.get("source", None)
         if selected_source:
             context["selected_source"] = int(selected_source)
@@ -142,6 +158,12 @@ class FootballTeamView(generic.TemplateView):
         selected_team_type = self.request.GET.get("team_type", None)
         if selected_team_type:
             context["selected_team_type"] = int(selected_team_type)
+
+        selected_status = self.request.GET.get("status", None)
+        if selected_status:
+            context["selected_status"] = selected_status
+        else:
+            context["selected_status"] = "a"
 
         return context
 
@@ -161,6 +183,10 @@ class FootballTeamAPI(ListAPIView):
         load_source_id = self.request.query_params.get("selected_source", None)
         if load_source_id and int(load_source_id) > 0:
             queryset = queryset.filter(load_source=load_source_id)
+
+        selected_status = self.request.query_params.get("selected_status", None)
+        if selected_status and selected_status != "a":
+            queryset = queryset.filter(load_status=selected_status)
 
         country_id = self.request.query_params.get("selected_country", None)
         if country_id and int(country_id) > 0:
@@ -184,3 +210,77 @@ class FootballTeamsDeleteView(TeamsDeleteView):
 
 class FootballTeamsConfirmView(TeamsConfirmView):
     template_name = "football/confirm_teams.html"
+
+
+
+####################################################
+#  FootballReferee
+####################################################
+class FootballRefereeView(generic.TemplateView):
+    template_name = "football/referee_list.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(FootballRefereeView, self).get_context_data(**kwargs)
+
+        load_sources = LoadSource.objects.all().order_by("pk")
+        context["sources"] = load_sources
+        countries = Country.objects.all().order_by("name")
+        context["countries"] = countries
+        load_statuses = FootballLeague.STATUS_CHOICES
+        context["statuses"] = load_statuses
+
+        selected_source = self.request.GET.get("source", None)
+        if selected_source:
+            context["selected_source"] = int(selected_source)
+        selected_country = self.request.GET.get("country", None)
+        if selected_country:
+            context["selected_country"] = int(selected_country)
+        selected_status = self.request.GET.get("status", None)
+        if selected_status:
+            context["selected_status"] = selected_status
+        else:
+            context["selected_status"] = "a"
+
+        return context
+
+
+class FootballRefereeAPI(ListAPIView):
+    serializer_class = FootballRefereeSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = FootballReferee.objects.all()
+
+        referees = self.request.query_params.get("referees", None)
+        if referees:
+            referees_id = referees.split(",")
+            queryset = queryset.filter(pk__in=referees_id)
+
+        load_source_id = self.request.query_params.get("selected_source", None)
+        if load_source_id and int(load_source_id) > 0:
+            queryset = queryset.filter(load_source=load_source_id)
+
+        selected_status = self.request.query_params.get("selected_status", None)
+        if selected_status and selected_status != "a":
+            queryset = queryset.filter(load_status=selected_status)
+
+        country_id = self.request.query_params.get("selected_country", None)
+        if country_id and int(country_id) > 0:
+            queryset = queryset.filter(country=country_id)
+
+        return queryset
+
+
+class SelectFootballRefereeView(generic.TemplateView):
+    template_name = "football/select_referee.html"
+
+class FootballRefereeMergeView(RefereeMergeView):
+    template_name = "football/merge_referee.html"
+
+class FootballRefereesDeleteView(RefereesDeleteView):
+    template_name = "football/delete_referees.html"
+
+class FootballRefereesConfirmView(RefereesConfirmView):
+    template_name = "football/confirm_referees.html"
+

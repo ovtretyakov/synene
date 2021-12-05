@@ -24,4 +24,11 @@ urlpatterns = [
     url(r'^team/merge/(?P<pk>\d+)/$', views.FootballTeamMergeView.as_view(), name='merge_team'),
     url(r'^teams/delete/$', views.FootballTeamsDeleteView.as_view(), name='delete_teams'),
     url(r'^teams/confirm/$', views.FootballTeamsConfirmView.as_view(), name='confirm_teams'),
+    #FootballReferees
+    url(r'^referees/$', views.FootballRefereeView.as_view(), name='referee_list'),
+    url(r'^referee_select/$', views.SelectFootballRefereeView.as_view(), name='select_referee'),
+    url(r'^referees/api/$', views.FootballRefereeAPI.as_view(), name='referee_list_api'),
+    url(r'^referee/merge/(?P<pk>\d+)/$', views.FootballRefereeMergeView.as_view(), name='merge_referee'),
+    url(r'^referees/delete/$', views.FootballRefereesDeleteView.as_view(), name='delete_referees'),
+    url(r'^referees/confirm/$', views.FootballRefereesConfirmView.as_view(), name='confirm_referees'),
 ]

@@ -10,6 +10,7 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalUpdateView,
                                            BSModalReadView,
                                            BSModalDeleteView)
+from background_task import background
 
 from project.core.utils import get_date_from_string
 from project.core.models import LoadSource
@@ -20,7 +21,20 @@ from .serializers import   (LoadSourceSerializer,
                             SourceSessionsSerializer,
                             SourceAllSessionsSerializer,
                             )
-from .forms import LoadSourceForm, LoadSourceProcessForm
+from .forms import LoadSourceForm, LoadSourceProcessForm, LoadSourceProcessAllForm
+
+from project.core.views import (LeagueMergeView, LeaguesDeleteView, LeaguesConfirmView,
+                                SeasonAPI,
+                                MatchAPI,
+                                TeamMergeView, TeamsDeleteView, TeamsConfirmView,
+                                RefereeMergeView, RefereesDeleteView, RefereesConfirmView,
+                                )
+
+
+@background
+def load_source_download(load_source_pk, local_files):
+    load_source = LoadSource.objects.get(pk=load_source_pk)
+    load_source.download(local_files)
 
 
 ####################################################
@@ -52,19 +66,19 @@ class LoadSourcesAPI(ListAPIView):
     queryset = LoadSource.objects.order_by("pk")
     lookup_field = "pk"
 
-    # def get_queryset(self):
-    #   queryset = LoadSource.objects.all()
+    def get_queryset(self):
+      queryset = LoadSource.objects.all()
 
-    #   # author_name = self.request.query_params.get("author_name", None)
-    #   # if author_name:
-    #   #     queryset = queryset.filter(Q(first_name__icontains=author_name) | Q(last_name__icontains=author_name))
-    #   # date_from = get_date_from_string(self.request.query_params.get("date_from", None))
-    #   # if date_from:
-    #   #     queryset = queryset.filter(date_of_birth__gte=date_from)
-    #   # date_to = get_date_from_string(self.request.query_params.get("date_to", None))
-    #   # if date_to:
-    #   #     queryset = queryset.filter(date_of_birth__lte=date_to)
-    #   return queryset
+      loadable = self.request.query_params.get("loadable", None)
+      if loadable and loadable:
+          queryset = queryset.filter(is_loadable=True)
+      # date_from = get_date_from_string(self.request.query_params.get("date_from", None))
+      # if date_from:
+      #     queryset = queryset.filter(date_of_birth__gte=date_from)
+      # date_to = get_date_from_string(self.request.query_params.get("date_to", None))
+      # if date_to:
+      #     queryset = queryset.filter(date_of_birth__lte=date_to)
+      return queryset
 
 class LoadSourceUpdateView(BSModalUpdateView):
     model = LoadSource
@@ -73,6 +87,19 @@ class LoadSourceUpdateView(BSModalUpdateView):
     success_message = "Success: Load sources was updated."
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
+
+    def form_valid(self, form):
+
+        if self.request.method == "POST" and not self.request.is_ajax():
+            cleaned_data = form.cleaned_data
+            new_load_date = cleaned_data["load_date"] 
+            if new_load_date:
+                (SourceDetail.objects.filter(load_source=self.object)
+                                    .filter(load_date__isnull=False)
+                                    .filter(load_date__gt=new_load_date)
+                                    .update(load_date=new_load_date)
+                )
+        return super().form_valid(form)
 
 class LoadSourceProcessView(BSModalUpdateView):
     model = LoadSource
@@ -90,11 +117,50 @@ class LoadSourceProcessView(BSModalUpdateView):
         # remember the import: from django.http import HttpResponseRedirect
 
         if self.request.method == "POST" and not self.request.is_ajax():
+            cleaned_data = form.cleaned_data
             try:
-                self.object.download()
+                load_source_download(self.object.pk, cleaned_data["local_files"])
+                # self.object.download()
                 messages.success(self.request, self.get_success_message())
             except Exception as e:
                 messages.error(self.request, "Processing error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+class LoadSourceProcessAllView(BSModalCreateView):
+    form_class = LoadSourceProcessAllForm
+    template_name = "load/source_process_all.html"
+    success_message = "Success: %(cnt)s sources were queued for processing."
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, cnt):
+        return self.success_message % {"cnt":cnt,}
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(LoadSourceProcessAllView, self).get_context_data(**kwargs)
+
+        # leagues_id = self.request.GET.get("leagues", None)
+        # if leagues_id:
+        #     context["leagues_id"] = leagues_id
+
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+            #     cleaned_data = form.cleaned_data
+            #     leagues_id = cleaned_data["leagues_id"]
+            #     League.api_delete_leagues(leagues_id)
+            #     cnt = len(leagues_id.split(","))
+
+                cnt = 0
+                for load_source in LoadSource.objects.filter(is_loadable=True).order_by("reliability"):
+                    load_source_download(load_source.pk, False)
+                    cnt += 1
+
+                messages.success(self.request, self.get_success_message(cnt))
+            except Exception as e:
+                messages.error(self.request, "Error:\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -177,6 +243,7 @@ class SourceAllSessionsAPI(ListAPIView):
 class SourceSessionDetail(BSModalReadView):
     model = SourceSession
     template_name = 'load/source_session_detail.html'
+
 
 
 ####################################################

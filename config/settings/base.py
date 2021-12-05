@@ -75,6 +75,7 @@ THIRD_PARTY_APPS = [
     "rest_framework_datatables",
     "bootstrap_modal_forms",
     'widget_tweaks',
+    'background_task',
 ]
 LOCAL_APPS = [
     "project.users.apps.UsersAppConfig",

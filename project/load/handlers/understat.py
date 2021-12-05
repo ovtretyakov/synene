@@ -43,7 +43,7 @@ class UnderstatHandler(CommonHandler):
 
 
 
-    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None):
+    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, number_of_days=10):
         ''' Process all leagues
             Site https://understat.com/
 
@@ -59,6 +59,7 @@ class UnderstatHandler(CommonHandler):
             soup = BeautifulSoup(html, 'html.parser')
 
             #select all leagues
+            load_date = None
             for league in soup.select('nav.m-navigation > ul > li > a'):
                 self.context = league
                 league_name = league.get_text().strip()
@@ -72,7 +73,11 @@ class UnderstatHandler(CommonHandler):
                         continue
 
                     #process league
-                    self.process_league(league_name, league_href, debug_level, get_from_file, is_debug_path, start_date)
+                    league_load_date = self.process_league(league_name, league_href, debug_level, get_from_file, 
+                                                           is_debug_path, start_date, number_of_days
+                                                           )
+                    if not load_date or league_load_date < load_date:
+                        load_date = league_load_date
 
                     self.finish_league()
                     self.finish_detail()
@@ -84,6 +89,9 @@ class UnderstatHandler(CommonHandler):
                     self.context = None
                     if debug_level >= 2: 
                         break
+            if load_date:
+                self.set_load_date(load_date=load_date, is_set_main=True)
+
 
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
@@ -96,7 +104,7 @@ class UnderstatHandler(CommonHandler):
 
     def process_league(self, league_name, league_url, 
                         debug_level=0, get_from_file=False, is_debug_path=True, 
-                        init_start_date=None):
+                        init_start_date=None, number_of_days=10):
         ''' Process single league
             Site https://understat.com/
 
@@ -121,26 +129,35 @@ class UnderstatHandler(CommonHandler):
             start_date = init_start_date
         else:
             start_date = self.get_load_date()
-        logger.info('Start date: %s' % start_date)
         if start_date.month <= 6:
             start_year = start_date.year-1
         else:
             start_year = start_date.year
+        finish_date = start_date + timedelta(days=number_of_days)
+        finish_year = finish_date.year
+        logger.info('Start date: %s, finish date: %s' % (start_date,finish_date))
+
+        load_date = None
         for season in sorted(soup.select('select[name="season"] > option'), key=lambda x: x['value']):
             self.context = season
             season_name = season.get_text().strip()
             season_value = season['value']
             season_year = int(season_value)
-            if int(season_value) >= start_year:
+            if int(season_value) >= start_year and int(season_value) <= finish_year:
                 logger.debug('Process %s year %s' % (season_name, season_value))
-                self.process_league_year(
-                                    league_url, season_year, start_date, 
-                                    debug_level, get_from_file, is_debug_path)
+                league_load_date = self.process_league_year(
+                                        league_url, season_year, start_date, finish_date,
+                                        debug_level, get_from_file, is_debug_path)
+                logger.info('Leageu load date: %s' % league_load_date)
+                if league_load_date:
+                    load_date = league_load_date
                 if debug_level >= 1: 
                     break
+        logger.info('Load date: %s' % load_date)
+        return load_date
 
 
-    def process_league_year(self, league_url, season_year, start_date, 
+    def process_league_year(self, league_url, season_year, start_date, finish_date,
                             debug_level=0, get_from_file=False, is_debug_path=True):
         ''' Process single league year
             Site https://understat.com/
@@ -165,6 +182,7 @@ class UnderstatHandler(CommonHandler):
         datesData = (datesData_pattern.search(script.string)[1]).encode('utf8').decode('unicode_escape')
         matches = json.loads(datesData)
         i = 0
+        load_date = None
         for match in matches:
             self.context = match
             i += 1
@@ -172,13 +190,17 @@ class UnderstatHandler(CommonHandler):
             try:
                 match_date_str = match['datetime'][:10]
                 match_date = datetime.strptime(match_date_str, "%Y-%m-%d").date()
+                if match_date > date.today():
+                    break
                 if match_date < start_date:
                     continue
                 elif debug_level == 1 and match_date > start_date: 
                     break
+                if match_date > finish_date:
+                    break
 
-                self.set_load_date(match_date)
-                self.process_match(match, debug_level, get_from_file, is_debug_path, match_date_str)
+                if self.process_match(match, debug_level, get_from_file, is_debug_path, match_date_str, match_date):
+                    load_date = match_date
             except TooMamyErrors:
                 raise
             except Exception as e:
@@ -187,9 +209,10 @@ class UnderstatHandler(CommonHandler):
                 self.context = None
                 if debug_level >= 2: 
                     break
+        return load_date
 
 
-    def process_match(self, match_data, debug_level=0, get_from_file=False, is_debug_path=True, match_date_str=None):
+    def process_match(self, match_data, debug_level=0, get_from_file=False, is_debug_path=True, match_date_str=None, match_date=None):
         ''' Process single match
             Site https://understat.com/
 
@@ -206,7 +229,8 @@ class UnderstatHandler(CommonHandler):
   
         # prepare match_detail
         if not match_data['isResult']:
-            return
+            return False
+        self.set_load_date(match_date)
         match_id = match_data['id']
         team     = match_data['h']
         name_h   = team['title']
@@ -245,6 +269,7 @@ class UnderstatHandler(CommonHandler):
             self.process_match_html(html)
 
             self.finish_match()
+        return True
 
 
     def process_match_html(self, html):

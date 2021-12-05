@@ -1,4 +1,4 @@
-from .models import Season
+from .models import Season, Referee
 
 
 class LeagueGetContextMixin(object):
@@ -25,5 +25,10 @@ class LeagueGetContextMixin(object):
             selected_season = Season.objects.select_related("league").get(pk=season_id)
             context["selected_league"] = int(selected_season.league.pk)
             context["selected_season"] = selected_season
+
+        referee_id = self.request.GET.get("referee_id", None)
+        if referee_id:
+            selected_referee = Referee.objects.get(pk=referee_id)
+            context["selected_referee"] = selected_referee
 
         return context    
