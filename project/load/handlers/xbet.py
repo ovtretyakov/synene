@@ -41,7 +41,7 @@ XBET_VALUE_TYPES = {
 ###################################################################
 class XBetHandler(CommonHandler):
 
-    base_url    = 'https://1xmavemv.com/'
+    base_url    = 'https://1xstavka.ru/'
     test_dir    = 'test_files'
     load_dir    = 'load_files'
 
@@ -67,7 +67,7 @@ class XBetHandler(CommonHandler):
 
     def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, main_file=None):
         ''' Process site
-            Site https://1xmavemv.com/line/Football/
+            Site https://1xstavka.ru/line/Football/
 
             Arguments:
             debug_level
@@ -85,7 +85,7 @@ class XBetHandler(CommonHandler):
                 else:
                     main_file = self.main_file % start_date.strftime('%Y-%m-%d')
 
-            main_url = 'https://1xmavemv.com/line/Football/'
+            main_url = 'https://1xstavka.ru/line/Football/'
             html = self.get_html(main_file, main_url, get_from_file, is_debug_path)
             self.context = html
 
@@ -121,8 +121,8 @@ class XBetHandler(CommonHandler):
     def process_league(self, league_url, debug_level, get_from_file, is_debug_path, start_date):
         date_pattern = re.compile(r"\d+\.\d+")   #09.04 22:00
         handicap_pattern = re.compile(r"([+-]*)([0-9.,]+)([+-]*)")   #+3.5-
-        match_pattern  = re.compile(r'/([0-9]+)[^/]*/$')  #https://1xmavemv.com/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
-        league_pattern = re.compile(r'Football/([0-9]+)') #https://1xmavemv.com/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+        match_pattern  = re.compile(r'/([0-9]+)[^/]*/$')  #https://1xstavka.ru/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+        league_pattern = re.compile(r'Football/([0-9]+)') #https://1xstavka.ru/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
 
         file_name = '1xbet_league.html'
         if debug_level != 2:
@@ -239,7 +239,7 @@ class XBetHandler(CommonHandler):
                 #process additional odds
                 ##############################################################
                 #find fatch id
-                #https://1xmavemv.com/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+                #https://1xstavka.ru/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
                 match_id  = match_pattern.search(teams_tag['href'])[1]
                 league_id = league_pattern.search(teams_tag['href'])[1]
                 event_cnt = event_tag.select_one('a.c-events__more.c-events__more_bets.js-showMoreBets').get_text().strip()
@@ -251,14 +251,14 @@ class XBetHandler(CommonHandler):
                 elif event_cnt <= 1000: event_cnt = 1000
                 elif event_cnt <= 1250: event_cnt = 1250
                 else: event_cnt = 1500
-                additional_url = ('https://1xmavemv.com/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
+                additional_url = ('https://1xstavka.ru/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
                                   % (match_id, event_cnt))
                 self.process_add_odds(additional_url, debug_level, get_from_file, is_debug_path)
                 ##############################################################
                 #process additional statistics
                 ##############################################################
                 sub_game_id = sub_game_ids[match_id]
-                additional_stat_url = ('https://1xmavemv.com/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
+                additional_stat_url = ('https://1xstavka.ru/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
                                   % (league_id, sub_game_id))
                 self.process_add_stats(additional_stat_url, debug_level, get_from_file, is_debug_path)
 
@@ -271,7 +271,7 @@ class XBetHandler(CommonHandler):
 
     def process_add_odds(self, add_url, debug_level, get_from_file, is_debug_path, file_suffix='', global_params={}):
 
-        file_name = "1xbet_add.json"
+        file_name = "1xbet_add"
         if debug_level != 2:
             file_name = self.add_file % (self.name_h.replace(" ", "_")[:20], self.name_a.replace(" ", "_")[:20])
         if file_suffix: file_name += ('_' + file_suffix.replace(' ', '_'))
@@ -351,7 +351,7 @@ class XBetHandler(CommonHandler):
                 elif group_name == 'Ball Possession': global_params['value_type'] = 'ball_poss'
                 if period_name and period_name.find('1') >= 0: global_params['period'] = 1
                 if period_name and period_name.find('2') >= 0: global_params['period'] = 2
-                add_url = ('https://1xmavemv.com/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
+                add_url = ('https://1xstavka.ru/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
                            % (group_id,event_cnt)
                            )
                 # print('!!!', full_name, add_url)
