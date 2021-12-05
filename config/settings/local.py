@@ -23,7 +23,7 @@ DATABASES = {
         'OPTIONS': {
             'options': '-c search_path=synene,public'
         },
-        'NAME': 'dev_synene',
+        'NAME': 'test_synene',
         'USER': 'synene_handler',
         'PASSWORD': 'dummy',
 #        'HOST': '192.168.1.11',
