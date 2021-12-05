@@ -274,6 +274,8 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# bat files in root directory
+/*.bat
 
 ### SublimeText template
 # Cache files for Sublime Text
