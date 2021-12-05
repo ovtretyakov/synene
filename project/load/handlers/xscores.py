@@ -40,7 +40,7 @@ class XScoresHandler(CommonHandler):
         return hdir.path('xscores') 
 
 
-    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None):
+    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, number_of_days=7):
         '''Main method to load site''' 
 
         source_session = None
@@ -54,11 +54,19 @@ class XScoresHandler(CommonHandler):
                 dat = start_date
             else:
                 dat = self.get_load_date()
-            match5 = datetime.now().date() - timedelta(days=5)
-            if not dat or dat < match5 and debug_level == 0:
+            if number_of_days == None or number_of_days > 7 or number_of_days < 0:
+                number_of_days = 7
+            match5 = datetime.now().date() - timedelta(days=number_of_days)
+            match7 = datetime.now().date() - timedelta(days=7)
+            if dat < match5:
+                dat = match7
+            else:
                 dat = match5
-            while dat <= timezone.now().date():
+            last_date = timezone.now().date() + timedelta(days=2)
+            logger.info('Start date: %s, finish date: %s' % (dat,last_date))
+            while dat <= last_date:
 
+                logger.info('Process date: %s' % dat)
                 self.set_load_date(load_date=dat, is_set_main=True)
                 self.process_date(dat, debug_level, get_from_file, is_debug_path)
 
@@ -82,14 +90,16 @@ class XScoresHandler(CommonHandler):
 
         '''
         file_name = self.matches_file % match_date.strftime('%d-%m')
-        url = 'https://www.xscores.com/soccer/livescores/' + match_date.strftime('%d-%m')
+        url = 'https://www.xscores.com/soccer/' + match_date.strftime('%d-%m')
         html = self.get_html(file_name, url, get_from_file, is_debug_path)
         self.context = html
 
         soup = BeautifulSoup(html, 'html.parser')
         referee_pattern = re.compile(r"Referee:([^.]*)")   #Referee: Stuart Attwell.
 
-        matches = soup.select('div#scoretable > div.match_line')
+
+
+        matches = soup.select('div#scoretable > a.match_line')
         for match in matches:
             self.context = match
             finished = (match['data-game-status']=='Fin')
@@ -102,15 +112,17 @@ class XScoresHandler(CommonHandler):
             league_name  = match['data-league-name'].strip()
             round_name  = match['data-league-round']
             match_status = match['data-game-status']
-            data_note = match['data-note']
-            referee_match = referee_pattern.search(data_note) 
-            if referee_match:
-                referee_name = referee_match[1].strip()
-            else:
-                referee_name = None
+            # data_note = match['data-note']
+            # referee_match = referee_pattern.search(data_note) 
+            # if referee_match:
+            #     referee_name = referee_match[1].strip()
+            # else:
+            #     referee_name = None
+            referee_name = None
             match_date = datetime.strptime(match['data-matchday'], '%Y-%m-%d').date()
 
             league_name = country.slug + ' ' + league_name
+            logger.info('League: %s' % league_name)
             if not self.start_or_skip_league(league_name, country=country):
                 continue
 
@@ -119,6 +131,7 @@ class XScoresHandler(CommonHandler):
             away = score_teams.select('div.score_away')[0]
             name_h = (home.select('.score_home_txt')[0]).get_text().strip()
             name_a = (away.select('.score_away_txt')[0]).get_text().strip()
+            logger.info('Match: %s%s' % (name_h,name_a))
             if not self.start_or_skip_match(name_h, name_a, referee=referee_name,
                                             match_status=Match.FINISHED if finished else Match.SCHEDULED):
                 continue
