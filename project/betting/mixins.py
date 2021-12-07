@@ -172,23 +172,26 @@ class Two0or1Param(object):
 ###################################################################
 class OnlyMatchPeriod(object):
     @classmethod
-    def clean_period(cls, period):
+    def clean_period(cls, period, match="", bet_type="", source="", config=""):
         if not period in(0,1,2,):
-            raise ValueError('Invalid period param (valid: 0,1,2): %s' % period)
+            raise ValueError('Invalid period param (valid: 0,1,2): %s (match=%s, bet_type=%s, source=%s, config=%s)' % 
+                              (period,match,bet_type,source,config))
         return period
 
 class OnlyFootballMinutes(object):
     @classmethod
-    def clean_period(cls, period):
+    def clean_period(cls, period, match="", bet_type="", source="", config=""):
         if not period in(15,30,45,60,75,90,):
-            raise ValueError('Invalid period param (valid: 15,30,45,60,75,90): %s' % period)
+            raise ValueError('Invalid period param (valid: 15,30,45,60,75,90): %s (match=%s, bet_type=%s, source=%s, config=%s)' %
+                              (period,match,bet_type,source,config))
         return period
 
 class Only0Period(object):
     @classmethod
-    def clean_period(cls, period):
+    def clean_period(cls, period, match="", bet_type="", source="", config=""):
         if not period in(0,):
-            raise ValueError('Invalid period param (valid: 0): %s' % period)
+            raise ValueError('Invalid period param (valid: 0): %s (match=%s, bet_type=%s, source=%s, config=%s)' % 
+                              (period,match,bet_type,source,config))
         return period
 
 ###################################################################

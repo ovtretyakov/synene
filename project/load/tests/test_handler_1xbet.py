@@ -113,4 +113,4 @@ class XbetHandlerTest(TestCase):
     #######################################################################
     def test_1xbet_load_file(self):
         self.handler.process()
-        # self.handler.process(get_from_file=True, is_debug_path=False)
+        # self.handler.process(get_from_file=True, is_debug_path=False, debug_level=1)

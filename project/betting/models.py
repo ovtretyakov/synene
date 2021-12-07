@@ -294,7 +294,7 @@ class Odd(Mergable, models.Model):
             raise ValueError('Unknonwn bet handler "%s"' % bet_type.handler)
             # cls = Odd
 
-        period = cls.clean_period(period)
+        period = cls.clean_period(period, match, bet_type_slug, load_source, odd_bookie_config.code)
         yes = cls.clean_yes(yes)
         team = cls.clean_team(team)
         param = cls.clean_param(param)
@@ -356,9 +356,10 @@ class Odd(Mergable, models.Model):
         return None
 
     @classmethod
-    def clean_period(cls, period):
+    def clean_period(cls, period, match="", bet_type="", source="", config=""):
         if not period in(0,1,2,15,30,45,60,75,90,):
-            raise ValueError('Invalid period param: %s' % period)
+            raise ValueError('Invalid period param: %s (match=%s, bet_type=%s, source=%s, config=%s)' % 
+                              (period,match,bet_type,source,config))
         return period
 
     @classmethod

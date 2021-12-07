@@ -41,7 +41,7 @@ XBET_VALUE_TYPES = {
 ###################################################################
 class XBetHandler(CommonHandler):
 
-    base_url    = 'https://1xstavka.ru/'
+    base_url    = 'https://1xstavka.ru/en/'
     test_dir    = 'test_files'
     load_dir    = 'load_files'
 
@@ -65,14 +65,16 @@ class XBetHandler(CommonHandler):
         return hdir.path("1xbet") 
 
 
-    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, main_file=None):
+    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, main_file=None, number_of_days=2):
         ''' Process site
-            Site https://1xstavka.ru/line/Football/
+            Site https://1xstavka.ru/en/line/Football/
 
             Arguments:
             debug_level
         '''
         source_session = None
+        if number_of_days == None or number_of_days < 0 or number_of_days > 10:
+            number_of_days = 2
         try:
             source_session = self.start_load(is_debug=debug_level)
 
@@ -85,7 +87,7 @@ class XBetHandler(CommonHandler):
                 else:
                     main_file = self.main_file % start_date.strftime('%Y-%m-%d')
 
-            main_url = 'https://1xstavka.ru/line/Football/'
+            main_url = 'https://1xstavka.ru/en/line/Football/'
             html = self.get_html(main_file, main_url, get_from_file, is_debug_path)
             self.context = html
 
@@ -103,10 +105,12 @@ class XBetHandler(CommonHandler):
                 if not league_href.startswith('http'): league_href = urljoin(self.base_url, league_href)
                 if not (league_name.lower().startswith('enhanced') or 
                         league_name.lower().find('statistic') >= 0 or
-                        league_name.lower().find('special bets') >= 0
+                        league_name.lower().find('special bets') >= 0 or
+                        len(league_name) > 45
                         ) :
+                    print("!!! league_name:", league_name)
                     if self.start_or_skip_league(league_name):
-                        self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date)
+                        self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
                         if debug_level: break
                         # break #!!!
             
@@ -118,11 +122,11 @@ class XBetHandler(CommonHandler):
         return source_session
 
 
-    def process_league(self, league_url, debug_level, get_from_file, is_debug_path, start_date):
+    def process_league(self, league_url, debug_level, get_from_file, is_debug_path, start_date, number_of_days=2):
         date_pattern = re.compile(r"\d+\.\d+")   #09.04 22:00
         handicap_pattern = re.compile(r"([+-]*)([0-9.,]+)([+-]*)")   #+3.5-
-        match_pattern  = re.compile(r'/([0-9]+)[^/]*/$')  #https://1xstavka.ru/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
-        league_pattern = re.compile(r'Football/([0-9]+)') #https://1xstavka.ru/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+        match_pattern  = re.compile(r'/([0-9]+)[^/]*/$')  #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+        league_pattern = re.compile(r'Football/([0-9]+)') #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
 
         file_name = '1xbet_league.html'
         if debug_level != 2:
@@ -153,7 +157,7 @@ class XBetHandler(CommonHandler):
                 if data_fav:
                     sub_game_ids[mid] = data_fav
 
-        max_match_date = date.today() + timedelta(3)
+        max_match_date = date.today() + timedelta(number_of_days)
 
         for league_tag in soup.select('div.SSR'):
 
@@ -174,7 +178,7 @@ class XBetHandler(CommonHandler):
                 match_date = date_pattern.search(match_time)[0]
                 match_date = self.clear_match_date(match_date, debug_level)
 
-                if match_date > max_match_date:
+                if match_date < today() or match_date > max_match_date:
                     # print(match_date, max_match_date)
                     continue
 
@@ -239,7 +243,7 @@ class XBetHandler(CommonHandler):
                 #process additional odds
                 ##############################################################
                 #find fatch id
-                #https://1xstavka.ru/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+                #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
                 match_id  = match_pattern.search(teams_tag['href'])[1]
                 league_id = league_pattern.search(teams_tag['href'])[1]
                 event_cnt = event_tag.select_one('a.c-events__more.c-events__more_bets.js-showMoreBets').get_text().strip()
@@ -251,14 +255,14 @@ class XBetHandler(CommonHandler):
                 elif event_cnt <= 1000: event_cnt = 1000
                 elif event_cnt <= 1250: event_cnt = 1250
                 else: event_cnt = 1500
-                additional_url = ('https://1xstavka.ru/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
+                additional_url = ('https://1xstavka.ru/en/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
                                   % (match_id, event_cnt))
                 self.process_add_odds(additional_url, debug_level, get_from_file, is_debug_path)
                 ##############################################################
                 #process additional statistics
                 ##############################################################
                 sub_game_id = sub_game_ids[match_id]
-                additional_stat_url = ('https://1xstavka.ru/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
+                additional_stat_url = ('https://1xstavka.ru/en/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
                                   % (league_id, sub_game_id))
                 self.process_add_stats(additional_stat_url, debug_level, get_from_file, is_debug_path)
 
@@ -318,7 +322,7 @@ class XBetHandler(CommonHandler):
         for group in groups:
             period_name = group.get('PN', '').strip()
             group_name  = group.get('TG', '').strip()
-            cnt         = group['EC']
+            cnt         = group.get('EC', 0)
             group_id    = group['CI']
             if not period_name: full_name = group_name
             elif not group_name: full_name = period_name
@@ -351,7 +355,7 @@ class XBetHandler(CommonHandler):
                 elif group_name == 'Ball Possession': global_params['value_type'] = 'ball_poss'
                 if period_name and period_name.find('1') >= 0: global_params['period'] = 1
                 if period_name and period_name.find('2') >= 0: global_params['period'] = 2
-                add_url = ('https://1xstavka.ru/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
+                add_url = ('https://1xstavka.ru/en/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
                            % (group_id,event_cnt)
                            )
                 # print('!!!', full_name, add_url)
@@ -367,11 +371,17 @@ class XBetHandler(CommonHandler):
         P      = str(odd_data.get('P',0))
         if not G:
             if T in [180,11273]:     # Both Teams To Score
-                param  = '0.5'
+                if T == 180:
+                    param  = '0.5'
+                else:
+                    param  = '1.5'
                 bet_type = BetType.ITOTAL_BOTH_OVER
                 yes_no   = 1
             elif T in [181,11274]:   # Both Teams To Score
-                param  = '0.5'
+                if T == 181:
+                    param  = '0.5'
+                else:
+                    param  = '1.5'
                 bet_type = BetType.ITOTAL_BOTH_OVER
                 yes_no   = 0
             elif T in [3523,    # Both Teams To Score - Over & Yes
@@ -785,12 +795,32 @@ class XBetHandler(CommonHandler):
         elif T == 1829:   # Win By
             team = 'h'
             yes  = 0
+        elif T == 1830:   # Win By
+            team = 'h'
+            yes  = 1
+            p_start, p_end = self.decompose_score(P)
+            param = ','.join(map(str,range(p_start,p_end+1)))
+        elif T == 1831:   # Win By
+            team = 'h'
+            yes  = 0
+            p_start, p_end = self.decompose_score(P)
+            param = ','.join(map(str,range(p_start,p_end+1)))
         elif T == 1834:   # Win By
             team = 'a'
             yes  = 1
         elif T == 1835:   # Win By
             team = 'a'
             yes  = 0
+        elif T == 1836:   # Win By
+            team = 'a'
+            yes  = 1
+            p_start, p_end = self.decompose_score(P)
+            param = ','.join(map(str,range(p_start,p_end+1)))
+        elif T == 1837:   # Win By
+            team = 'a'
+            yes  = 0
+            p_start, p_end = self.decompose_score(P)
+            param = ','.join(map(str,range(p_start,p_end+1)))
         elif T == 500:   # To Win By Exactly One Goal Or To Draw
             team  = 'h'
             param = '0,1'
@@ -842,13 +872,13 @@ class XBetHandler(CommonHandler):
         elif T == 6:     # Double Chance
             bet_type = BetType.WDL
             param    = 'dl'
-        elif T == 1189:     # Result In Minute
+        elif T == 1189 and period in(15,30,45,60,75,90,):     # Result In Minute
             bet_type = BetType.WDL_MINUTE
             param    = 'w'
-        elif T == 1190:   # Result In Minute
+        elif T == 1190 and period in(15,30,45,60,75,90,):   # Result In Minute
             bet_type = BetType.WDL_MINUTE
             param    = 'd'
-        elif T == 1191:   # Result In Minute
+        elif T == 1191 and period in(15,30,45,60,75,90,):   # Result In Minute
             bet_type = BetType.WDL_MINUTE
             param    = 'l'
         elif T == 179:   # Draw.Score Draw - Yes
@@ -1131,7 +1161,7 @@ class XBetHandler(CommonHandler):
         today = datetime.today()
         if debug_level == 2:
             y = 2019
-        elif m <= 2 and today.month >= 11:
+        elif m <= 9 and today.month >= 11:
             y = today.year + 1
         elif m > 11 and today.month <= 2:
             y = today.year - 1
