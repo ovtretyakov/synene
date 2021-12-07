@@ -95,6 +95,7 @@ class XBetHandler(CommonHandler):
 
             self.start_detail("Football") 
             football_tag  = soup.find('li', class_='sportMenuActive')
+            load_date = None
             for league_a in football_tag.select('ul.liga_menu > li > a'):
                 league_name = league_a.get_text("\n", strip=True).splitlines()[0]
 
@@ -110,11 +111,15 @@ class XBetHandler(CommonHandler):
                         ) :
                     print("!!! league_name:", league_name)
                     if self.start_or_skip_league(league_name):
-                        self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
+                        league_load_date = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
+                        if not league_load_date or league_load_date < load_date:
+                            load_date = league_load_date
                         if debug_level: break
                         # break #!!!
             
             self.finish_detail() 
+            if load_date:
+                self.set_load_date(load_date=load_date, is_set_main=True)
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
         finally:
@@ -178,7 +183,7 @@ class XBetHandler(CommonHandler):
                 match_date = date_pattern.search(match_time)[0]
                 match_date = self.clear_match_date(match_date, debug_level)
 
-                if match_date < today() or match_date > max_match_date:
+                if match_date < date.today() or match_date > max_match_date:
                     # print(match_date, max_match_date)
                     continue
 
