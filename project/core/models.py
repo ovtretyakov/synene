@@ -285,6 +285,7 @@ class LoadSource(models.Model):
         from project.load.handlers.football_data import FootballDataHandler
         from project.load.handlers.understat import UnderstatHandler
         from project.load.handlers.xscores import XScoresHandler
+        from project.load.handlers.xbet import XBetHandler
 
         cls = locals().get(self.source_handler)
         if not cls: 
