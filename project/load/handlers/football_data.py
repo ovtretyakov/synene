@@ -115,6 +115,9 @@ class FootballDataHandler(CommonHandler):
             start_date = init_start_date
         else:
             start_date = self.get_load_date()
+        if start_date > date.today() - timedelta(days=10):
+            start_date = date.today() - timedelta(days=10)
+            
         if debug_level >= 2:
             # if debug - get only one season of league
             # beacause no file with prevoous season

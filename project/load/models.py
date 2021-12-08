@@ -491,6 +491,7 @@ class CommonHandler(MatchDetail, LoadSource):
                     self.source_detail_match.save()
                 odds = Odd.objects.filter(match=self.match)
                 for odd in odds:
+                    self.context = odd
                     # print('odd=', odd)
                     odd.calculate_result()
                 if self.source_session:

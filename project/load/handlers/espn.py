@@ -43,15 +43,15 @@ class ESPNHandler(CommonHandler):
         return hdir.path('espn') 
 
 
-    def process(self, is_debug=False, get_from_file=False, is_debug_path=True, start_date=None, number_of_days=10):
+    def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, number_of_days=10):
         '''Main method to load site''' 
 
         source_session = None
         try:
-            self.start_load(is_debug=is_debug)
+            self.start_load(is_debug=debug_level)
             source_session = self.source_session
 
-            if is_debug and not start_date:
+            if debug_level and not start_date:
                 get_from_file = True
             if start_date:
                 dat = start_date
@@ -64,12 +64,12 @@ class ESPNHandler(CommonHandler):
 
                 self.start_detail('Main handler')
                 self.set_load_date(load_date=dat, is_set_main=True)
-                self.process_date(dat, is_debug, get_from_file, is_debug_path)
+                self.process_date(dat, debug_level, get_from_file, is_debug_path)
                 self.finish_detail()
 
                 i += 1
                 dat += timedelta(days=1)
-                if is_debug: break
+                if debug_level: break
                 if i>= number_of_days: break
         except Exception as e:
             self.handle_exception(e, raise_finish_error=False)
@@ -78,19 +78,19 @@ class ESPNHandler(CommonHandler):
         return source_session
 
 
-    def process_date(self, match_date, is_debug, get_from_file, is_debug_path):
+    def process_date(self, match_date, debug_level, get_from_file, is_debug_path):
         ''' Process single date
             Site http://www.espn.com
 
             Arguments:
             match_date  - Date 
-            is_debug    - is debugging
+            debug_level    - is debugging
 
         '''
 
         url = 'http://www.espn.com/soccer/scoreboard/_/league/all/date/' + match_date.strftime('%Y%m%d')
         file_name = None
-        if is_debug_path and is_debug:
+        if is_debug_path and debug_level:
             file_name = self.debug_matches_file
         else:
             file_name = self.matches_file % match_date.strftime('%d-%m-%y')

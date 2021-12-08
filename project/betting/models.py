@@ -294,7 +294,10 @@ class Odd(Mergable, models.Model):
             raise ValueError('Unknonwn bet handler "%s"' % bet_type.handler)
             # cls = Odd
 
-        period = cls.clean_period(period, match, bet_type_slug, load_source, odd_bookie_config.code)
+        config = ""
+        if odd_bookie_config:
+            config = odd_bookie_config.code
+        period = cls.clean_period(period, match, bet_type_slug, load_source, config)
         yes = cls.clean_yes(yes)
         team = cls.clean_team(team)
         param = cls.clean_param(param)
@@ -444,6 +447,12 @@ class Odd(Mergable, models.Model):
         if value_a: value_a = int(value_a)
         return value_h, value_a
 
+    def get_odd_decimal_values(self, value_type=None, stat_type=None, period=None):
+        value_h, value_a = self.get_odd_values(value_type=value_type, stat_type=stat_type, period=period)
+        if value_h: value_h = Decimal(value_h)
+        if value_a: value_a = Decimal(value_a)
+        return value_h, value_a
+
     def get_result(self):
         '''Method for obtaining the result of odd
            Reurining result and result_value
@@ -534,7 +543,7 @@ class Odd(Mergable, models.Model):
         return result, result_value
 
     def get_match_handicap(self, period=None):
-        value_h, value_a = self.get_odd_int_values(period=period)
+        value_h, value_a = self.get_odd_decimal_values(period=period)
         if value_h == None or value_a == None: handicap_value = None
         else:
             team = self.team

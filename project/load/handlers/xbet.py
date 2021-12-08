@@ -112,7 +112,7 @@ class XBetHandler(CommonHandler):
                     print("!!! league_name:", league_name)
                     if self.start_or_skip_league(league_name):
                         league_load_date = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
-                        if not league_load_date or league_load_date < load_date:
+                        if not load_date or league_load_date and league_load_date < load_date:
                             load_date = league_load_date
                         if debug_level: break
                         # break #!!!
@@ -151,7 +151,7 @@ class XBetHandler(CommonHandler):
         li_active = soup.select_one('li.sportMenuActive')
         if not li_active:
             # print('!!! Skip league ' + self.league_name.encode())
-            return
+            return None
 
         for active_game in li_active.select('a > span.gname'):
             a_parent  = active_game.parent
@@ -164,6 +164,7 @@ class XBetHandler(CommonHandler):
 
         max_match_date = date.today() + timedelta(number_of_days)
 
+        load_date = None
         for league_tag in soup.select('div.SSR'):
 
             league_name_tag = league_tag.select_one('div.c-events__name')
@@ -176,6 +177,8 @@ class XBetHandler(CommonHandler):
 
             #process matches
             for match_div in league_tag.select('div.c-events__item.c-events__item_game'):
+                self.context = match_div
+
                 event_tag  = match_div.select_one('div.c-events__subitem') 
                 bet_tag    = match_div.select_one('div.c-bets')
                 #get match_date
@@ -186,6 +189,8 @@ class XBetHandler(CommonHandler):
                 if match_date < date.today() or match_date > max_match_date:
                     # print(match_date, max_match_date)
                     continue
+                if not load_date or load_date < match_date:
+                    load_date = match_date
 
                 #get teams
                 teams_tag  = event_tag.select_one('a.c-events__name')
@@ -274,6 +279,7 @@ class XBetHandler(CommonHandler):
                 self.finish_match()
                 if debug_level: break
                 # break #!!!
+        return load_date
 
 #allSport > ul > li.sportMenuActive > ul > li.active.open > ul > li:nth-child(1) > a
 
@@ -284,7 +290,9 @@ class XBetHandler(CommonHandler):
         if debug_level != 2:
             file_name = self.add_file % (self.name_h.replace(" ", "_")[:20], self.name_a.replace(" ", "_")[:20])
         if file_suffix: file_name += ('_' + file_suffix.replace(' ', '_'))
-        file_name += '.json'
+        if file_name[-5:] != '.json':
+            file_name += '.json'
+        # print(self.name_h, ":", self.name_a, ":", file_name)
         row_data = self.get_html(file_name, add_url, get_from_file, is_debug_path)
         self.context = row_data
 

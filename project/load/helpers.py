@@ -33,8 +33,8 @@ class MatchDetail(object):
         self._h         = MatchTeamDetail()
         self._a         = MatchTeamDetail()
         self.odds       = []
-        self.name_h     = name_h if not name_h else self.team_h.name
-        self.name_a     = name_a if not name_a else self.team_a.name
+        self.name_h     = name_h if name_h else self.team_h.name
+        self.name_a     = name_a if name_a else self.team_a.name
 
 
     @property
