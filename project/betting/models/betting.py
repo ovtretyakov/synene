@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from project.core.models import Mergable, LoadSource, Match, League, Country, Team
-from . import mixins as OddMixins
+from .. import mixins as OddMixins
 from project.core.utils import (get_int, list_get,
                         get_match_result, 
                         get_total_over_result, get_total_under_result, 

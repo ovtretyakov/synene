@@ -1,0 +1,21 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Remove League From Group{% endblock %}
+{% block form_id %}formDeleteHarvestLeague{% endblock form_id %}
+{% block form_action %}{% url 'betting:delete_harvest_league' object.pk %}{% endblock form_action %}
+
+{% block modal-body %}
+
+
+  <p>Remove league "{{object.league.name}}" from group "{{object.harvest_group.name}}"?</p>
+  <input type="hidden" class="form-control form-control-sm" id="object_id" name="object_id" value="{{object.pk}}">
+
+
+{% endblock %}
+
+
+    {% block modal-footer %}
+      <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+      <button type="submit" class="submit-btn btn btn-primary btn-sm" id="submit-form-delete_league-id">Remove League</button>
+    {% endblock modal-footer %}
+

@@ -1,0 +1,72 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Create Harvestor{% endblock %}
+{% block form_id %}formCreateHarvestor{% endblock form_id %}
+
+{% block modal-body %}
+  <!-- Row1 -->
+  <div class="form-row">
+    <!-- SLUG -->
+    <div class="form-group col-sm">
+      {% render_field form.slug|add_label_class:"col-form-label"  %}
+      {% render_field form.slug|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.slug.label %}
+      <div class="text-danger">{{form.slug.errors}}</div>
+    </div>
+    <!-- name -->
+    <div class="form-group col-sm">
+      <label for="created-id" class="col-form-label">Name:</label>
+      {% render_field form.name|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder="Harvestor Name" %}
+      <div class="text-danger">{{form.name.errors}}</div>
+    </div>
+  </div>
+
+  <!-- Row2 -->
+  <div class="form-row">
+    <!-- harvest_handler -->
+    <div class="form-group col-sm">
+      {% render_field form.harvest_handler|add_label_class:"col-form-label"  %}
+      {% render_field form.harvest_handler|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.harvest_handler.label %}
+      <div class="text-danger">{{form.harvest_handler.errors}}</div>
+    </div>
+    <!-- value_type -->
+    <div class="form-group col-sm">
+      {% render_field form.value_type|add_label_class:"col-form-label"  %}
+      {% render_field form.value_type|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.value_type.label %}
+      <div class="text-danger">{{form.value_type.errors}}</div>
+    </div>
+  </div>
+
+  <!-- Row3 -->
+  <div class="form-row">
+    <!-- period -->
+    <div class="form-group col-sm">
+      {% render_field form.period|add_label_class:"col-form-label"  %}
+      {% render_field form.period|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.period.label %}
+      <div class="text-danger">{{form.period.errors}}</div>
+    </div>
+    <!-- status -->
+    <div class="form-group col-sm">
+      {% render_field form.status|add_label_class:"col-form-label"  %}
+      {% render_field form.status|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.status.label %}
+      <div class="text-danger">{{form.status.errors}}</div>
+    </div>
+  </div>
+
+  <!-- sport -->
+  {% render_field form.sport|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.sport.label hidden="true" %}
+
+
+  <!-- Row5 -->
+  <div class="form-row">
+    <!-- comment -->
+    <div class="form-group col-sm">
+      {% render_field form.comment|add_label_class:"col-form-label"  %}
+      <textarea class="form-control form-control-sm" id="comment-id" name="comment" rows="6" placeholder="Comment">{{object.comment}}</textarea>
+      <div class="text-danger">{{form.comment.errors}}</div>
+    </div>
+  </div>
+
+
+{% endblock %}
+
+{% block button-action %}Create{% endblock button-action %}

@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static i18n %}
+{% block title %}Harvestor {% endblock %}
+
+{% block content %}
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Harvestor </h1>
+
+
+
+      </div>
+
+        <div class="btn-toolbar">
+        <a class="btn btn-sm btn-secondary" href="{% url 'betting:harvest_list' %}"><span class="fa fa-angle-double-left" title="Harvestor List">Harvestor List</span></a>
+        </div>
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+                                <!-- Parameters -->
+
+        <div class="card mb-3">
+          <div class="card-body">
+
+            <h5 class="card-title">Harvestor Parameters</h5>
+            <form method="post" id="{% block form_id %}formContentID{% endblock form_id %}" action="{% block form_action %}{% endblock form_action %}">
+              {% csrf_token %}
+
+                  <!-- Row1 -->
+                  <div class="form-row">
+                    <!-- SLUG -->
+                    <div class="form-group col-sm-3">
+                      {% render_field form.slug|add_label_class:"col-form-label"  %}
+                      {% render_field form.slug|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.slug.label %}
+                      <div class="text-danger">{{form.slug.errors}}</div>
+                    </div>
+                    <!-- name -->
+                    <div class="form-group col-sm">
+                      <label for="created-id" class="col-form-label">Name:</label>
+                      {% render_field form.name|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder="Harvestor Name" %}
+                      <div class="text-danger">{{form.name.errors}}</div>
+                    </div>
+                  </div>
+
+                  <!-- Row2 -->
+                  <div class="form-row">
+                    <div class="form-group col-sm-6">
+
+                      <div class="form-row">
+                        <!-- value_type -->
+                        <div class="form-group col-sm">
+                          {% render_field form.value_type|add_label_class:"col-form-label"  %}
+                          {% render_field form.value_type|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.value_type.label %}
+                          <div class="text-danger">{{form.value_type.errors}}</div>
+                        </div>
+                        <!-- period -->
+                        <div class="form-group col-sm">
+                          {% render_field form.period|add_label_class:"col-form-label"  %}
+                          {% render_field form.period|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.period.label %}
+                          <div class="text-danger">{{form.period.errors}}</div>
+                        </div>
+                      </div>
+
+                      <div class="form-row">
+                        <!-- harvest_handler -->
+                        <div class="form-group col-sm">
+                          {% render_field form.harvest_handler|add_label_class:"col-form-label"  %}
+                          {% render_field form.harvest_handler|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.harvest_handler.label %}
+                          <div class="text-danger">{{form.harvest_handler.errors}}</div>
+                        </div>
+                        <!-- status -->
+                        <div class="form-group col-sm">
+                          {% render_field form.status|add_label_class:"col-form-label"  %}
+                          {% render_field form.status|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.status.label %}
+                          <div class="text-danger">{{form.status.errors}}</div>
+                        </div>
+                      </div>
+
+
+                    </div>
+                    <!-- comment -->
+                    <div class="form-group col-sm-6">
+                      {% render_field form.comment|add_label_class:"col-form-label"  %}
+                      <textarea class="form-control form-control-sm" id="comment-id" name="comment" rows="5" placeholder="Comment">{{object.comment}}</textarea>
+                      <div class="text-danger">{{form.comment.errors}}</div>
+                    </div>
+                  </div>
+
+                  <!-- sport -->
+                  {% render_field form.sport|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.sport.label hidden="true" %}
+
+
+
+                  <button type="submit" class="submit-btn btn btn-primary btn-sm" id="submit-harvest-form-id">Update</button>
+            </form>
+
+          </div>
+        </div>
+
+
+
+                                <!-- Configuration -->
+      <div class="row">
+        <div class="col-sm-6 mb-3">
+          <div class="card">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h5 class="card-title">Configuration</h5>
+
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group mr-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Add configurtion parameter" id="create-harvestor-config" 
+                    onclick="create_harvestor_config_dlg()">Add configurtion parameter</button >
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table id="config_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+                  <thead>
+                    <tr>
+                    <tr>
+                          <th></th>
+                          <th>Code</th>
+                          <th>Value</th>
+                    </tr>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+
+        <div class="col-sm-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Description:</h5>
+              <p class="card-text"><pre>{{form.instance.harvest_handler.param_descr}}</pre></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+                                <!-- Harvest Group -->
+          <div class="card mb-3">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h5 class="card-title">Harverstor Groups</h5>
+
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group mr-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Add harvestor group" id="create-harvestor-group" 
+                    onclick="create_harvestor_group_dlg()">Add harvestor group</button >
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table id="group_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+                  <thead>
+                    <tr>
+                    <tr>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Slug</th>
+                          <th>Country</th>
+                          <th>Status</th>
+                          <th>Harvest</th>
+                          <th>Update</th>
+                          <th></th>
+                    </tr>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+
+
+    </main>
+
+
+
+
+
+{% endblock content %}
+
+
+
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var delete_url = "{% url 'betting:delete_harvest_config' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<button type="button" class="delete-harvest-config btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete Configuration Parameter" id="delete-harvest-config">' +
+                '   <span class="fa fa-trash"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#config_table').DataTable({
+              'serverSide': true,
+              'paging': false,
+              'ajax': "{% url 'betting:harvest_config_api' harvest.pk %}?format=datatables",
+              'order': [[ 1, 'asc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'code'},
+                  {'data': 'value', 'width':'8em'},
+
+              ],
+
+
+              'drawCallback': function(settings, json) {
+                $(".delete-harvest-config").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: ".modal1-content",
+                        modalForm: "#formDeleteHarvest",
+                        submitBtn: "#submit-form-config-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+              }
+      });
+
+
+    });
+
+
+
+    function create_harvestor_config_dlg() 
+      {
+        
+        var url = "{% url 'betting:create_harvest_config'  form.instance.id %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formCreateHarvestorConfig",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
+
+
+
+
+    var editGroupIcons = function ( data, type, row ) {
+          var create_url = "{% url 'betting:create_harvest_league' 0 %}";
+          var update_url = "{% url 'betting:update_harvest_group' 0 %}";
+          var delete_group_url = "{% url 'betting:delete_harvest_group' 0 %}";
+          var delete_league_url = "{% url 'betting:delete_harvest_league' 0 %}";
+          if ( type === 'display' ) {
+              var r = "";
+              if (row.type == 1 ) {
+                r = '<button type="button" class="create-harvest-league btn btn-sm btn-outline-secondary" data-id="' + create_url + 
+                    '   " title="Add league to harvestor group" id="create-harvest-league">' +
+                    '   <span class="fa fa-plus"></span>' +
+                    '</button>' +
+                    '<button type="button" class="update-harvest-group btn btn-sm btn-outline-secondary" data-id="' + update_url + 
+                    '   " title="Update harvestor group" id="update-harvest-group">' +
+                    '   <span class="fa fa-pencil"></span>' +
+                    '</button>' +
+                    '<button type="button" class="delete-harvest-group btn btn-sm btn-outline-secondary" data-id="' + delete_group_url + 
+                    '    " title="Delete harvestor group" id="delete-harvest-group">' +
+                    '   <span class="fa fa-trash"></span>' +
+                    '</button>'
+                ;
+            } else {
+                r = '<button type="button" class="delete-harvest-league btn btn-sm btn-outline-secondary" data-id="' + delete_league_url + 
+                    '    " title="Remove league from group" id="delete-harvest-league">' +
+                    '   <span class="fa fa-trash"></span>' +
+                    '</button>'
+                ;
+
+            }
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#group_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'betting:harvest_group_api' harvest.pk %}?format=datatables",
+              'paging': false,
+              'ordering': false,
+              'searching': false,
+              'order': [[ 1, 'asc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editGroupIcons, 'width':'5em'},
+                  {'data': 'name', 'width':'20em'},
+                  {'data': 'slug', 'width':'15em'},
+                  {'data': 'country_name'},
+                  {'data': 'status'},
+                  {'data': 'harvest_date', 'width':'5em'},
+                  {'data': 'last_update'},
+                  {'data': 'type', 'visible' : false},
+
+              ],
+
+
+
+              'drawCallback': function(settings, json) {
+
+                $(".create-harvest-league").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: ".modal1-content",
+                        modalForm: "#formCreateHarvestLeague",
+                        submitBtn: "#submit-form-create-league-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+                $(".update-harvest-group").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: ".modal1-content",
+                        modalForm: "#formUpdateHarvestGroup",
+                        submitBtn: "#submit-form-update-group-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+                $(".delete-harvest-group").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: ".modal1-content",
+                        modalForm: "#formDeleteHarvestGroup",
+                        submitBtn: "#submit-form-delete-group-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+                $(".delete-harvest-league").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: ".modal1-content",
+                        modalForm: "#formDeleteHarvestLeague",
+                        submitBtn: "#submit-form-delete_league-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+              }
+      });
+
+
+    });
+
+
+
+    function create_harvestor_group_dlg() 
+      {
+        
+        var url = "{% url 'betting:create_harvest_group'  form.instance.id %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formCreateHarvestGroup",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
+    
+  </script>
+{% endblock %}
+
+
+
+
+
+
+
+

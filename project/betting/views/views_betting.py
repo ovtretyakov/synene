@@ -12,8 +12,8 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
 from project.core.utils import get_date_from_string
 from project.core.models import LoadSource
 from project.football.models import FootballLeague
-from .models import Odd, VOdd, ValueType, BetType, Match
-from .serializers import OddSerializer
+from ..models import Odd, VOdd, ValueType, BetType, Match
+from ..serializers import OddSerializer
 
 
 
