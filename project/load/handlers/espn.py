@@ -57,8 +57,11 @@ class ESPNHandler(CommonHandler):
                 dat = start_date
             else:
                 dat = self.get_load_date()
-            if not dat:
-                dat = date(2010, 1, 1)
+                if not dat:
+                    dat = date(2010, 1, 1)
+                else:
+                    dat = dat - timedelta(days=2)
+
             i = 0
             while dat <= timezone.now().date():
 

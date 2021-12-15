@@ -129,6 +129,7 @@ class UnderstatHandler(CommonHandler):
             start_date = init_start_date
         else:
             start_date = self.get_load_date()
+        start_date = start_date - timedelta(days=2)
         if start_date.month <= 6:
             start_year = start_date.year-1
         else:
