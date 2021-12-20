@@ -122,6 +122,8 @@ class XScoresHandler(CommonHandler):
             match_date = datetime.strptime(match['data-matchday'], '%Y-%m-%d').date()
 
             league_name = country.slug + ' ' + league_name
+            if len(league_name) > 40:
+                league_name = league_name[:40]
             logger.info('League: %s' % league_name)
             if not self.start_or_skip_league(league_name, country=country):
                 continue

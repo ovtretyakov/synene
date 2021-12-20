@@ -5,6 +5,8 @@ from decimal import Decimal
 import json
 import logging
 
+from django.template.defaultfilters import slugify
+
 import requests
 import re
 
@@ -199,6 +201,10 @@ class XBetHandler(CommonHandler):
                     continue
                 name_h     = lines[0]
                 name_a     = lines[1]
+                slug_h = slugify(name_h)
+                slug_a = slugify(name_a)
+                if not slug_h or not slug_a:
+                    continue
                 if name_h.lower().find('home')>=0 and name_a.lower().find('away')>=0:
                     continue
                 if not self.start_or_skip_match(name_h, name_a, match_status=Match.SCHEDULED, match_date=match_date):
