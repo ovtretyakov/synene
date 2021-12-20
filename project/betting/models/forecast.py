@@ -1,5 +1,6 @@
 import traceback
 from decimal import Decimal
+from datetime import datetime, date, timedelta
 import logging
 
 from django.db import models
@@ -46,6 +47,11 @@ class Harvest(models.Model):
         return self.name
 
 
+    def do_harvest(self, start_date=None):
+        from .harvest import TeamSkill
+        for harvest_group in HarvestGroup.objects.filter(harvest=self).filter(status=Harvest.ACTIVE).order_by("pk"):
+            harvest_group.do_harvest(start_date)
+
 class HarvestConfig(models.Model):
 
     harvest = models.ForeignKey(Harvest, on_delete=models.CASCADE, verbose_name='Harvest')
@@ -83,6 +89,43 @@ class HarvestGroup(models.Model):
     def __str__(self):
         return self.name
 
+    def do_harvest(self, start_date=None):
+        from .harvest import TeamSkill
+
+        if start_date:
+            if self.harvest_date and self.harvest_date < start_date:
+                start_date = self.harvest_date
+        else:
+            if self.harvest_date:
+                start_date = self.harvest_date
+            else:
+                start_date = date(2015, 1, 1)
+        print("start_date", start_date)
+
+        #delete old data
+        teams = {}
+        for match in (Match.objects.filter(season__league__harvestleague__harvest_group = self, 
+                                           match_date__gte = start_date,
+                                           status=Match.FINISHED)
+                     ):
+            teams[match.team_h.pk] = 1
+            teams[match.team_a.pk] = 1
+        for team_pk in teams.keys():
+            TeamSkill.objects.filter(harvest=self.harvest, team=team_pk, event_date__gte=start_date).delete()
+
+
+        harvest_config = {row.code:Decimal(row.value) for row in HarvestConfig.objects.filter(harvest = self.harvest)}
+        print(harvest_config);
+
+        for match in (Match.objects.filter(season__league__harvestleague__harvest_group = self, 
+                                           match_date__gte = start_date,
+                                           status=Match.FINISHED)
+                                   .order_by("match_date","pk")
+                     ):
+            print(match, match.match_date)
+            TeamSkill.do_harvest(harvest=self.harvest, match=match, config=harvest_config)
+
+
 
 
 class HarvestLeague(models.Model):
@@ -97,47 +140,6 @@ class HarvestLeague(models.Model):
 
     def __str__(self):
         return f'{self.harvest_group}:{self.league}'
-
-
-class TeamSkill(models.Model):
-
-    harvest_group = models.ForeignKey(HarvestGroup, on_delete=models.PROTECT, verbose_name='Harvest Group')
-    team = models.ForeignKey(Team, on_delete=models.PROTECT, verbose_name='Team')
-    event_date = models.DateField('Event date')
-    match = models.ForeignKey(Match, on_delete=models.PROTECT, verbose_name='Match')
-    match_cnt = models.IntegerField('Match Count')
-
-    # values for calculations (log format)
-    lvalue1  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue2  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue3  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue4  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue5  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue6  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue7  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue8  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue9  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    lvalue10 = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-
-    # values for presentation
-    value1  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value2  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value3  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value4  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value5  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value6  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value7  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value8  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value9  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-    value10 = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['harvest_group','team','event_date','match'], name='unique_team_skill'),
-        ]
-
-    def __str__(self):
-        return f'W:{self.harvest_group},T:{self.team},D:{self.event_date},M:{self.match}'
 
 
 
