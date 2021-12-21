@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Harvestors{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Harvestors</h1>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Procces all harvestors" id="process-all-harvestors" 
+            onclick="process_all_harvestors_dlg()">Procces All Harvestors</button >
+          </div>
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Create new harvestor" id="create-harvestor" 
+            onclick="create_harvestor_dlg()">Create Harvestor</button >
+          </div>
+        </div>
+
+
+      </div>
+
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th></th>
+              <th>Slug</th>
+              <th>Name</th>
+              <th>Handler</th>
+              <th>ValueType</th>
+              <th>Period</th>
+              <th>Status</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var upd_url = "{% url 'betting:update_harvest' 0 %}";
+          var delete_url = "{% url 'betting:delete_harvest' 0 %}";
+          var harvest_url = "{% url 'betting:do_harvest_harvest' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<a class="btn btn-sm btn-outline-secondary" href="' + upd_url + '"><span class="fa fa-pencil" title="Update harvestor"></span></a>' +
+                '<button type="button" class="delete-harvestor btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete harvestor" id="delete-harvestor">' +
+                '   <span class="fa fa-trash"></span>' +
+                '</button>' +
+                '<button type="button" class="harvest-harvestor btn btn-sm btn-outline-secondary" data-id="' + harvest_url + '" title="Do harvest" id="harvest-harvestor">' +
+                '   <span class="fa fa-cog"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'betting:harvest_list_api'  %}?format=datatables",
+              'order': [[ 2, 'asc' ]],
+              'select': true,
+              'columnDefs': [
+                {
+                    targets: -2,
+                    className: 'dt-body-right'
+                }
+              ],
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'5em'},
+                  {'data': 'slug', 'width':'12em'},
+                  {'data': 'name'},
+                  {'data': 'harvest_handler.name', 'width':'8em'},
+                  {'data': 'value_type.name', 'width':'8em'},
+                  {'data': 'period', 'width':'4em'},
+                  {'data': 'status', 'width':'4em'},
+
+              ],
+
+
+              'drawCallback': function(settings, json) {
+                $(".update-handler").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formUpdateHarvestHandler",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".delete-harvestor").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formDeleteHarvest",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+                $(".harvest-harvestor").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formDoHarvestHarvest",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+              }
+      });
+
+
+    });
+
+
+
+    function create_harvestor_dlg() 
+      {
+        var url = "{% url 'betting:create_harvest' %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formCreateHarvestor",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+    function process_all_harvestors_dlg() 
+      {
+        var url = "{% url 'betting:do_harvest_harvest_all' %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formDoHarvestHarvestAll",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+    
+  </script>
+{% endblock %}
+
+
+
