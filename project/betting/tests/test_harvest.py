@@ -69,10 +69,10 @@ class xGTest(TestCase):
 
         # Harvest params
         cls.harvest_handler = HarvestHandler.objects.create(
-                                            slug = "xg", name = "xG Handler", handler = "xGHandler"
+                                            slug = "test-xg", name = "xG Handler", handler = "xGHandler"
                                             )
         cls.harvest = Harvest.objects.create(
-                                            slug = "hg-0",  name = "Calculate match xG",
+                                            slug = "test-hg-0",  name = "Calculate match xG",
                                             sport = Sport.objects.get(slug=Sport.FOOTBALL), 
                                             harvest_handler = cls.harvest_handler,
                                             value_type = ValueType.objects.get(slug=ValueType.MAIN),
@@ -84,9 +84,9 @@ class xGTest(TestCase):
         HarvestConfig.objects.create(harvest = cls.harvest, code = "deviation-zero-value", value = "0.5")
  
         cls.harvest_group = HarvestGroup.objects.create(
-                                            slug = "hg-0-league", name = "Harvest League",
+                                            slug = "test-hg-0-league", name = "Harvest League",
                                             harvest = cls.harvest, country = cls.country,
-                                            status = 'a', harvest_date = date(2016, 1, 1)
+                                            status = 'a', harvest_date = date(2021, 1, 1)
                                             )
 
         HarvestLeague.objects.create(harvest_group = cls.harvest_group, league = cls.league)
@@ -103,6 +103,7 @@ class xGTest(TestCase):
         MatchStats.objects.create(match=cls.match1, stat_type=Match.XG, competitor=Match.COMPETITOR_HOME, period=0, value=1.44)
         MatchStats.objects.create(match=cls.match1, stat_type=Match.XG, competitor=Match.COMPETITOR_AWAY, period=0, value=0.64)
         TeamSkill.objects.create(harvest = cls.harvest, team = cls.team1, event_date =cls.match1.match_date,
+                                 harvest_group = cls.harvest_group,
                                  match = cls.match1, match_cnt = 1,
                                  lvalue1=0.1823, lvalue2=-0.2231, lvalue3=-0.1863, lvalue4=-0.1278, 
                                  lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
@@ -111,6 +112,7 @@ class xGTest(TestCase):
                                  value9=0.96, value10=0.73
                                  )
         TeamSkill.objects.create(harvest = cls.harvest, team = cls.team5, event_date =cls.match1.match_date,
+                                 harvest_group = cls.harvest_group,
                                  match = cls.match1, match_cnt = 1,
                                  lvalue1=-0.2231, lvalue2=0.1823, lvalue3=-0.1278, lvalue4=-0.1863, 
                                  lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
@@ -128,6 +130,7 @@ class xGTest(TestCase):
         MatchStats.objects.create(match=cls.match2, stat_type=Match.XG, competitor=Match.COMPETITOR_HOME, period=0, value=1.7)
         MatchStats.objects.create(match=cls.match2, stat_type=Match.XG, competitor=Match.COMPETITOR_AWAY, period=0, value=0.8)
         TeamSkill.objects.create(harvest = cls.harvest, team = cls.team1, event_date =cls.match2.match_date,
+                                 harvest_group = cls.harvest_group,
                                  match = cls.match2, match_cnt = 2,
                                  lvalue1=0.4, lvalue2=-0.1, lvalue3=-0.5, lvalue4=-0.1, 
                                  lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
@@ -136,6 +139,7 @@ class xGTest(TestCase):
                                  value9=0.96, value10=0.73
                                  )
         TeamSkill.objects.create(harvest = cls.harvest, team = cls.team2, event_date =cls.match2.match_date,
+                                 harvest_group = cls.harvest_group,
                                  match = cls.match2, match_cnt = 1,
                                  lvalue1=-0.2, lvalue2=0.18, lvalue3=-0.12, lvalue4=-0.18, 
                                  lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
@@ -153,6 +157,7 @@ class xGTest(TestCase):
         MatchStats.objects.create(match=cls.match3, stat_type=Match.XG, competitor=Match.COMPETITOR_HOME, period=0, value=0.3)
         MatchStats.objects.create(match=cls.match3, stat_type=Match.XG, competitor=Match.COMPETITOR_AWAY, period=0, value=3.2)
         TeamSkill.objects.create(harvest = cls.harvest, team = cls.team3, event_date =cls.match3.match_date,
+                                 harvest_group = cls.harvest_group,
                                  match = cls.match3, match_cnt = 1,
                                  lvalue1=-0.2, lvalue2=0.41, lvalue3=-0.1, lvalue4=-0.01, 
                                  lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
@@ -161,6 +166,7 @@ class xGTest(TestCase):
                                  value9=0.6, value10=1.5
                                  )
         TeamSkill.objects.create(harvest = cls.harvest, team = cls.team4, event_date =cls.match3.match_date,
+                                 harvest_group = cls.harvest_group,
                                  match = cls.match3, match_cnt = 1,
                                  lvalue1=0.8, lvalue2=-0.2, lvalue3=-0.1, lvalue4=0.1, 
                                  lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
@@ -245,3 +251,48 @@ class xGTest(TestCase):
     #######################################################################
     def test_get_team_skill(self):
         self.harvest.do_harvest(self.match4.match_date)
+
+        self.harvest_group.refresh_from_db()
+        self.assertEquals(self.harvest_group.harvest_date, self.match6.match_date)
+
+        team_skill_1 = TeamSkill.objects.get(harvest=self.harvest, team=self.team1, event_date=self.match4.match_date)
+        self.assertEquals(team_skill_1.match_cnt, 3)
+        self.assertEquals(team_skill_1.lvalue1, Decimal("0.38213"))
+        self.assertEquals(team_skill_1.lvalue2, Decimal("-0.03411"))
+        self.assertEquals(team_skill_1.lvalue3, Decimal("-0.41245"))
+        self.assertEquals(team_skill_1.lvalue4, Decimal("-0.17231"))
+        self.assertEquals(team_skill_1.value1, Decimal("1.46540"))
+        self.assertEquals(team_skill_1.value2, Decimal("0.96646"))
+        self.assertEquals(team_skill_1.value3, Decimal("0.66202"))
+        self.assertEquals(team_skill_1.value4, Decimal("0.84172"))
+        self.assertEquals(team_skill_1.value9, Decimal("0.97013"))
+        self.assertEquals(team_skill_1.value10, Decimal("0.81349"))
+
+
+        # a1 = 2/(N+1) = 0,33333333333333
+        # a2 = 2/(N+1) = 0,125
+        #    = a * P + (1-a) * EMA        
+
+        # 0,4 + 0,295 = 0,695
+        # ln(1.8) = 0,58778666490
+        # delta = -0,05360666755
+        # P = 0,34639333245
+        # new =  
+
+        # MatchStats.objects.create(match=cls.match4, stat_type=Match.GOALS, competitor=Match.COMPETITOR_HOME, period=0, value=2)
+        # MatchStats.objects.create(match=cls.match4, stat_type=Match.GOALS, competitor=Match.COMPETITOR_AWAY, period=0, value=0)
+        # MatchStats.objects.create(match=cls.match4, stat_type=Match.XG, competitor=Match.COMPETITOR_HOME, period=0, value=1.8)
+        # MatchStats.objects.create(match=cls.match4, stat_type=Match.XG, competitor=Match.COMPETITOR_AWAY, period=0, value=1.1)
+
+
+        # TeamSkill.objects.create(harvest = cls.harvest, team = cls.team1, event_date =cls.match2.match_date,
+        #                          harvest_group = cls.harvest_group,
+        #                          match = cls.match2, match_cnt = 2,
+        #                          lvalue1=0.4, lvalue2=-0.1, lvalue3=-0.5, lvalue4=-0.1, 
+        #                          lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
+        #                          value1=1.5, value2=0.9, value3=0.9, value4=0.8,
+        #                          value5=0, value6=0, value7=0, value8=0, 
+        #                          value9=0.96, value10=0.73
+        #                          )
+
+        # team5 = 0

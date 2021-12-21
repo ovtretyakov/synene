@@ -52,6 +52,16 @@ class Harvest(models.Model):
         for harvest_group in HarvestGroup.objects.filter(harvest=self).filter(status=Harvest.ACTIVE).order_by("pk"):
             harvest_group.do_harvest(start_date)
 
+    def api_do_harvest(self, start_date=None):
+        with transaction.atomic():
+            self.do_harvest(start_date)
+
+    def api_do_harvest_all(self, start_date=None):
+        for harvest in Harvest.objects.filter(status=Harvest.Active).order_by("pk"):
+            harvest.api_do_harvest(start_date)
+
+
+
 class HarvestConfig(models.Model):
 
     harvest = models.ForeignKey(Harvest, on_delete=models.CASCADE, verbose_name='Harvest')
@@ -94,38 +104,35 @@ class HarvestGroup(models.Model):
 
         if start_date:
             if self.harvest_date and self.harvest_date < start_date:
-                start_date = self.harvest_date
+                start_date = self.harvest_date - timedelta(days=10)
         else:
             if self.harvest_date:
-                start_date = self.harvest_date
+                start_date = self.harvest_date - timedelta(days=10)
             else:
                 start_date = date(2015, 1, 1)
         print("start_date", start_date)
 
         #delete old data
-        teams = {}
-        for match in (Match.objects.filter(season__league__harvestleague__harvest_group = self, 
-                                           match_date__gte = start_date,
-                                           status=Match.FINISHED)
-                     ):
-            teams[match.team_h.pk] = 1
-            teams[match.team_a.pk] = 1
-        for team_pk in teams.keys():
-            TeamSkill.objects.filter(harvest=self.harvest, team=team_pk, event_date__gte=start_date).delete()
+        TeamSkill.objects.filter(harvest_group=self, event_date__gte=start_date).delete()
 
-
+        #harvesting
         harvest_config = {row.code:Decimal(row.value) for row in HarvestConfig.objects.filter(harvest = self.harvest)}
-        print(harvest_config);
-
+        harvest_date = None
         for match in (Match.objects.filter(season__league__harvestleague__harvest_group = self, 
                                            match_date__gte = start_date,
                                            status=Match.FINISHED)
                                    .order_by("match_date","pk")
                      ):
             print(match, match.match_date)
-            TeamSkill.do_harvest(harvest=self.harvest, match=match, config=harvest_config)
+            harvest_date = match.match_date
+            TeamSkill.do_harvest(harvest=self.harvest, harvest_group = self, match=match, config=harvest_config)
+        if harvest_date:
+            self.harvest_date = harvest_date
+            self.save()
 
-
+    def api_do_harvest(self, start_date=None):
+        with transaction.atomic():
+            self.do_harvest(start_date)
 
 
 class HarvestLeague(models.Model):
@@ -178,27 +185,55 @@ class Predictor(models.Model):
         return self.name
 
 
+class ForecastSet(models.Model):
+
+    PREPARED = 'p'
+    SUCCESS = 's'
+    ERROR = 'e'
+
+    STATUS_CHOICES = (
+        (PREPARED, 'Preapred'),
+        (SUCCESS, 'Success'),
+        (ERROR, 'Error'),
+    )
+
+
+    slug = models.SlugField(unique=True)
+    name = models.CharField('Name', max_length=255, blank=True)
+    forecast_date = models.DateTimeField('Forecast date', null=True, blank=True)
+    forecast_time = models.IntegerField('Seconds', null=True)
+    status = models.CharField('Status', max_length=5, choices=STATUS_CHOICES, default='p')
+    match_cnt = models.IntegerField('Matches', null=True)
+    odd_cnt = models.IntegerField('Odds', null=True)
+    keep_only_best = models.BooleanField('Keep only best prediction')
+    only_finished = models.BooleanField('Only finished matches')
+    start_date = models.DateField('Start date', null=True, blank=True)
+
+    def __str__(self):
+        return self.slug
+
 
 
 class Forecast(models.Model):
 
-    set = models.CharField('Set', max_length=10, default='m')
-    predictor = models.ForeignKey(Predictor, on_delete=models.PROTECT, verbose_name='Predictor')
-    harvest = models.ForeignKey(Harvest, on_delete=models.PROTECT, verbose_name='Harvest')
-    match = models.ForeignKey(Match, on_delete=models.PROTECT, verbose_name='Match')
-    odd = models.ForeignKey(Odd, on_delete=models.PROTECT, verbose_name='Odd')
-    success_chance  = models.DecimalField('LValue1', max_digits=10, decimal_places=3)
-    lose_chance  = models.DecimalField('LValue1', max_digits=10, decimal_places=3)
+    forecast_set = models.ForeignKey(ForecastSet, on_delete=models.CASCADE, verbose_name='Forecast set')
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, verbose_name='Match')
+    odd = models.ForeignKey(Odd, on_delete=models.CASCADE, verbose_name='Odd')
+    predictor = models.ForeignKey(Predictor, on_delete=models.CASCADE, verbose_name='Predictor')
+    match_date = models.DateField('Match date', null=True, blank=True)
+    harvest = models.ForeignKey(Harvest, on_delete=models.CASCADE, verbose_name='Harvest')
+    success_chance  = models.DecimalField('Success chance', max_digits=10, decimal_places=3)
+    lose_chance  = models.DecimalField('Lose chance', max_digits=10, decimal_places=3)
     result_value = models.DecimalField('Result value', max_digits=10, decimal_places=3)
-    Kelly = models.DecimalField('Kelly', max_digits=10, decimal_places=3)
+    kelly = models.DecimalField('kelly', max_digits=10, decimal_places=3)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['set','odd','predictor'], name='unique_forecast'),
+            models.UniqueConstraint(fields=["forecast_set", "match", "odd", "predictor" ], name='unique_forecast'),
         ]
 
     def __str__(self):
-        return f'S:{self.set},Odd:<{self.odd}>,P:{self.predictor},R:{self.result_value}'
+        return f'S:{self.forecast_set},M:<{self.match},{self.match_date}>,Odd:<{self.odd}>,P:{self.predictor},R:{self.result_value}'
 
 
 
