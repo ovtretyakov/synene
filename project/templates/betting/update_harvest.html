@@ -286,6 +286,7 @@
           var create_url = "{% url 'betting:create_harvest_league' 0 %}";
           var update_url = "{% url 'betting:update_harvest_group' 0 %}";
           var delete_group_url = "{% url 'betting:delete_harvest_group' 0 %}";
+          var do_harvest_group_url = "{% url 'betting:do_harvest_harvest_group' 0 %}";
           var delete_league_url = "{% url 'betting:delete_harvest_league' 0 %}";
           if ( type === 'display' ) {
               var r = "";
@@ -301,6 +302,10 @@
                     '<button type="button" class="delete-harvest-group btn btn-sm btn-outline-secondary" data-id="' + delete_group_url + 
                     '    " title="Delete harvestor group" id="delete-harvest-group">' +
                     '   <span class="fa fa-trash"></span>' +
+                    '</button>' +
+                    '<button type="button" class="do-harvest-harvest-group btn btn-sm btn-outline-secondary" data-id="' + do_harvest_group_url + 
+                    '    " title="Harvest group" id="do-harvest-harvest-group">' +
+                    '   <span class="fa fa-cog"></span>' +
                     '</button>'
                 ;
             } else {
@@ -332,7 +337,7 @@
               'order': [[ 1, 'asc' ]],
               'select': true,
               'columns': [
-                  {'data': 'id', 'render': editGroupIcons, 'width':'5em'},
+                  {'data': 'id', 'render': editGroupIcons, 'width':'7em'},
                   {'data': 'name', 'width':'20em'},
                   {'data': 'slug', 'width':'15em'},
                   {'data': 'country_name'},
@@ -378,6 +383,18 @@
                         modalContent: ".modal1-content",
                         modalForm: "#formDeleteHarvestGroup",
                         submitBtn: "#submit-form-delete-group-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+                $(".do-harvest-harvest-group").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: ".modal1-content",
+                        modalForm: "#formDoHarvestHarvestGroup",
+                        submitBtn: "#submit-form-do-harvest-group-id",
                         isDeleteForm: true
                       }
                     );

@@ -17,9 +17,9 @@ from project.core.utils import get_date_from_string
 from project.core.models import Sport
 from ..models import HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague
 from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
-                     HarvestForm, HarvestDeleteForm,
+                     HarvestForm, HarvestDeleteForm, HarvestDoHarvestForm, HarvestDoHarvestAllForm,
                      HarvestConfigForm, HarvestConfigDeleteForm,
-                     HarvestGroupForm, HarvestGroupDeleteForm,
+                     HarvestGroupForm, HarvestGroupDeleteForm, HarvestGroupDoHarvestForm,
                      HarvestLeagueForm, HarvestLeagueDeleteForm,
                      )
 from ..serializers import HarvestHandlerSerializer, HarvestSerializer, HarvestConfigSerializer, HarvestGroupSerializer
@@ -162,6 +162,47 @@ class HarvestDeleteView(BSModalCreateView):
                 messages.error(self.request, "Deleting error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
 
+class HarvestDoHarvestView(BSModalUpdateView):
+    model = Harvest
+    template_name = "betting/do_harvest_harvest.html"
+    form_class = HarvestDoHarvestForm
+    success_message = "Success harvesting"
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                harvest_date = cleaned_data["harvest_date"]
+                self.object.api_do_harvest(harvest_date)
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Harvesting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class HarvestDoHarvestAllView(BSModalCreateView):
+    template_name = "betting/do_harvest_harvest_all.html"
+    form_class = HarvestDoHarvestAllForm
+    success_message = "Success harvesting"
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                harvest_date = cleaned_data["harvest_date"]
+                Harvest.api_do_harvest_all(harvest_date)
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Harvesting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
 
 ####################################################
 #  Harvest Config
@@ -326,6 +367,27 @@ class HarvestGroupDeleteView(BSModalCreateView):
                 messages.error(self.request, "Deleting error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
 
+
+class HarvestGroupDoHarvestView(BSModalUpdateView):
+    model = HarvestGroup
+    template_name = "betting/do_harvest_harvest_group.html"
+    form_class = HarvestGroupDoHarvestForm
+    success_message = "Success harvesting"
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                harvest_date = cleaned_data["harvest_date"]
+                self.object.api_do_harvest(harvest_date)
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Harvesting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
 
 
 ####################################################

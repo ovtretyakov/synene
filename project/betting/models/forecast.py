@@ -3,7 +3,7 @@ from decimal import Decimal
 from datetime import datetime, date, timedelta
 import logging
 
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from .betting import ValueType
@@ -56,8 +56,9 @@ class Harvest(models.Model):
         with transaction.atomic():
             self.do_harvest(start_date)
 
-    def api_do_harvest_all(self, start_date=None):
-        for harvest in Harvest.objects.filter(status=Harvest.Active).order_by("pk"):
+    @classmethod
+    def api_do_harvest_all(cls, start_date=None):
+        for harvest in Harvest.objects.filter(status=Harvest.ACTIVE).order_by("pk"):
             harvest.api_do_harvest(start_date)
 
 

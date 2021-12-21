@@ -57,6 +57,21 @@ class HarvestDeleteForm(BSModalForm):
         if not object_id:
             raise ValidationError(_("No harvestor to delete"))
 
+class HarvestDoHarvestForm(BSModalForm):
+
+    harvest_date = forms.DateField(required=False)
+    class Meta:
+        model = Harvest
+        fields = ["slug", "name", ]
+
+
+class HarvestDoHarvestAllForm(BSModalForm):
+
+    harvest_date = forms.DateField(required=False)
+    class Meta:
+        model = Harvest
+        fields = []
+
 
 ######################################################################
 class HarvestConfigForm(BSModalForm):
@@ -99,6 +114,11 @@ class HarvestGroupDeleteForm(BSModalForm):
         if not object_id:
             raise ValidationError(_("No harvestor group to delete"))
 
+class HarvestGroupDoHarvestForm(BSModalForm):
+
+    class Meta:
+        model = HarvestGroup
+        fields = ["slug", "name", "harvest_date",]
 
 ######################################################################
 class HarvestLeagueForm(BSModalForm):
