@@ -104,14 +104,12 @@ class HarvestGroup(models.Model):
         from .harvest import TeamSkill
 
         if start_date:
-            if self.harvest_date and self.harvest_date < start_date:
-                start_date = self.harvest_date - timedelta(days=10)
+            start_date = start_date - timedelta(days=10)
         else:
             if self.harvest_date:
                 start_date = self.harvest_date - timedelta(days=10)
             else:
                 start_date = date(2015, 1, 1)
-        print("start_date", start_date)
 
         #delete old data
         TeamSkill.objects.filter(harvest_group=self, event_date__gte=start_date).delete()
@@ -119,12 +117,13 @@ class HarvestGroup(models.Model):
         #harvesting
         harvest_config = {row.code:Decimal(row.value) for row in HarvestConfig.objects.filter(harvest = self.harvest)}
         harvest_date = None
+        print("Harvest group", self, start_date)
         for match in (Match.objects.filter(season__league__harvestleague__harvest_group = self, 
                                            match_date__gte = start_date,
                                            status=Match.FINISHED)
                                    .order_by("match_date","pk")
                      ):
-            print(match, match.match_date)
+            print("Harvest match", match, match.match_date)
             harvest_date = match.match_date
             TeamSkill.do_harvest(harvest=self.harvest, harvest_group = self, match=match, config=harvest_config)
         if harvest_date:

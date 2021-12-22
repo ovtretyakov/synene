@@ -67,18 +67,12 @@ class TeamSkill(models.Model):
 
     @classmethod
     def turn_data(cls, data1, data2, new_data, smooth_interval):
-        print(data1, data2, new_data, smooth_interval)
         prev_data = data1 + data2
-        print("prev_data", prev_data)
         new_data = math.log(new_data)
-        print("new_data", new_data)
         delta = (Decimal(new_data)-Decimal(prev_data))/Decimal("2")
-        print("delta", delta)
         alfa = Decimal("2")/(Decimal("1") + smooth_interval)
-        print("alfa", alfa)
         new_data1 = alfa*(data1 + delta) + (Decimal("1")-alfa)*data1
         new_data2 = alfa*(data2 + delta) + (Decimal("1")-alfa)*data2
-        print(new_data1, new_data2)
         return new_data1, new_data2
 
 
@@ -295,15 +289,11 @@ class xGHandler(TeamSkill):
             xg_a = Decimal(zero_value)
 
         #xG
-        print("xG_H")
         skill_h.lvalue1, skill_a.lvalue2 = cls.turn_data(skill_h.lvalue1, skill_a.lvalue2, xg_h, smooth_interval)
-        print("xG_A")
         skill_a.lvalue1, skill_h.lvalue2 = cls.turn_data(skill_a.lvalue1, skill_h.lvalue2, xg_a, smooth_interval)
 
         #goal
-        print("Goal_H")
         skill_h.lvalue3, skill_a.lvalue4 = cls.turn_data(skill_h.lvalue3, skill_a.lvalue4, goal_h/xg_h, deviation_smooth_interval)
-        print("Goal_A")
         skill_a.lvalue3, skill_h.lvalue4 = cls.turn_data(skill_a.lvalue3, skill_h.lvalue4, goal_a/xg_a, deviation_smooth_interval)
      
         skill_h.value1 = math.exp(skill_h.lvalue1)
@@ -320,6 +310,8 @@ class xGHandler(TeamSkill):
         skill_a.value9  = skill_a.value1 * skill_a.value3
         skill_a.value10 = skill_a.value2 * skill_a.value4
 
+        skill_h.match = match
+        skill_a.match = match
         skill_h.event_date = match.match_date
         skill_a.event_date = match.match_date
         skill_h.harvest_group = harvest_group
@@ -329,8 +321,6 @@ class xGHandler(TeamSkill):
         skill_h.pk = None
         skill_a.pk = None
 
-        print("unique h", skill_h)
-        print("unique a", skill_a)
         skill_h.save()
         skill_a.save()
 

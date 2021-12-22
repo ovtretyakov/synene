@@ -110,7 +110,7 @@ class Loadable(Mergable, models.Model):
             kwargs['slug'] = slug
         if not slug:
             raise ValueError('Missing parameter "slug"')
-        if len(slug) > 50:
+        if len(slug) > 80:
             raise ValueError('Too long slug: ' + slug)
         load_source = kwargs.get('load_source',None)
         if not load_source:
@@ -1047,11 +1047,12 @@ class Match(Mergable, models.Model):
                                 ):
                 changed = False
                 if not season:
-                    season = Season.get_or_create(league=league, 
-                                          start_date=None, 
-                                          end_date=None, 
-                                          load_source=None, 
-                                          name=Season.UNKNOWN)
+                    season = Season.get_season(league=league, match_date=match_date)
+                    # season = Season.get_or_create(league=league, 
+                    #                       start_date=None, 
+                    #                       end_date=None, 
+                    #                       load_source=None, 
+                    #                       name=Season.UNKNOWN)
                 if status and match.status != status: match.status=status; changed = True;
                 if match.season != season: 
                     match.season=season; 

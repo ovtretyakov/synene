@@ -188,7 +188,7 @@ class XBetHandler(CommonHandler):
                 match_date = date_pattern.search(match_time)[0]
                 match_date = self.clear_match_date(match_date, debug_level)
 
-                if match_date < date.today() or match_date > max_match_date:
+                if debug_level != 2 and (match_date < date.today() or match_date > max_match_date):
                     # print(match_date, max_match_date)
                     continue
                 if not load_date or load_date < match_date:

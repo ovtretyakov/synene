@@ -7,7 +7,8 @@ from unittest import skip
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from project.core.models import Country, League, Team, Match, MatchStats
+from project.football.models import FootballSource, FootballLeague, FootballTeam
+from project.core.models import Country, League, Team, Match, MatchStats, Sport, Season
 from project.betting.models import BetType, ValueType, Odd, OddWDL, OddTotalOver, OddTotalUnder, OddHandicap
 from ..models import ErrorLog
 from ..handlers.xbet import XBetHandler 
@@ -34,9 +35,23 @@ class XbetHandlerTest(TestCase):
         England = Country.get_object("eng")
         self.assertIsNotNone(England)
 
+
+        league = League.get_or_create(
+                                            sport=Sport.objects.get(slug=Sport.FOOTBALL),
+                                            name="England. Premier League",
+                                            country=England,
+                                            load_source=FootballSource.objects.get(slug=FootballSource.SRC_1XBET),
+                                            slug="england-premier-league")
+        season = Season.get_or_create(league=league, 
+                                      start_date=date(2018, 9, 1), 
+                                      end_date=date(2019, 5, 10), 
+                                      load_source=FootballSource.objects.get(slug=FootballSource.SRC_ESPN), 
+                                      name="2018/2019")
+
         self.handler.process(debug_level=2, get_from_file=True)
 
         league = League.objects.get(name__icontains= "Premier League", load_source=self.handler)
+
         self.assertEquals(league.name, "England. Premier League")
         self.assertEquals(league.country, England)
 
@@ -50,6 +65,7 @@ class XbetHandlerTest(TestCase):
                     team_a=Liverpool)
         self.assertEquals(str(match1), "Southampton - Liverpool")
         self.assertEquals(match1.status, Match.SCHEDULED)
+        self.assertEquals(match1.season, season)
 
         ####################################################################
         # WDL
