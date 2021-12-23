@@ -396,6 +396,17 @@ class Odd(Mergable, models.Model):
             raise ValueError('Invalid bet value: %s' % value)
         return value
 
+    def get_own_object(self):
+        real_cls = globals().get(self.bet_type.handler)
+        if not real_cls:
+            obj = self
+        else:
+            try:
+                obj = real_cls.objects.get(pk=self.pk)
+            except real_cls.DoesNotExist:
+                obj = None
+        return obj
+
     def save(self, *args, **kwargs):
         if self.own_bet_type():
             self.bet_type = self.own_bet_type()
@@ -412,6 +423,9 @@ class Odd(Mergable, models.Model):
         else:
             self.match = match_dst
             self.save()
+
+    def forecasting(self, forecast_data):
+        pass
 
     def change_data(self, src):
         self.odd_value = src.odd_value
@@ -660,6 +674,17 @@ class OddWDL(OddMixins.WDLResult, OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmpty
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WDL)
+    def forecasting(self, forecast_data):
+        success_chance = 0
+        lose_chance = 0
+        result_value = 0
+        for data in forecast_data:
+            value = self.get_result(value_h=data[0],value_a=data[1])
+            result_value += (value*data[2])
+            if value >= 1:
+                success_chance += data[2] 
+            else: 
+                lose_chance += data[2]
 ###################################################################
 class OddWDLMinute(OddMixins.WDLResult, OddMixins.OnlyFootballMinutes, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):
     class Meta:

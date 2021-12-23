@@ -9,6 +9,8 @@ from django.utils import timezone
 from .betting import ValueType
 from project.core.models import Sport, Match, League, Country, Team
 from project.betting.models import Odd
+from .. import predictor_mixins as Mixins
+
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +186,37 @@ class Predictor(models.Model):
     def __str__(self):
         return self.name
 
+    def extract_skills(self):
+        raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
+
+    def get_forecast_data(self):
+        raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
+
+    def forecasting(self, forecast_set):
+        from .harvest import TeamSkill
+        start_date = forecast_set.start_date
+        if not start_date:
+            start_date = date(2015, 1, 1)
+
+        self.period = self.harvest.period
+        self.value_type_slug = self.harvest.value_type.slug
+
+        for harvest_league in HarvestLeague.objects.filter(harvest_group__harvest=self.harvest, harvest_group__status=HarvestGroup.ACTIVE):
+            queryset = Match.objects.filter(season__league = harvest_league.league, 
+                                            match_date__gte = start_date)
+            if forecast_set.only_finished:
+                queryset = queryset.exclude(status=Match.FINISHED)
+            queryset = queryset.order_by("match_date","pk")
+
+            for match in queryset:
+                self.skill_h = TeamSkill.get_team_skill(self.harvest, match.team_h, match.match_date, match)
+                self.skill_a = TeamSkill.get_team_skill(self.harvest, match.team_a, match.match_date, match)
+                if not self.skill_h or not self.skill_a or self.skill_h.match_cnt <= 3 or self.skill_a.match_cnt <= 3:
+                    continue
+                self.extract_skills()
+                forecast_data = self.get_forecast_data()
+                print("sum", sum([x[2] for x in forecast_data]))
+
 
 class ForecastSet(models.Model):
 
@@ -237,3 +270,7 @@ class Forecast(models.Model):
 
 
 
+###################################################################
+class PredictorStandardPoisson(Mixins.StandartExtraction, Mixins.PoissonForecasting, Predictor):
+    class Meta:
+        proxy = True

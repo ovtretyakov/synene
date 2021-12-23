@@ -59,7 +59,14 @@ class TeamSkill(models.Model):
 
     @classmethod
     def _get_team_skill(cls, harvest, team, skill_date, match=None):
-        raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
+        team_skill = cls.objects.filter(harvest=harvest,team=team,event_date__lt=skill_date).order_by("-event_date").first()
+        return team_skill
+
+    @classmethod
+    def get_empty(cls, harvest, team, skill_date, match=None):
+        obj = cls()
+        obj.erase(harvest, team, skill_date, match)
+        return obj
 
     @classmethod
     def _do_harvest(cls, harvest, harvest_group, match):
@@ -77,15 +84,16 @@ class TeamSkill(models.Model):
 
 
     @classmethod
-    def get_handler_class(cls, harvest):
-        harvest_handler = None
-        try:
-            harvest_handler = HarvestHandler.objects.get(harvest=harvest)
-        except HarvestHandler.DoesNotExist:
-            err_str = "Missing HarvestHandler for harvest=%s" % (harvest, )
-            logger.error("!!!" + err_str) 
-            raise ValueError(err_str)
-        handler = harvest_handler.handler
+    def get_handler_class(cls, harvest, handler=None):
+        if not handler:
+            harvest_handler = None
+            try:
+                harvest_handler = HarvestHandler.objects.get(harvest=harvest)
+            except HarvestHandler.DoesNotExist:
+                err_str = "Missing HarvestHandler for harvest=%s" % (harvest, )
+                logger.error("!!!" + err_str) 
+                raise ValueError(err_str)
+            handler = harvest_handler.handler
         handler_cls = globals().get(handler)
         if not handler_cls: 
             err_str = 'Unknonwn harvest handler "%s" in %s' % (handler, harvest, )
@@ -94,8 +102,8 @@ class TeamSkill(models.Model):
         return handler_cls
 
     @classmethod
-    def get_team_skill(cls, harvest, team, skill_date, match=None):
-        handler_cls = cls.get_handler_class(harvest)
+    def get_team_skill(cls, harvest, team, skill_date, match=None, handler=None):
+        handler_cls = cls.get_handler_class(harvest, handler)
         return handler_cls._get_team_skill(harvest, team, skill_date, match)
 
 
@@ -163,17 +171,11 @@ class xGHandler(TeamSkill):
                       )
         return prev_season
 
-    @classmethod
-    def _get_empty(cls, harvest, team, skill_date, match=None):
-        obj = xGHandler()
-        obj.erase(harvest, team, skill_date, match)
-        return obj
-
 
     @classmethod
     def _get_initialteam_skill(cls, harvest, team, skill_date, match, season, league):
         prev_season = cls._get_prev_season(league, season) 
-        team_skill = cls._get_empty(harvest, team, skill_date, match)
+        team_skill = cls.get_empty(harvest, team, skill_date, match)
         if prev_season:
             #get rusults of worst teams of previos season
             with connection.cursor() as cursor:
@@ -217,7 +219,7 @@ class xGHandler(TeamSkill):
             season = match.season
             league = match.league
 
-        team_skill = TeamSkill.objects.filter(harvest=harvest,team=team,event_date__lt=skill_date).order_by("-event_date").first()
+        team_skill = cls.objects.filter(harvest=harvest,team=team,event_date__lt=skill_date).order_by("-event_date").first()
 
         if team_skill:
             team_skill_season = team_skill.match.season
@@ -229,7 +231,7 @@ class xGHandler(TeamSkill):
             if match:
                 team_skill = cls._get_initialteam_skill(harvest, team, skill_date, match, season, league)
             else:
-                team_skill = cls._get_empty(harvest, team, skill_date)
+                team_skill = cls.get_empty(harvest, team, skill_date)
 
         return team_skill
 

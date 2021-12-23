@@ -6,7 +6,9 @@ from django.test import TestCase
 from project.football.models import FootballSource, FootballLeague, FootballTeam
 from project.core.models import Country, TeamType, Match, Season, Sport, MatchStats
 from ..models import (ValueType,
-                      HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague, TeamSkill
+                      HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague, TeamSkill,
+                      ForecastHandler, Predictor, ForecastSet, Forecast,
+                      PredictorStandardPoisson, 
                       )
 
 
@@ -202,36 +204,57 @@ class xGTest(TestCase):
         MatchStats.objects.create(match=cls.match6, stat_type=Match.XG, competitor=Match.COMPETITOR_HOME, period=0, value=1.5)
         MatchStats.objects.create(match=cls.match6, stat_type=Match.XG, competitor=Match.COMPETITOR_AWAY, period=0, value=0.2)
 
+        # Forecasting
+        cls.forecast_handler = ForecastHandler.objects.create(
+                                            slug = "test-xg-forecast-standard", name = "xG Forecasting", handler = "PredictorStandardPoisson"
+                                            )
+        cls.forecast_set = ForecastSet.objects.create(
+                                            slug = "test-main",
+                                            name = "Main Forecasting",
+                                            status = "p",
+                                            keep_only_best = False,
+                                            only_finished = False,
+                                            start_date = date(2020,1,1),
+                                            )
+        cls.predictor = Predictor.objects.create(
+                                            slug = "test-hg-standard",
+                                            name = "xG Standard",
+                                            forecast_handler = cls.forecast_handler,
+                                            harvest = cls.harvest,
+                                            priority = 10,
+                                            status = 'a'
+                                            )
+
 
     #######################################################################
     def test_get_team_skill(self):
         # self.harvest.harvesting()
 
-        team_skill = TeamSkill.getTeamSkill(self.harvest, self.team1, self.match4.match_date, self.match4)
+        team_skill = TeamSkill.get_team_skill(self.harvest, self.team1, self.match4.match_date, self.match4)
         self.assertEquals(team_skill.event_date, self.match2.match_date)
         self.assertEquals(team_skill.match_cnt, 2)
         self.assertEquals(team_skill.lvalue1, Decimal('0.4'))
         self.assertEquals(team_skill.lvalue2, Decimal('-0.1'))
 
-        team_skill = TeamSkill.getTeamSkill(self.harvest, self.team1, date(2019,3,2), self.match2)
+        team_skill = TeamSkill.get_team_skill(self.harvest, self.team1, date(2019,3,2), self.match2)
         self.assertEquals(team_skill.event_date, self.match2.match_date)
         self.assertEquals(team_skill.match_cnt, 2)
         self.assertEquals(team_skill.lvalue1, Decimal('0.4'))
         self.assertEquals(team_skill.lvalue2, Decimal('-0.1'))
 
-        team_skill = TeamSkill.getTeamSkill(self.harvest, self.team1, self.match2.match_date, self.match2)
+        team_skill = TeamSkill.get_team_skill(self.harvest, self.team1, self.match2.match_date, self.match2)
         self.assertEquals(team_skill.event_date, self.match1.match_date)
         self.assertEquals(team_skill.match_cnt, 1)
         self.assertEquals(team_skill.lvalue1, Decimal('0.1823'))
         self.assertEquals(team_skill.lvalue2, Decimal('-0.2231'))
 
-        team_skill = TeamSkill.getTeamSkill(self.harvest, self.team1, self.match1.match_date, self.match1)
+        team_skill = TeamSkill.get_team_skill(self.harvest, self.team1, self.match1.match_date, self.match1)
         self.assertEquals(team_skill.event_date, self.match1.match_date)
         self.assertEquals(team_skill.match_cnt, 0)
         self.assertEquals(team_skill.lvalue1, Decimal('0'))
         self.assertEquals(team_skill.lvalue2, Decimal('0'))
 
-        team_skill = TeamSkill.getTeamSkill(self.harvest, self.team5, self.match4.match_date, self.match4)
+        team_skill = TeamSkill.get_team_skill(self.harvest, self.team5, self.match4.match_date, self.match4)
         self.assertEquals(team_skill.event_date, self.match4.match_date)
         self.assertEquals(team_skill.match_cnt, 0)
         self.assertEquals(team_skill.lvalue1, Decimal('-0.2'))
@@ -240,7 +263,7 @@ class xGTest(TestCase):
         self.assertEquals(team_skill.lvalue4, Decimal('-0.095'))
 
 
-        team_skill = TeamSkill.getTeamSkill(self.harvest, self.team6, self.match5.match_date, self.match5)
+        team_skill = TeamSkill.get_team_skill(self.harvest, self.team6, self.match5.match_date, self.match5)
         self.assertEquals(team_skill.event_date, self.match5.match_date)
         self.assertEquals(team_skill.match_cnt, 0)
         self.assertEquals(team_skill.lvalue1, Decimal('-0.2'))
@@ -249,7 +272,7 @@ class xGTest(TestCase):
         self.assertEquals(team_skill.lvalue4, Decimal('-0.095'))
 
     #######################################################################
-    def test_get_team_skill(self):
+    def test_harvest_group(self):
         self.harvest.do_harvest(self.match4.match_date)
 
         self.harvest_group.refresh_from_db()
@@ -268,31 +291,9 @@ class xGTest(TestCase):
         self.assertEquals(team_skill_1.value9, Decimal("0.97013"))
         self.assertEquals(team_skill_1.value10, Decimal("0.81349"))
 
+    #######################################################################
+    def test_forecasting(self):
+        TeamSkill.objects.filter(harvest=self.harvest).update(match_cnt = 10)
 
-        # a1 = 2/(N+1) = 0,33333333333333
-        # a2 = 2/(N+1) = 0,125
-        #    = a * P + (1-a) * EMA        
-
-        # 0,4 + 0,295 = 0,695
-        # ln(1.8) = 0,58778666490
-        # delta = -0,05360666755
-        # P = 0,34639333245
-        # new =  
-
-        # MatchStats.objects.create(match=cls.match4, stat_type=Match.GOALS, competitor=Match.COMPETITOR_HOME, period=0, value=2)
-        # MatchStats.objects.create(match=cls.match4, stat_type=Match.GOALS, competitor=Match.COMPETITOR_AWAY, period=0, value=0)
-        # MatchStats.objects.create(match=cls.match4, stat_type=Match.XG, competitor=Match.COMPETITOR_HOME, period=0, value=1.8)
-        # MatchStats.objects.create(match=cls.match4, stat_type=Match.XG, competitor=Match.COMPETITOR_AWAY, period=0, value=1.1)
-
-
-        # TeamSkill.objects.create(harvest = cls.harvest, team = cls.team1, event_date =cls.match2.match_date,
-        #                          harvest_group = cls.harvest_group,
-        #                          match = cls.match2, match_cnt = 2,
-        #                          lvalue1=0.4, lvalue2=-0.1, lvalue3=-0.5, lvalue4=-0.1, 
-        #                          lvalue5=0, lvalue6=0, lvalue7=0, lvalue8=0, lvalue9=0, lvalue10=0, 
-        #                          value1=1.5, value2=0.9, value3=0.9, value4=0.8,
-        #                          value5=0, value6=0, value7=0, value8=0, 
-        #                          value9=0.96, value10=0.73
-        #                          )
-
-        # team5 = 0
+        predictor = PredictorStandardPoisson.objects.get(slug=self.predictor.slug)
+        predictor.forecasting(self.forecast_set)

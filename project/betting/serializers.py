@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from project.core.helpers import DisplayChoiceField
-from .models import Odd, VOdd, HarvestHandler, Harvest, HarvestConfig, HarvestGroup
+from .models import Odd, VOdd, HarvestHandler, Harvest, HarvestConfig, HarvestGroup, ForecastHandler, Predictor, ForecastSet
 
 
 class OddSerializer(serializers.ModelSerializer):
@@ -68,3 +68,26 @@ class HarvestGroupSerializer(serializers.Serializer):
     harvest_date = serializers.DateField(format="%d.%m.%Y")
     last_update = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
     type = serializers.IntegerField()
+
+class ForecastHandlerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ForecastHandler
+        fields = ("id", "slug", "name", "handler")
+
+class PredictorSerializer(serializers.ModelSerializer):
+    status = DisplayChoiceField(choices = Predictor.STATUS_CHOICES)
+    class Meta:
+        model = Predictor
+        fields = ("id", "slug", "name", "forecast_handler", "harvest", "priority", "status", )
+        depth = 1
+
+class ForecastSetSerializer(serializers.ModelSerializer):
+    status = DisplayChoiceField(choices = ForecastSet.STATUS_CHOICES)
+    forecast_date = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    start_date = serializers.DateField(format="%d.%m.%Y")
+    class Meta:
+        model = ForecastSet
+        fields = ("id", "slug", "name", "forecast_date", "forecast_time", "status", "match_cnt", "odd_cnt", 
+                  "keep_only_best", "only_finished", "start_date")
+        depth = 1
+
