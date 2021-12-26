@@ -1,3 +1,4 @@
+from decimal import Decimal
 from scipy.stats import poisson
 
 
@@ -34,9 +35,9 @@ class PoissonForecasting(object):
         forecast_data = []
         if max_value != None:
             for value_h in range(min_value,max_value):
-                probability_h = poisson.pmf(value_h, float(win_value)) 
+                probability_h = Decimal(poisson.pmf(value_h, float(win_value)))
                 for value_a in range(min_value,max_value):
-                    probability_a = poisson.pmf(value_a, float(lose_value)) 
+                    probability_a = Decimal(poisson.pmf(value_a, float(lose_value)))
                     forecast_data.append([value_h,value_a,probability_h*probability_a])
         return forecast_data
 

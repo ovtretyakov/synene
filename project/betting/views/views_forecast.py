@@ -615,6 +615,22 @@ class ForecastSetCreateView(BSModalCreateView):
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
 
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                ForecastSet.api_create(
+                                        slug=cleaned_data["slug"], 
+                                        name=cleaned_data["name"], 
+                                        keep_only_best=cleaned_data["keep_only_best"], 
+                                        only_finished=cleaned_data["only_finished"], 
+                                        start_date=cleaned_data["start_date"]
+                                        )
+                messages.success(self.request, self.success_message)
+            except Exception as e:
+                messages.error(self.request, "Creating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
 
 class ForecastSetUpdateView(BSModalUpdateView):
     model = ForecastSet
@@ -624,6 +640,20 @@ class ForecastSetUpdateView(BSModalUpdateView):
 
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
+
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                self.object.api_update(
+                                        slug=cleaned_data["slug"], 
+                                        name=cleaned_data["name"], 
+                                        keep_only_best=cleaned_data["keep_only_best"], 
+                                        only_finished=cleaned_data["only_finished"], 
+                                        start_date=cleaned_data["start_date"]
+                                        )
+                messages.success(self.request, success_message)
+            except Exception as e:
+                messages.error(self.request, "Updating error :\n" + str(e))
 
 
 class ForecastSetDeleteView(BSModalCreateView):
