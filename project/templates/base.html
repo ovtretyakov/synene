@@ -128,7 +128,7 @@
 
           <!-- Harvest -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'harvest_handler_list,harvest_list' %}active{% endif %}" 
+            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'harvest_handler_list,harvest_list,forecast_handler_list,predictor_list,forecast_set_list' %}active{% endif %}" 
               href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
             >
             <span class="fa fa-cog"></span>
@@ -144,6 +144,21 @@
                 id="navbarSources"  href="{% url 'betting:harvest_list' %}">
                 <span class="fa fa-user-o"></span>
                 Harvestors
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'forecast_handler_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:forecast_handler_list' %}">
+                <span class="fa fa-navicon"></span>
+                Harvest Handlers
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'predictor_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:predictor_list' %}">
+                <span class="fa fa-cogs"></span>
+                Predictors
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'forecast_set_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:forecast_set_list' %}">
+                <span class="fa fa-ellipsis-h"></span>
+                Forecast Sets
               </a>
             </div>
           </li>          

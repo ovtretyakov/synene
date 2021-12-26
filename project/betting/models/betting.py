@@ -396,6 +396,17 @@ class Odd(Mergable, models.Model):
             raise ValueError('Invalid bet value: %s' % value)
         return value
 
+    def get_own_object(self):
+        real_cls = globals().get(self.bet_type.handler)
+        if not real_cls:
+            obj = self
+        else:
+            try:
+                obj = real_cls.objects.get(pk=self.pk)
+            except real_cls.DoesNotExist:
+                obj = None
+        return obj
+
     def save(self, *args, **kwargs):
         if self.own_bet_type():
             self.bet_type = self.own_bet_type()
@@ -412,6 +423,12 @@ class Odd(Mergable, models.Model):
         else:
             self.match = match_dst
             self.save()
+
+    def forecasting(self, forecast_data):
+        success_chance = None
+        lose_chance = None
+        result_value = None
+        return success_chance, lose_chance, result_value
 
     def change_data(self, src):
         self.odd_value = src.odd_value
@@ -441,14 +458,16 @@ class Odd(Mergable, models.Model):
         '''default method implementation'''
         return self.get_match_values(value_type=value_type, stat_type=stat_type, period=period)
 
-    def get_odd_int_values(self, value_type=None, stat_type=None, period=None):
-        value_h, value_a = self.get_odd_values(value_type=value_type, stat_type=stat_type, period=period)
+    def get_odd_int_values(self, value_type=None, stat_type=None, period=None, value_h=None, value_a=None):
+        if value_h == None or value_h == None:
+            value_h, value_a = self.get_odd_values(value_type=value_type, stat_type=stat_type, period=period)
         if value_h: value_h = int(value_h)
         if value_a: value_a = int(value_a)
         return value_h, value_a
 
-    def get_odd_decimal_values(self, value_type=None, stat_type=None, period=None):
-        value_h, value_a = self.get_odd_values(value_type=value_type, stat_type=stat_type, period=period)
+    def get_odd_decimal_values(self, value_type=None, stat_type=None, period=None, value_h=None, value_a=None):
+        if value_h == None or value_h == None:
+            value_h, value_a = self.get_odd_values(value_type=value_type, stat_type=stat_type, period=period)
         if value_h: value_h = Decimal(value_h)
         if value_a: value_a = Decimal(value_a)
         return value_h, value_a
@@ -496,8 +515,9 @@ class Odd(Mergable, models.Model):
         value_a2 = get_int(value_a2)
         return value_h1, value_a1, value_h2, value_a2
 
-    def get_match_total(self, period=None, team=None):
-        value_h, value_a = self.get_odd_int_values(period=period)
+    def get_match_total(self, period=None, team=None, value_h=None, value_a=None):
+        if value_h == None or value_h == None:
+            value_h, value_a = self.get_odd_int_values(period=period)
         if value_h == None or value_a == None: total_value = None
         else:
             if team == None:
@@ -524,8 +544,8 @@ class Odd(Mergable, models.Model):
             result = self.SUCCESS
         return result
 
-    def get_match_total_over_result(self, period=None, team=None):
-        match_value = self.get_match_total(period=period, team=team)
+    def get_match_total_over_result(self, period=None, team=None, value_h=None, value_a=None):
+        match_value = self.get_match_total(period=period, team=team, value_h=value_h, value_a=value_a)
         if match_value == None: result_value = None
         else:
             param_value = Decimal(self.param)
@@ -533,8 +553,8 @@ class Odd(Mergable, models.Model):
         result = self.get_result_by_value(result_value)
         return result, result_value
 
-    def get_match_total_under_result(self, period=None, team=None):
-        match_value = self.get_match_total(period=period, team=team)
+    def get_match_total_under_result(self, period=None, team=None, value_h=None, value_a=None):
+        match_value = self.get_match_total(period=period, team=team, value_h=value_h, value_a=value_a)
         if match_value == None: result_value = None
         else:
             param_value = Decimal(self.param)
@@ -542,8 +562,9 @@ class Odd(Mergable, models.Model):
         result = self.get_result_by_value(result_value)
         return result, result_value
 
-    def get_match_handicap(self, period=None):
-        value_h, value_a = self.get_odd_decimal_values(period=period)
+    def get_match_handicap(self, period=None, value_h=None, value_a=None):
+        if value_h == None or value_a == None:
+            value_h, value_a = self.get_odd_decimal_values(period=period)
         if value_h == None or value_a == None: handicap_value = None
         else:
             team = self.team
@@ -553,8 +574,8 @@ class Odd(Mergable, models.Model):
                 raise ValueError('Invalid team param (should be "h" or "a"): %s' % team)
         return handicap_value
 
-    def get_match_handicap_result(self, period=None):
-        match_value = self.get_match_handicap(period=period)
+    def get_match_handicap_result(self, period=None, value_h=None, value_a=None):
+        match_value = self.get_match_handicap(period=period, value_h=value_h, value_a=value_a)
         if match_value == None: 
             param_value = None
             result_value = None
@@ -565,8 +586,8 @@ class Odd(Mergable, models.Model):
         logger.debug('get_match_handicap_result param_value=%s result_value=%s result=%s' % (param_value,result_value,result))
         return result, result_value
 
-    def get_margin_win(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_margin_win(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: 
             win = None
             result = None
@@ -594,6 +615,21 @@ class Odd(Mergable, models.Model):
             result = self.FAIL
             result_value = 0
         return result, result_value
+
+    def standard_forecasting(self, forecast_data):
+        success_chance = 0
+        lose_chance = 0
+        result_value = 0
+        for data in forecast_data:
+            result, value = self.get_result(value_h=data[0],value_a=data[1])
+            result_value += (value*data[2])
+            if value >= 1:
+                success_chance += data[2] 
+                # if self.bet_type.slug == BetType.WIN_NO_BET:
+                #     print(data, round(success_chance,4), round(result_value,4), result, value)
+            else: 
+                lose_chance += data[2]
+        return success_chance, lose_chance, result_value
 
 
 ###################################################################
@@ -660,6 +696,8 @@ class OddWDL(OddMixins.WDLResult, OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmpty
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WDL)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWDLMinute(OddMixins.WDLResult, OddMixins.OnlyFootballMinutes, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):
     class Meta:
@@ -747,8 +785,9 @@ class OddWinToNil(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddM
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WIN_TO_NIL)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        if value_h == None or value_a == None:
+            value_h, value_a = self.get_odd_int_values()
         if value_h == None or value_a == None: win = None
         else:
             team = self.team
@@ -764,6 +803,8 @@ class OddWinToNil(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddM
             else:
                 raise ValueError('Invalid team param (should be "h", "a" or ""): %s' % team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddCorrectScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.ScoreListParam, Odd):
     class Meta:
@@ -771,13 +812,18 @@ class OddCorrectScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMix
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.CORRECT_SCORE)
-    def get_result(self):
-        value_h, value_a = self.get_odd_values()
+    def get_result(self, value_h=None, value_a=None):
+        if value_h == None or value_a == None:
+            value_h, value_a = self.get_odd_values()
+            value_h = value_h.strip()
+            value_a = value_a.strip()
         if value_h == None or value_a == None: win = None
         else:
-            score = '%s:%s' % (value_h.strip(), value_a.strip())
+            score = '%s:%s' % (value_h, value_a)
             win = score in(self.param)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddTotalEvenOdd(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.EvenOddParam, Odd):
     class Meta:
@@ -785,8 +831,8 @@ class OddTotalEvenOdd(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, 
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.TOTAL_EVEN_ODD)
-    def get_result(self):
-        total_value = self.get_match_total()
+    def get_result(self, value_h=None, value_a=None):
+        total_value = self.get_match_total(value_h=value_h, value_a=value_a)
         if total_value == None: win = None
         else:
             if total_value % 2 == 0:
@@ -796,6 +842,8 @@ class OddTotalEvenOdd(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, 
                 #odd
                 win = (self.param == 'odd')
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddTotalOver(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.TotalParam, Odd):
     class Meta:
@@ -803,8 +851,10 @@ class OddTotalOver(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeA
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.TOTAL_OVER)
-    def get_result(self):
-        return self.get_match_total_over_result()
+    def get_result(self, value_h=None, value_a=None):
+        return self.get_match_total_over_result(value_h=value_h, value_a=value_a)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddTotalUnder(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.TotalParam, Odd):
     class Meta:
@@ -812,8 +862,10 @@ class OddTotalUnder(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.Home
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.TOTAL_UNDER)
-    def get_result(self):
-        return self.get_match_total_under_result()
+    def get_result(self, value_h=None, value_a=None):
+        return self.get_match_total_under_result(value_h=value_h, value_a=value_a)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddTotalBothHalvesOver(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -869,12 +921,14 @@ class OddTotal(OddMixins.HomeAwayOrEmptyTeam, OddMixins.IntegerListParam, Odd):
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.TOTAL)
-    def get_result(self):
-        total_value = self.get_match_total()
+    def get_result(self, value_h=None, value_a=None):
+        total_value = self.get_match_total(value_h=value_h, value_a=value_a)
         if total_value == None: win = None
         else:
             win = (str(total_value) in self.param.split(','))
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddHandicap(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HandicapParam, Odd):
     class Meta:
@@ -882,8 +936,10 @@ class OddHandicap(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOr
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.HANDICAP)
-    def get_result(self):
-        return self.get_match_handicap_result()
+    def get_result(self, value_h=None, value_a=None):
+        return self.get_match_handicap_result(value_h=value_h, value_a=value_a)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddHandicapMinutes(OddMixins.OnlyYes, OddMixins.OnlyFootballMinutes, OddMixins.HomeOrAwayTeam, 
                             OddMixins.HandicapParam, Odd):
@@ -947,13 +1003,15 @@ class OddITotalBothOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddM
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.ITOTAL_BOTH_OVER)
-    def get_result(self):
-        result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME)
-        result_a, result_value_a = self.get_match_total_over_result(team=Match.COMPETITOR_AWAY)
+    def get_result(self, value_h=None, value_a=None):
+        result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME, value_h=value_h, value_a=value_a)
+        result_a, result_value_a = self.get_match_total_over_result(team=Match.COMPETITOR_AWAY, value_h=value_h, value_a=value_a)
         if result_h == None or result_a == None: win = None
         else:
             win = (result_h == Odd.SUCCESS and result_a == Odd.SUCCESS)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddITotalBothUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -961,13 +1019,15 @@ class OddITotalBothUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, Odd
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.ITOTAL_BOTH_UNDER)
-    def get_result(self):
-        result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME)
-        result_a, result_value_a = self.get_match_total_under_result(team=Match.COMPETITOR_AWAY)
+    def get_result(self, value_h=None, value_a=None):
+        result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME, value_h=value_h, value_a=value_a)
+        result_a, result_value_a = self.get_match_total_under_result(team=Match.COMPETITOR_AWAY, value_h=value_h, value_a=value_a)
         if result_h == None or result_a == None: win = None
         else:
             win = (result_h == Odd.SUCCESS and result_a == Odd.SUCCESS)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddITotalOnlyOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -975,9 +1035,9 @@ class OddITotalOnlyOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.ITOTAL_ONLY_OVER)
-    def get_result(self):
-        result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME)
-        result_a, result_value_a = self.get_match_total_over_result(team=Match.COMPETITOR_AWAY)
+    def get_result(self, value_h=None, value_a=None):
+        result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME, value_h=value_h, value_a=value_a)
+        result_a, result_value_a = self.get_match_total_over_result(team=Match.COMPETITOR_AWAY, value_h=value_h, value_a=value_a)
         if result_h == None or result_a == None: win = None
         else:
             if self.team == Match.COMPETITOR_HOME:
@@ -987,6 +1047,8 @@ class OddITotalOnlyOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam
             else:
                 win =   (result_h == Odd.SUCCESS or result_a == Odd.SUCCESS)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddITotalOnlyUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -994,9 +1056,9 @@ class OddITotalOnlyUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTea
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.ITOTAL_ONLY_UNDER)
-    def get_result(self):
-        result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME)
-        result_a, result_value_a = self.get_match_total_under_result(team=Match.COMPETITOR_AWAY)
+    def get_result(self, value_h=None, value_a=None):
+        result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME, value_h=value_h, value_a=value_a)
+        result_a, result_value_a = self.get_match_total_under_result(team=Match.COMPETITOR_AWAY, value_h=value_h, value_a=value_a)
         if result_h == None or result_a == None: win = None
         else:
             if self.team == Match.COMPETITOR_HOME:
@@ -1010,6 +1072,8 @@ class OddITotalOnlyUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTea
                         (result_h != Odd.SUCCESS and result_a == Odd.SUCCESS)
                         )
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddITotalAtLeastOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1017,13 +1081,15 @@ class OddITotalAtLeastOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, O
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.ITOTAL_AT_LEAST_OVER)
-    def get_result(self):
-        result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME)
-        result_a, result_value_a = self.get_match_total_over_result(team=Match.COMPETITOR_AWAY)
+    def get_result(self, value_h=None, value_a=None):
+        result_h, result_value_h = self.get_match_total_over_result(team=Match.COMPETITOR_HOME, value_h=value_h, value_a=value_a)
+        result_a, result_value_a = self.get_match_total_over_result(team=Match.COMPETITOR_AWAY, value_h=value_h, value_a=value_a)
         if result_h == None or result_a == None: win = None
         else:
             win = (result_h == Odd.SUCCESS or result_a == Odd.SUCCESS) 
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddITotalAtLeastUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1031,13 +1097,15 @@ class OddITotalAtLeastUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, 
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.ITOTAL_AT_LEAST_UNDER)
-    def get_result(self):
-        result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME)
-        result_a, result_value_a = self.get_match_total_under_result(team=Match.COMPETITOR_AWAY)
+    def get_result(self, value_h=None, value_a=None):
+        result_h, result_value_h = self.get_match_total_under_result(team=Match.COMPETITOR_HOME, value_h=value_h, value_a=value_a)
+        result_a, result_value_a = self.get_match_total_under_result(team=Match.COMPETITOR_AWAY, value_h=value_h, value_a=value_a)
         if result_h == None or result_a == None: win = None
         else:
             win = (result_h == Odd.SUCCESS or result_a == Odd.SUCCESS) 
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddMargin(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMixins.IntegerListParam, Odd):
     class Meta:
@@ -1045,9 +1113,11 @@ class OddMargin(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMix
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.MARGIN)
-    def get_result(self):
-        win = self.get_margin_win()
+    def get_result(self, value_h=None, value_a=None):
+        win = self.get_margin_win(value_h=value_h, value_a=value_a)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1055,9 +1125,9 @@ class OddWAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddM
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.W_AND_TOTAL_OVER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_over_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_over_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             if self.team == 'h':
@@ -1067,6 +1137,8 @@ class OddWAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddM
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1074,9 +1146,9 @@ class OddWAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.W_AND_TOTAL_UNDER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_under_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_under_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             if self.team == 'h':
@@ -1086,6 +1158,8 @@ class OddWAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWDAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1093,9 +1167,9 @@ class OddWDAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WD_AND_TOTAL_OVER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_over_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_over_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             if self.team == 'h':
@@ -1105,6 +1179,8 @@ class OddWDAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWDAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1112,9 +1188,9 @@ class OddWDAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WD_AND_TOTAL_UNDER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_under_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_under_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             if self.team == 'h':
@@ -1124,6 +1200,8 @@ class OddWDAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1131,13 +1209,15 @@ class OddBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyT
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.BOTH_TO_SCORE_AND_TOTAL_OVER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_over_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_over_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             win = ((value_h > 0) and (value_a > 0) and (result == self.SUCCESS))
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1145,13 +1225,15 @@ class OddBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmpty
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.BOTH_TO_SCORE_AND_TOTAL_UNDER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_under_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_under_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             win = ((value_h > 0) and (value_a > 0) and (result == self.SUCCESS))
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddNotBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1159,13 +1241,15 @@ class OddNotBothToScoreAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmp
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.NOT_BOTH_TO_SCORE_AND_TOTAL_OVER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_over_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_over_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             win = ((value_h == 0) or (value_a == 0)) and (result == self.SUCCESS)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddNotBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1173,13 +1257,15 @@ class OddNotBothToScoreAndTotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEm
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.NOT_BOTH_TO_SCORE_AND_TOTAL_UNDER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
-        result, result_value = self.get_match_total_under_result(team='')
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
+        result, result_value = self.get_match_total_under_result(team='', value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             win = ((value_h == 0) or (value_a == 0)) and (result == self.SUCCESS)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWDLAndBothTeamsScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):
     class Meta:
@@ -1187,8 +1273,8 @@ class OddWDLAndBothTeamsScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WDL_AND_BOTH_TEAMS_SCORE)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         elif self.param == 'w': win = (value_h > value_a) and (value_h > 0) and (value_a > 0)
         elif self.param == 'd': win = (value_h == value_a) and (value_h > 0) and (value_a > 0)
@@ -1199,6 +1285,8 @@ class OddWDLAndBothTeamsScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam
         else: 
             raise ValueError('Invalid odd param (expected: w,d,l,wd,dl,wl): %s' % self.param)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddBothToScoreAt1_2(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.Two0or1Param, Odd):
     class Meta:
@@ -1515,8 +1603,8 @@ class OddWinNoBet(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOr
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WIN_NO_BET)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: result_value = None
         else:
             if self.team == Match.COMPETITOR_HOME:
@@ -1539,6 +1627,8 @@ class OddWinNoBet(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOr
                     raise ValueError('Invalid odd param (should be w or d): %s' % param)
         result = self.get_result_by_value(result_value)
         return result, result_value
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 # class OddDrawLeastOneHalf(Odd):
 #     class Meta:
@@ -1553,8 +1643,8 @@ class OddWAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.W_AND_ITOTAL_OVER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             param = Decimal(self.param)
@@ -1565,6 +1655,8 @@ class OddWAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Odd
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1572,8 +1664,8 @@ class OddWAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.W_AND_ITOTAL_UNDER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             param = Decimal(self.param)
@@ -1584,6 +1676,8 @@ class OddWAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWDAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1591,8 +1685,8 @@ class OddWDAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WD_AND_ITOTAL_OVER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             param = Decimal(self.param)
@@ -1603,6 +1697,8 @@ class OddWDAndITotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, Od
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWDAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:
@@ -1610,8 +1706,8 @@ class OddWDAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, O
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.WD_AND_ITOTAL_UNDER)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             param = Decimal(self.param)
@@ -1622,6 +1718,8 @@ class OddWDAndITotalUnder(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, O
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 class OddWAndTotal(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.IntegerListParam, Odd):
     class Meta:
@@ -1629,8 +1727,8 @@ class OddWAndTotal(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixin
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.W_AND_TOTAL)
-    def get_result(self):
-        value_h, value_a = self.get_odd_int_values()
+    def get_result(self, value_h=None, value_a=None):
+        value_h, value_a = self.get_odd_int_values(value_h=value_h, value_a=value_a)
         if value_h == None or value_a == None: win = None
         else:
             total_value = str(value_h + value_a)
@@ -1641,6 +1739,8 @@ class OddWAndTotal(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixin
             else:
                 raise ValueError('Invalid team param (should be "h", "a"): %s' % self.team)
         return self.calc_result_with_field_yes(win)
+    def forecasting(self, forecast_data):
+        return self.standard_forecasting(forecast_data)
 ###################################################################
 # class OddPenaltyAndRCard(Odd):
 #     class Meta:

@@ -241,8 +241,11 @@ class OnlyYes(object):
 # result
 ###################################################################
 class WDLResult(object):
-    def get_result(self):
-        value_h, value_a = self.get_odd_values()
+    def get_result(self, **kwargs):
+        value_h = kwargs.get("value_h", None)
+        value_a = kwargs.get("value_a", None)
+        if value_h == None or value_a == None:
+            value_h, value_a = self.get_odd_values()
         value_h = get_int(value_h)
         value_a = get_int(value_a)
         if value_h == None or value_a == None: win = None

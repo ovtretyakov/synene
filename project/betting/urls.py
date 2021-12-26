@@ -34,5 +34,23 @@ urlpatterns = [
     #harvest league
     url(r'^odds/harvest/league/(?P<harvest_group>\d+)/create/$', views.HarvestLeagueCreateView.as_view(), name='create_harvest_league'),
     url(r'^odds/harvest/league/delete/(?P<pk>\d+)/$', views.HarvestLeagueDeleteView.as_view(), name='delete_harvest_league'),
+    #forecast handler
+    url(r'^odds/forecast/handler/$', views.ForecastHandlerView.as_view(), name='forecast_handler_list'),
+    url(r'^odds/forecast/handler/api/$', views.ForecastHandlerAPI.as_view(), name='forecast_handler_list_api'),
+    url(r'^odds/forecast/handler/create/$', views.ForecastHandlerCreateView.as_view(), name='create_forecast_handler'),
+    url(r'^odds/forecast/handler/update/(?P<pk>\d+)/$', views.ForecastHandlerUpdateView.as_view(), name='update_forecast_handler'),
+    url(r'^odds/forecast/handler/delete/(?P<pk>\d+)/$', views.ForecastHandlerDeleteView.as_view(), name='delete_forecast_handler'),
+    #predictor
+    url(r'^odds/forecast/predictor/$', views.PredictorView.as_view(), name='predictor_list'),
+    url(r'^odds/forecast/predictor/api/$', views.PredictorAPI.as_view(), name='predictor_list_api'),
+    url(r'^odds/forecast/predictor/create/$', views.PredictorCreateView.as_view(), name='create_predictor'),
+    url(r'^odds/forecast/predictor/update/(?P<pk>\d+)/$', views.PredictorUpdateView.as_view(), name='update_predictor'),
+    url(r'^odds/forecast/predictor/delete/(?P<pk>\d+)/$', views.PredictorDeleteView.as_view(), name='delete_predictor'),
+    #forecast set
+    url(r'^odds/forecast/set/$', views.ForecastSetView.as_view(), name='forecast_set_list'),
+    url(r'^odds/forecast/set/api/$', views.ForecastSetAPI.as_view(), name='forecast_set_list_api'),
+    url(r'^odds/forecast/set/create/$', views.ForecastSetCreateView.as_view(), name='create_forecast_set'),
+    url(r'^odds/forecast/set/update/(?P<pk>\d+)/$', views.ForecastSetUpdateView.as_view(), name='update_forecast_set'),
+    url(r'^odds/forecast/set/delete/(?P<pk>\d+)/$', views.ForecastSetDeleteView.as_view(), name='delete_forecast_set'),
     ####
 ]

@@ -6,7 +6,9 @@ from django.template.defaultfilters import slugify
 
 from bootstrap_modal_forms.forms import BSModalForm
 
-from .models import HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague
+from .models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
+                    ForecastHandler, Predictor, ForecastSet,
+                    )
 
 ######################################################################
 class HarvestHandlerForm(BSModalForm):
@@ -139,3 +141,76 @@ class HarvestLeagueDeleteForm(BSModalForm):
         object_id = cleaned_data.get("object_id")
         if not object_id:
             raise ValidationError(_("No harvestor league to delete"))
+
+######################################################################
+class ForecastHandlerForm(BSModalForm):
+
+    class Meta:
+        model = ForecastHandler
+        fields = ["slug", "name", "handler",]
+
+    def clean_slug(self):
+        data = slugify(self.cleaned_data["slug"])
+        return data
+
+
+class ForecastHandlerDeleteForm(BSModalForm):
+    object_id = forms.IntegerField()
+
+    class Meta:
+        model = ForecastHandler
+        fields = []
+
+    def clean(self):
+        cleaned_data = super().clean()
+        object_id = cleaned_data.get("object_id")
+        if not object_id:
+            raise ValidationError(_("No handler to delete"))
+
+######################################################################
+class PredictorForm(BSModalForm):
+
+    class Meta:
+        model = Predictor
+        fields = ["slug", "name", "forecast_handler", "harvest", "priority", "status", ]
+
+    def clean_slug(self):
+        data = slugify(self.cleaned_data["slug"])
+        return data
+
+class PredictorDeleteForm(BSModalForm):
+    object_id = forms.IntegerField()
+
+    class Meta:
+        model = Predictor
+        fields = []
+
+    def clean(self):
+        cleaned_data = super().clean()
+        object_id = cleaned_data.get("object_id")
+        if not object_id:
+            raise ValidationError(_("No predictor to delete"))
+
+######################################################################
+class ForecastSetForm(BSModalForm):
+
+    class Meta:
+        model = ForecastSet
+        fields = ["slug", "name", "keep_only_best", "only_finished", "start_date", "status", ]
+
+    def clean_slug(self):
+        data = slugify(self.cleaned_data["slug"])
+        return data
+
+class ForecastSetDeleteForm(BSModalForm):
+    object_id = forms.IntegerField()
+
+    class Meta:
+        model = ForecastSet
+        fields = []
+
+    def clean(self):
+        cleaned_data = super().clean()
+        object_id = cleaned_data.get("object_id")
+        if not object_id:
+            raise ValidationError(_("No predictor to delete"))

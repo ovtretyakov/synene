@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Forecast Handlers{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Forecast Handlers</h1>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Create new forecast handler" id="create-forecast-handler" 
+            onclick="create_handler_dlg()">Create Handler</button >
+          </div>
+        </div>
+
+
+      </div>
+
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th></th>
+              <th>Slug</th>
+              <th>Name</th>
+              <th>Handler</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var upd_url = "{% url 'betting:update_forecast_handler' 0 %}";
+          var delete_url = "{% url 'betting:delete_forecast_handler' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<button type="button" class="update-handler btn btn-sm btn-outline-secondary" data-id="' + upd_url + '" title="Edit forecast handler" id="update-handler">' +
+                '   <span class="fa fa-pencil"></span>' +
+                '</button>' +
+                '<button type="button" class="delete-handler btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete forecast handler" id="delete-handler">' +
+                '   <span class="fa fa-trash"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'betting:forecast_handler_list_api'  %}?format=datatables",
+              'order': [[ 2, 'asc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'5em'},
+                  {'data': 'slug', 'width':'7em'},
+                  {'data': 'name'},
+                  {'data': 'handler', 'width':'20em'},
+
+              ],
+
+              'drawCallback': function(settings, json) {
+                $(".update-handler").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formUpdateForecastHandler",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+                $(".delete-handler").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formDeleteForecastHandler",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+              }
+      });
+
+
+    });
+
+
+
+    function create_handler_dlg() 
+      {
+        
+        var url = "{% url 'betting:create_forecast_handler' %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formCreateForecastHandler",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+
+    
+  </script>
+{% endblock %}
+
+
+

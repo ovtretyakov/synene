@@ -5,10 +5,13 @@ import logging
 
 from django.db import models, transaction
 from django.utils import timezone
+from django.db.models import Count
 
 from .betting import ValueType
 from project.core.models import Sport, Match, League, Country, Team
 from project.betting.models import Odd
+from .. import predictor_mixins as Mixins
+
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +187,77 @@ class Predictor(models.Model):
     def __str__(self):
         return self.name
 
+    def extract_skills(self):
+        raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
+
+    def get_forecast_data(self):
+        raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
+
+    def forecasting(self, forecast_set):
+        from .harvest import TeamSkill
+        start_date = forecast_set.start_date
+        if not start_date:
+            start_date = date(2015, 1, 1)
+
+        self.period = self.harvest.period
+        self.value_type_slug = self.harvest.value_type.slug
+        self.value_type = self.harvest.value_type
+
+        only_finished = forecast_set.only_finished
+        keep_only_best = forecast_set.keep_only_best
+        for harvest_league in HarvestLeague.objects.filter(harvest_group__harvest=self.harvest, harvest_group__status=HarvestGroup.ACTIVE):
+            print(harvest_league)
+            queryset = Match.objects.filter(season__league = harvest_league.league, 
+                                            match_date__gte = start_date)
+            if only_finished:
+                queryset = queryset.exclude(status=Match.FINISHED)
+            queryset = queryset.order_by("match_date","pk")
+
+            for match in queryset:
+                self.skill_h = TeamSkill.get_team_skill(self.harvest, match.team_h, match.match_date, match)
+                self.skill_a = TeamSkill.get_team_skill(self.harvest, match.team_a, match.match_date, match)
+                if not self.skill_h or not self.skill_a or self.skill_h.match_cnt <= 3 or self.skill_a.match_cnt <= 3:
+                    continue
+
+                print(match, match.match_date)
+                self.extract_skills()
+                forecast_data = self.get_forecast_data()
+
+                # print("dl", sum([d[2] for d in forecast_data if d[0] <= d[1]]))
+                # print("wl", sum([d[2] for d in forecast_data if d[0] != d[1]]))
+                for odd in Odd.objects.filter(match=match, value_type=self.value_type, period=self.period):
+                    forecast_old = None
+                    if keep_only_best:
+                        forecast_old = Forecast.objects.filter(forecast_set=forecast_set,match=match,odd=odd).first()
+                        if forecast_old:
+                            if forecast_old.predictor.priority > self.priority:
+                                forecast_old.delete()
+                            else:
+                                continue
+                    else:
+                        forecast_old = Forecast.objects.filter(forecast_set=forecast_set,match=match,odd=odd,predictor=self).first()
+                        if forecast_old:
+                            continue
+
+                    real_odd = odd.get_own_object()
+                    success_chance, lose_chance, result_value = real_odd.forecasting(forecast_data)
+                    if success_chance != None:
+                        kelly = 0
+                        if result_value > 1.05:
+                            kelly = (result_value - 1) / (odd.odd_value - 1)
+                        forecast = Forecast.objects.create(
+                                        forecast_set=forecast_set,
+                                        match=match,
+                                        odd=odd,
+                                        predictor=self,
+                                        match_date=match.match_date,
+                                        harvest=self.harvest,
+                                        success_chance=success_chance,
+                                        lose_chance=lose_chance,
+                                        result_value=result_value,
+                                        kelly=kelly
+                                        )
+
 
 class ForecastSet(models.Model):
 
@@ -212,6 +286,55 @@ class ForecastSet(models.Model):
     def __str__(self):
         return self.slug
 
+    @classmethod
+    def api_create(cls, slug, name, keep_only_best, only_finished, start_date):
+        with transaction.atomic():
+            forecast_set = ForecastSet.objects.create(
+                                slug = slug,
+                                name = name,
+                                forecast_date = datetime.now(),
+                                status = ForecastSet.PREPARED,
+                                match_cnt = 0,
+                                odd_cnt = 0,
+                                keep_only_best = keep_only_best,
+                                only_finished = only_finished,
+                                start_date = start_date
+                                )
+            forecast_set.forecasting()
+
+
+    def api_update(self, slug, name, keep_only_best, only_finished, start_date):
+        with transaction.atomic():
+            self.slug = slug,
+            self.name = name,
+            self.forecast_date = datetime.now(),
+            self.status = ForecastSet.PREPARED,
+            self.match_cnt = 0,
+            self.odd_cnt = 0,
+            self.keep_only_best = keep_only_best,
+            self.only_finished = only_finished,
+            self.start_date = start_date
+            self.save()
+            self.forecasting()
+
+    def forecasting(self):
+        start_time = datetime.now()
+
+        Forecast.objects.filter(forecast_set=self).delete()
+        for predictor in Predictor.objects.filter(status=Predictor.ACTIVE).order_by("priority", "pk"):
+            predictor.forecasting(self)
+
+        odd_cnt = Forecast.objects.filter(forecast_set=self).count()
+        match_cnt = Forecast.objects.filter(forecast_set=self).distinct('match').count()
+        finish_time = datetime.now()
+        duration = finish_time - start_time
+        self.forecast_date = start_time
+        self.forecast_time = duration.total_seconds()
+        self.match_cnt = match_cnt
+        self.odd_cnt = odd_cnt
+        self.status = ForecastSet.SUCCESS
+        self.save()
+
 
 
 class Forecast(models.Model):
@@ -237,3 +360,7 @@ class Forecast(models.Model):
 
 
 
+###################################################################
+class PredictorStandardPoisson(Mixins.StandartExtraction, Mixins.PoissonForecasting, Predictor):
+    class Meta:
+        proxy = True

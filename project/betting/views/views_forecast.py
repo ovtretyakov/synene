@@ -15,14 +15,20 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
 
 from project.core.utils import get_date_from_string
 from project.core.models import Sport
-from ..models import HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague
+from ..models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
+                     ForecastHandler, Predictor, ForecastSet)
 from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
                      HarvestForm, HarvestDeleteForm, HarvestDoHarvestForm, HarvestDoHarvestAllForm,
                      HarvestConfigForm, HarvestConfigDeleteForm,
                      HarvestGroupForm, HarvestGroupDeleteForm, HarvestGroupDoHarvestForm,
                      HarvestLeagueForm, HarvestLeagueDeleteForm,
+                     ForecastHandlerForm, ForecastHandlerDeleteForm,
+                     PredictorForm, PredictorDeleteForm,
+                     ForecastSetForm, ForecastSetDeleteForm
                      )
-from ..serializers import HarvestHandlerSerializer, HarvestSerializer, HarvestConfigSerializer, HarvestGroupSerializer
+from ..serializers import (HarvestHandlerSerializer, HarvestSerializer, HarvestConfigSerializer, HarvestGroupSerializer,
+                           ForecastHandlerSerializer, PredictorSerializer, ForecastSetSerializer
+                           )
 
 
 
@@ -446,6 +452,237 @@ class HarvestLeagueDeleteView(BSModalCreateView):
                 cleaned_data = form.cleaned_data
                 object_id = cleaned_data["object_id"]
                 object = HarvestLeague.objects.get(pk=object_id)
+                object.delete()
+                messages.success(self.request, self.success_message)
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+####################################################
+#  ForecastHandler
+####################################################
+class ForecastHandlerView(generic.TemplateView):
+    template_name = "betting/forecast_handler_list.html"
+
+
+class ForecastHandlerAPI(ListAPIView):
+    serializer_class = ForecastHandlerSerializer
+    queryset = ForecastHandler.objects.all()
+    lookup_field = "pk"
+
+
+class ForecastHandlerCreateView(BSModalCreateView):
+    model = ForecastHandler
+    form_class = ForecastHandlerForm
+    template_name = 'betting/create_forecast_handler.html'
+    success_message = "Success: Forecast handler was created."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+
+class ForecastHandlerUpdateView(BSModalUpdateView):
+    model = ForecastHandler
+    form_class = ForecastHandlerForm
+    template_name = 'betting/update_forecast_handler.html'
+    success_message = "Success: Forecast handler was updated."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+
+class ForecastHandlerDeleteView(BSModalCreateView):
+    model = ForecastHandler
+    form_class = ForecastHandlerDeleteForm
+    template_name = 'betting/delete_forecast_handler.html'
+    success_message = "Success: Forecast handler was deleted."
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(ForecastHandlerDeleteView, self).get_context_data(**kwargs)
+
+        # pk = self.request.GET.get("pk", None)
+        pk = self.kwargs['pk']
+        if pk:
+            object = ForecastHandler.objects.get(pk=pk)
+            context["object"] = object
+
+        return context    
+
+    def get_success_url(self):
+        return reverse_lazy("betting:forecast_handler_list")
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                object_id = cleaned_data["object_id"]
+                object = ForecastHandler.objects.get(pk=object_id)
+                object.delete()
+                messages.success(self.request, self.success_message)
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+####################################################
+#  Predictor
+####################################################
+class PredictorView(generic.TemplateView):
+    template_name = "betting/predictor_list.html"
+
+
+class PredictorAPI(ListAPIView):
+    serializer_class = PredictorSerializer
+    queryset = Predictor.objects.all()
+    lookup_field = "pk"
+
+
+class PredictorCreateView(BSModalCreateView):
+    model = Predictor
+    form_class = PredictorForm
+    template_name = 'betting/create_predictor.html'
+    success_message = "Success: Predictor was created."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+
+class PredictorUpdateView(BSModalUpdateView):
+    model = Predictor
+    form_class = PredictorForm
+    template_name = 'betting/update_predictor.html'
+    success_message = "Success: Predictor was updated."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+
+class PredictorDeleteView(BSModalCreateView):
+    model = Predictor
+    form_class = PredictorDeleteForm
+    template_name = 'betting/delete_predictor.html'
+    success_message = "Success: Predictor was deleted."
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(PredictorDeleteView, self).get_context_data(**kwargs)
+
+        # pk = self.request.GET.get("pk", None)
+        pk = self.kwargs['pk']
+        if pk:
+            object = Predictor.objects.get(pk=pk)
+            context["object"] = object
+
+        return context    
+
+    def get_success_url(self):
+        return reverse_lazy("betting:predictor_list")
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                object_id = cleaned_data["object_id"]
+                object = Predictor.objects.get(pk=object_id)
+                object.delete()
+                messages.success(self.request, self.success_message)
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+####################################################
+#  ForecastSet
+####################################################
+class ForecastSetView(generic.TemplateView):
+    template_name = "betting/forecast_set_list.html"
+
+
+class ForecastSetAPI(ListAPIView):
+    serializer_class = ForecastSetSerializer
+    queryset = ForecastSet.objects.all()
+    lookup_field = "pk"
+
+
+class ForecastSetCreateView(BSModalCreateView):
+    model = ForecastSet
+    form_class = ForecastSetForm
+    template_name = 'betting/create_forecast_set.html'
+    success_message = "Success: Forecast set was created."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                ForecastSet.api_create(
+                                        slug=cleaned_data["slug"], 
+                                        name=cleaned_data["name"], 
+                                        keep_only_best=cleaned_data["keep_only_best"], 
+                                        only_finished=cleaned_data["only_finished"], 
+                                        start_date=cleaned_data["start_date"]
+                                        )
+                messages.success(self.request, self.success_message)
+            except Exception as e:
+                messages.error(self.request, "Creating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class ForecastSetUpdateView(BSModalUpdateView):
+    model = ForecastSet
+    form_class = ForecastSetForm
+    template_name = 'betting/update_forecast_set.html'
+    success_message = "Success: Forecast set was updated."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                self.object.api_update(
+                                        slug=cleaned_data["slug"], 
+                                        name=cleaned_data["name"], 
+                                        keep_only_best=cleaned_data["keep_only_best"], 
+                                        only_finished=cleaned_data["only_finished"], 
+                                        start_date=cleaned_data["start_date"]
+                                        )
+                messages.success(self.request, success_message)
+            except Exception as e:
+                messages.error(self.request, "Updating error :\n" + str(e))
+
+
+class ForecastSetDeleteView(BSModalCreateView):
+    model = ForecastSet
+    form_class = ForecastSetDeleteForm
+    template_name = 'betting/delete_forecast_set.html'
+    success_message = "Success: Forecast set was deleted."
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(ForecastSetDeleteView, self).get_context_data(**kwargs)
+
+        # pk = self.request.GET.get("pk", None)
+        pk = self.kwargs['pk']
+        if pk:
+            object = ForecastSet.objects.get(pk=pk)
+            context["object"] = object
+
+        return context    
+
+    def get_success_url(self):
+        return reverse_lazy("betting:forecast_set_list")
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                object_id = cleaned_data["object_id"]
+                object = ForecastSet.objects.get(pk=object_id)
                 object.delete()
                 messages.success(self.request, self.success_message)
             except Exception as e:
