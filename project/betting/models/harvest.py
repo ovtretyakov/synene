@@ -223,7 +223,7 @@ class xGHandler(TeamSkill):
 
         if team_skill:
             team_skill_season = team_skill.match.season
-            if match and season != team_skill_season:
+            if season and season.name != Season.UNKNOWN and season != team_skill_season:
                 prev_season = cls._get_prev_season(league, season) 
                 if team_skill_season != prev_season:
                     team_skill = cls._get_initialteam_skill(harvest, team, skill_date, match, season, league)

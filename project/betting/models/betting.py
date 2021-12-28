@@ -815,8 +815,8 @@ class OddCorrectScore(OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmptyTeam, OddMix
     def get_result(self, value_h=None, value_a=None):
         if value_h == None or value_a == None:
             value_h, value_a = self.get_odd_values()
-            value_h = value_h.strip()
-            value_a = value_a.strip()
+        if value_h != None and value_h.__class__.__name__ == "str": value_h = value_h.strip()
+        if value_a != None and value_a.__class__.__name__ == "str": value_a = value_a.strip()
         if value_h == None or value_a == None: win = None
         else:
             score = '%s:%s' % (value_h, value_a)

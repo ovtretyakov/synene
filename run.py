@@ -5,6 +5,9 @@ import requests
 
 from scipy.stats import poisson
 
+a = "qqq"
+print(a.__class__.__name__)
+
 p = poisson.pmf(1, 0.5)
 print(p)
 

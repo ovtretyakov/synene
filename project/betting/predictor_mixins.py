@@ -7,10 +7,10 @@ from scipy.stats import poisson
 ###################################################################
 class StandartExtraction(object):
     def extract_skills(self):
-        self.skill_h_win = self.skill_h.value9
-        self.skill_h_lose = self.skill_h.value10
-        self.skill_a_win = self.skill_a.value9
-        self.skill_a_lose = self.skill_a.value10
+        self.skill_h_win = self.skill_h.value1
+        self.skill_h_lose = self.skill_h.value2
+        self.skill_a_win = self.skill_a.value1
+        self.skill_a_lose = self.skill_a.value2
 
 
 ###################################################################

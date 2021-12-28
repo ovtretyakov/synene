@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.db.models import Count
 
 from .betting import ValueType
-from project.core.models import Sport, Match, League, Country, Team
+from project.core.models import Sport, Match, League, Country, Team, LoadSource
+from project.load.models import ErrorLog
 from project.betting.models import Odd
 from .. import predictor_mixins as Mixins
 
@@ -193,6 +194,17 @@ class Predictor(models.Model):
     def get_forecast_data(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
 
+    def get_real_predictor(self):
+        real_cls = globals().get(self.forecast_handler.handler)
+        if not real_cls:
+            obj = self
+        else:
+            try:
+                obj = real_cls.objects.get(pk=self.pk)
+            except real_cls.DoesNotExist:
+                obj = None
+        return obj
+
     def forecasting(self, forecast_set):
         from .harvest import TeamSkill
         start_date = forecast_set.start_date
@@ -205,6 +217,7 @@ class Predictor(models.Model):
 
         only_finished = forecast_set.only_finished
         keep_only_best = forecast_set.keep_only_best
+        print(3, self.harvest)
         for harvest_league in HarvestLeague.objects.filter(harvest_group__harvest=self.harvest, harvest_group__status=HarvestGroup.ACTIVE):
             print(harvest_league)
             queryset = Match.objects.filter(season__league = harvest_league.league, 
@@ -304,25 +317,48 @@ class ForecastSet(models.Model):
 
 
     def api_update(self, slug, name, keep_only_best, only_finished, start_date):
-        with transaction.atomic():
-            self.slug = slug,
-            self.name = name,
-            self.forecast_date = datetime.now(),
-            self.status = ForecastSet.PREPARED,
-            self.match_cnt = 0,
-            self.odd_cnt = 0,
-            self.keep_only_best = keep_only_best,
-            self.only_finished = only_finished,
-            self.start_date = start_date
-            self.save()
-            self.forecasting()
+        try:
+            with transaction.atomic():
+                self.slug = slug
+                self.name = name
+                self.forecast_date = datetime.now()
+                self.status = ForecastSet.PREPARED
+                self.match_cnt = 0
+                self.odd_cnt = 0
+                self.keep_only_best = keep_only_best
+                self.only_finished = only_finished
+                self.start_date = start_date
+                self.save()
+                self.forecasting()
+        except Exception as e:
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Forecasting Error"
+            load_source = LoadSource.objects.get(slug=LoadSource.SRC_UNKNOWN)
+            ErrorLog.objects.create(
+                                load_source = load_source,
+                                source_session = None,
+                                error_text = error_text,
+                                error_context = "",
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '',
+                                match_name = '',
+                                file_name = '',
+                                source_detail = None)
+            raise e
+
+
+
+
 
     def forecasting(self):
         start_time = datetime.now()
 
         Forecast.objects.filter(forecast_set=self).delete()
         for predictor in Predictor.objects.filter(status=Predictor.ACTIVE).order_by("priority", "pk"):
-            predictor.forecasting(self)
+            real_predictor = predictor.get_real_predictor()
+            real_predictor.forecasting(self)
 
         odd_cnt = Forecast.objects.filter(forecast_set=self).count()
         match_cnt = Forecast.objects.filter(forecast_set=self).distinct('match').count()

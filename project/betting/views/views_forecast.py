@@ -641,6 +641,7 @@ class ForecastSetUpdateView(BSModalUpdateView):
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
 
+    def form_valid(self, form):
         if self.request.method == "POST" and not self.request.is_ajax():
             try:
                 cleaned_data = form.cleaned_data
@@ -651,9 +652,10 @@ class ForecastSetUpdateView(BSModalUpdateView):
                                         only_finished=cleaned_data["only_finished"], 
                                         start_date=cleaned_data["start_date"]
                                         )
-                messages.success(self.request, success_message)
+                messages.success(self.request, self.success_message)
             except Exception as e:
                 messages.error(self.request, "Updating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class ForecastSetDeleteView(BSModalCreateView):
