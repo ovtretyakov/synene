@@ -8,8 +8,13 @@ from scipy.stats import poisson
 a = "qqq"
 print(a.__class__.__name__)
 
-p = poisson.pmf(1, 0.5)
-print(p)
+# p = poisson.pmf(1, 1.7)
+print(poisson.pmf(0, 1.7))
+print(poisson.pmf(1, 1.7))
+print(poisson.pmf(2, 1.7))
+print(poisson.pmf(3, 1.7))
+print(poisson.pmf(4, 1.7))
+print(poisson.pmf(5, 1.7))
 
 
 # from bs4 import BeautifulSoup

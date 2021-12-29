@@ -46,9 +46,11 @@ class TeamSkill(models.Model):
     value9  = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
     value10 = models.DecimalField('LValue1', max_digits=10, decimal_places=5)
 
+    param = models.CharField('Param', max_length=20, default='0')
+
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['harvest','team','event_date','match'], name='unique_team_skill_harvest'),
+            models.UniqueConstraint(fields=['harvest','team','param','event_date','match'], name='unique_team_skill_harvest'),
         ]
         indexes = [
             models.Index(fields=['harvest_group','event_date'], name='team_skill_hgroup_edate_idx'),
@@ -58,14 +60,14 @@ class TeamSkill(models.Model):
         return f'W:{self.harvest},T:{self.team},D:{self.event_date},M:{self.match}'
 
     @classmethod
-    def _get_team_skill(cls, harvest, team, skill_date, match=None):
-        team_skill = cls.objects.filter(harvest=harvest,team=team,event_date__lt=skill_date).order_by("-event_date").first()
+    def _get_team_skill(cls, harvest, team, skill_date, match=None, param="0"):
+        team_skill = cls.objects.filter(harvest=harvest,team=team,param=param,event_date__lt=skill_date).order_by("-event_date").first()
         return team_skill
 
     @classmethod
-    def get_empty(cls, harvest, team, skill_date, match=None):
+    def get_empty(cls, harvest, team, skill_date, match=None, param="0"):
         obj = cls()
-        obj.erase(harvest, team, skill_date, match)
+        obj.erase(harvest, team, skill_date, match, param=param)
         return obj
 
     @classmethod
@@ -102,9 +104,9 @@ class TeamSkill(models.Model):
         return handler_cls
 
     @classmethod
-    def get_team_skill(cls, harvest, team, skill_date, match=None, handler=None):
+    def get_team_skill(cls, harvest, team, skill_date, match=None, handler=None, param="0"):
         handler_cls = cls.get_handler_class(harvest, handler)
-        return handler_cls._get_team_skill(harvest, team, skill_date, match)
+        return handler_cls._get_team_skill(harvest, team, skill_date, match, param=param)
 
 
     @classmethod
@@ -112,12 +114,13 @@ class TeamSkill(models.Model):
         handler_cls = cls.get_handler_class(harvest)
         return handler_cls._do_harvest(harvest, harvest_group, match, config)
 
-    def erase(self, harvest=None, team=None, skill_date=None, match=None):
+    def erase(self, harvest=None, team=None, skill_date=None, match=None, param="0"):
         self.pk = None
         self.harvest = harvest
         self.harvest_group = None
         self.team = team
         self.event_date = skill_date
+        self.param = param
         self.match = match
         self.match_cnt = 0
         self.lvalue1  = 0
@@ -173,9 +176,9 @@ class xGHandler(TeamSkill):
 
 
     @classmethod
-    def _get_initialteam_skill(cls, harvest, team, skill_date, match, season, league):
+    def _get_initialteam_skill(cls, harvest, team, skill_date, match, season, league, param="0"):
         prev_season = cls._get_prev_season(league, season) 
-        team_skill = cls.get_empty(harvest, team, skill_date, match)
+        team_skill = cls.get_empty(harvest, team, skill_date, match, param=param)
         if prev_season:
             #get rusults of worst teams of previos season
             with connection.cursor() as cursor:
@@ -190,13 +193,13 @@ class xGHandler(TeamSkill):
                             SELECT s.*,
                                    row_number() OVER(PARTITION BY s.team_id ORDER BY event_date DESC) AS rn
                               FROM betting_teamskill  s
-                              WHERE harvest_id = %s AND event_date BETWEEN %s AND %s
+                              WHERE harvest_id = %s AND event_date BETWEEN %s AND %s AND param=%s
                              ) s2
                           WHERE s2.rn = 1
                         ) s3
                       WHERE s3.rn <= 2
                 """
-                cursor.execute(select_prev_data, [harvest.pk, prev_season.start_date, prev_season.end_date, ])
+                cursor.execute(select_prev_data, [harvest.pk, prev_season.start_date, prev_season.end_date, param, ])
                 row = cursor.fetchone()
                 lvalue1 = row[0]
                 lvalue2 = row[1]
@@ -211,7 +214,7 @@ class xGHandler(TeamSkill):
 
 
     @classmethod
-    def _get_team_skill(cls, harvest, team, skill_date, match=None):
+    def _get_team_skill(cls, harvest, team, skill_date, match=None, param="0"):
 
         season = None
         league = None
@@ -219,19 +222,19 @@ class xGHandler(TeamSkill):
             season = match.season
             league = match.league
 
-        team_skill = cls.objects.filter(harvest=harvest,team=team,event_date__lt=skill_date).order_by("-event_date").first()
+        team_skill = cls.objects.filter(harvest=harvest,team=team,param=param,event_date__lt=skill_date).order_by("-event_date").first()
 
         if team_skill:
             team_skill_season = team_skill.match.season
             if season and season.name != Season.UNKNOWN and season != team_skill_season:
                 prev_season = cls._get_prev_season(league, season) 
                 if team_skill_season != prev_season:
-                    team_skill = cls._get_initialteam_skill(harvest, team, skill_date, match, season, league)
+                    team_skill = cls._get_initialteam_skill(harvest, team, skill_date, match, season, league, param=param)
         else:
             if match:
-                team_skill = cls._get_initialteam_skill(harvest, team, skill_date, match, season, league)
+                team_skill = cls._get_initialteam_skill(harvest, team, skill_date, match, season, league, param=param)
             else:
-                team_skill = cls.get_empty(harvest, team, skill_date)
+                team_skill = cls.get_empty(harvest, team, skill_date, param=param)
 
         return team_skill
 
@@ -239,8 +242,8 @@ class xGHandler(TeamSkill):
     def _do_harvest(cls, harvest, harvest_group, match, config):
         team_h = match.team_h
         team_a = match.team_a
-        skill_h = cls._get_team_skill(harvest, team_h, match.match_date, match)
-        skill_a = cls._get_team_skill(harvest, team_a, match.match_date, match)
+        skill_h = cls._get_team_skill(harvest, team_h, match.match_date, match, param="h")
+        skill_a = cls._get_team_skill(harvest, team_a, match.match_date, match, param="a")
         period = harvest.period
 
         smooth_interval = config.get("smooth-interval")

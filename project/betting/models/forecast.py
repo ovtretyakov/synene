@@ -227,8 +227,8 @@ class Predictor(models.Model):
             queryset = queryset.order_by("match_date","pk")
 
             for match in queryset:
-                self.skill_h = TeamSkill.get_team_skill(self.harvest, match.team_h, match.match_date, match)
-                self.skill_a = TeamSkill.get_team_skill(self.harvest, match.team_a, match.match_date, match)
+                self.skill_h = TeamSkill.get_team_skill(self.harvest, match.team_h, match.match_date, match, param="h")
+                self.skill_a = TeamSkill.get_team_skill(self.harvest, match.team_a, match.match_date, match, param="a")
                 if not self.skill_h or not self.skill_a or self.skill_h.match_cnt <= 3 or self.skill_a.match_cnt <= 3:
                     continue
 
