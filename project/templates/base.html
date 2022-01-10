@@ -135,6 +135,11 @@
             Harvest
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarLoad">
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'distribution_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:distribution_list' %}">
+                <span class="fa fa-area-chart"></span>
+                Distributions
+              </a>
               <a class="dropdown-item {% if request.resolver_match.url_name == 'harvest_handler_list' %} active{% endif %}" 
                 id="navbarSources"  href="{% url 'betting:harvest_handler_list' %}">
                 <span class="fa fa-navicon"></span>
@@ -148,7 +153,7 @@
               <a class="dropdown-item {% if request.resolver_match.url_name == 'forecast_handler_list' %} active{% endif %}" 
                 id="navbarSources"  href="{% url 'betting:forecast_handler_list' %}">
                 <span class="fa fa-navicon"></span>
-                Harvest Handlers
+                Forecast Handlers
               </a>
               <a class="dropdown-item {% if request.resolver_match.url_name == 'predictor_list' %} active{% endif %}" 
                 id="navbarSources"  href="{% url 'betting:predictor_list' %}">
