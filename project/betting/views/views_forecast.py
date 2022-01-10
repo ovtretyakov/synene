@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models.query import RawQuerySet
 from django.db.models import sql
 
+from background_task import background
 
 from rest_framework.generics import ListAPIView
 from bootstrap_modal_forms.generic import (BSModalCreateView,
@@ -30,6 +31,21 @@ from ..serializers import (HarvestHandlerSerializer, HarvestSerializer, HarvestC
                            ForecastHandlerSerializer, PredictorSerializer, ForecastSetSerializer
                            )
 
+
+@background
+def forecast_set_create(slug, name, keep_only_best_int, only_finished_int, start_date_str):
+    keep_only_best = (keep_only_best_int==1)
+    only_finished = (only_finished_int==1)
+    start_date = get_date_from_string(start_date_str)
+    ForecastSet.api_create(slug=slug, name=name, keep_only_best=keep_only_best, only_finished=only_finished, start_date=start_date)
+
+@background
+def forecast_set_update(forecast_set_pk, slug, name, keep_only_best_int, only_finished_int, start_date_str):
+    keep_only_best = (keep_only_best_int==1)
+    only_finished = (only_finished_int==1)
+    start_date = get_date_from_string(start_date_str)
+    forecast_set = ForecastSet.objects.get(pk=forecast_set_pk)
+    forecast_set.api_update(slug=slug, name=name, keep_only_best=keep_only_best, only_finished=only_finished, start_date=start_date)
 
 
 ####################################################
@@ -610,7 +626,7 @@ class ForecastSetCreateView(BSModalCreateView):
     model = ForecastSet
     form_class = ForecastSetForm
     template_name = 'betting/create_forecast_set.html'
-    success_message = "Success: Forecast set was created."
+    success_message = 'Success: Creating "Forecast set" id queued.'
 
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
@@ -619,12 +635,18 @@ class ForecastSetCreateView(BSModalCreateView):
         if self.request.method == "POST" and not self.request.is_ajax():
             try:
                 cleaned_data = form.cleaned_data
-                ForecastSet.api_create(
+
+                start_date = cleaned_data["start_date"]
+                start_date_str = ""
+                if start_date:
+                    start_date_str = start_date.strftime('%d.%m.%Y')
+
+                forecast_set_create(
                                         slug=cleaned_data["slug"], 
                                         name=cleaned_data["name"], 
-                                        keep_only_best=cleaned_data["keep_only_best"], 
-                                        only_finished=cleaned_data["only_finished"], 
-                                        start_date=cleaned_data["start_date"]
+                                        keep_only_best_int=1 if cleaned_data["keep_only_best"] else 0, 
+                                        only_finished_int=1 if cleaned_data["only_finished"] else 0, 
+                                        start_date_str=start_date_str
                                         )
                 messages.success(self.request, self.success_message)
             except Exception as e:
@@ -636,7 +658,7 @@ class ForecastSetUpdateView(BSModalUpdateView):
     model = ForecastSet
     form_class = ForecastSetForm
     template_name = 'betting/update_forecast_set.html'
-    success_message = "Success: Forecast set was updated."
+    success_message = 'Success: Updating "Forecast set" id queued.'
 
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
@@ -645,12 +667,19 @@ class ForecastSetUpdateView(BSModalUpdateView):
         if self.request.method == "POST" and not self.request.is_ajax():
             try:
                 cleaned_data = form.cleaned_data
-                self.object.api_update(
+
+                start_date = cleaned_data["start_date"]
+                start_date_str = ""
+                if start_date:
+                    start_date_str = start_date.strftime('%d.%m.%Y')
+
+                forecast_set_update(
+                                        forecast_set_pk=self.object.pk,
                                         slug=cleaned_data["slug"], 
                                         name=cleaned_data["name"], 
-                                        keep_only_best=cleaned_data["keep_only_best"], 
-                                        only_finished=cleaned_data["only_finished"], 
-                                        start_date=cleaned_data["start_date"]
+                                        keep_only_best_int=1 if cleaned_data["keep_only_best"] else 0, 
+                                        only_finished_int=1 if cleaned_data["only_finished"] else 0, 
+                                        start_date_str=start_date_str
                                         )
                 messages.success(self.request, self.success_message)
             except Exception as e:

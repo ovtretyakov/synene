@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 from project.core.helpers import DisplayChoiceField
-from .models import Odd, VOdd, HarvestHandler, Harvest, HarvestConfig, HarvestGroup, ForecastHandler, Predictor, ForecastSet
+from .models import (Odd, VOdd, 
+                     HarvestHandler, Harvest, HarvestConfig, HarvestGroup, 
+                     ForecastHandler, Predictor, ForecastSet,
+                     Distribution
+                     )
 
 
 class OddSerializer(serializers.ModelSerializer):
@@ -91,3 +95,10 @@ class ForecastSetSerializer(serializers.ModelSerializer):
                   "keep_only_best", "only_finished", "start_date")
         depth = 1
 
+class DistributionSerializer(serializers.ModelSerializer):
+    start_date = serializers.DateField(format="%d.%m.%Y")
+    end_date = serializers.DateField(format="%d.%m.%Y")
+    gathering_date = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    class Meta:
+        model = Distribution
+        fields = ("id", "slug", "name", "gathering_date", "start_date", "end_date", "interpolation", "step")

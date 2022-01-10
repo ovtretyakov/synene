@@ -8,6 +8,7 @@ from bootstrap_modal_forms.forms import BSModalForm
 
 from .models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
                     ForecastHandler, Predictor, ForecastSet,
+                    Distribution
                     )
 
 ######################################################################
@@ -207,6 +208,39 @@ class ForecastSetDeleteForm(BSModalForm):
 
     class Meta:
         model = ForecastSet
+        fields = []
+
+    def clean(self):
+        cleaned_data = super().clean()
+        object_id = cleaned_data.get("object_id")
+        if not object_id:
+            raise ValidationError(_("No predictor to delete"))
+
+
+######################################################################
+class DistributionForm(BSModalForm):
+
+    class Meta:
+        model = Distribution
+        fields = ["slug", "name", "comment", "gathering_handler", "start_date", "end_date", "interpolation", "step", ]
+
+    def clean_slug(self):
+        data = slugify(self.cleaned_data["slug"])
+        return data
+
+
+class DistributionGatherForm(BSModalForm):
+
+    class Meta:
+        model = Distribution
+        fields = ["slug", "name", "start_date", "end_date",  ]
+
+
+class DistributionDeleteForm(BSModalForm):
+    object_id = forms.IntegerField()
+
+    class Meta:
+        model = Distribution
         fields = []
 
     def clean(self):

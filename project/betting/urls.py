@@ -52,5 +52,12 @@ urlpatterns = [
     url(r'^odds/forecast/set/create/$', views.ForecastSetCreateView.as_view(), name='create_forecast_set'),
     url(r'^odds/forecast/set/update/(?P<pk>\d+)/$', views.ForecastSetUpdateView.as_view(), name='update_forecast_set'),
     url(r'^odds/forecast/set/delete/(?P<pk>\d+)/$', views.ForecastSetDeleteView.as_view(), name='delete_forecast_set'),
+    #distribution
+    url(r'^odds/distribution/$', views.DistributionView.as_view(), name='distribution_list'),
+    url(r'^odds/distribution/api/$', views.DistributionAPI.as_view(), name='distribution_list_api'),
+    url(r'^odds/distribution/create/$', views.DistributionCreateView.as_view(), name='create_distribution'),
+    url(r'^odds/distribution/update/(?P<pk>\d+)/$', views.DistributionUpdateView.as_view(), name='update_distribution'),
+    url(r'^odds/distribution/delete/(?P<pk>\d+)/$', views.DistributionDeleteView.as_view(), name='delete_distribution'),
+    url(r'^odds/distribution/gather/(?P<pk>\d+)/$', views.DistributionGatheringView.as_view(), name='gather_distribution'),
     ####
 ]

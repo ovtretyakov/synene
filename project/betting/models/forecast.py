@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.db.models import Count
 
 from .betting import ValueType
+from .probability import Distribution
 from project.core.models import Sport, Match, League, Country, Team, LoadSource
 from project.load.models import ErrorLog
 from project.betting.models import Odd
@@ -188,11 +189,33 @@ class Predictor(models.Model):
     def __str__(self):
         return self.name
 
+    ##################################################################################
+    # methods to implement
+
     def extract_skills(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
 
     def get_forecast_data(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
+
+    def get_distribution_slug(self):
+        raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
+
+    def get_value_limit(self):
+        min_value = None
+        max_value = None
+
+        if self.value_type_slug == "main":
+            min_value = 0
+            if self.period == 0:
+                max_value = 7
+            elif self.period in [1,2,]:
+                max_value = 5
+            else:
+                max_value = 4
+        return min_value, max_value
+
+    ##################################################################################
 
     def get_real_predictor(self):
         real_cls = globals().get(self.forecast_handler.handler)
@@ -205,7 +228,11 @@ class Predictor(models.Model):
                 obj = None
         return obj
 
-    def forecasting(self, forecast_set):
+    def get_distribution_data(self, slug, value, param="0", object_id=0):
+        distribution_data = Distribution.get_distribution_data(slug, value, param, object_id)
+        return distribution_data
+
+    def forecasting(self, forecast_set, match_id=None):
         from .harvest import TeamSkill
         start_date = forecast_set.start_date
         if not start_date:
@@ -224,6 +251,8 @@ class Predictor(models.Model):
                                             match_date__gte = start_date)
             if only_finished:
                 queryset = queryset.exclude(status=Match.FINISHED)
+            if match_id:
+                queryset = queryset.filter(pk=match_id)
             queryset = queryset.order_by("match_date","pk")
 
             for match in queryset:
@@ -270,6 +299,7 @@ class Predictor(models.Model):
                                         result_value=result_value,
                                         kelly=kelly
                                         )
+                        # print(forecast)
 
 
 class ForecastSet(models.Model):
@@ -392,7 +422,7 @@ class Forecast(models.Model):
         ]
 
     def __str__(self):
-        return f'S:{self.forecast_set},M:<{self.match},{self.match_date}>,Odd:<{self.odd}>,P:{self.predictor},R:{self.result_value}'
+        return f'Set:{self.forecast_set},M:<{self.match},{self.match_date}>,Odd:<{self.odd}>,P:{self.predictor},R:{round(self.result_value,4)},S:{round(self.success_chance,4)}'
 
 
 
@@ -400,3 +430,15 @@ class Forecast(models.Model):
 class PredictorStandardPoisson(Mixins.StandartExtraction, Mixins.PoissonForecasting, Predictor):
     class Meta:
         proxy = True
+
+class PredictorDistributionXG(Mixins.OriginalDataExtraction, Mixins.FixedDistributionForecasting, Predictor):
+    class Meta:
+        proxy = True
+    def get_distribution_slug(self):
+        return "xg-original-gathering"
+
+class PredictorStdDistribH_XG_0(Mixins.StandartExtraction, Mixins.FixedDistributionForecasting, Predictor):
+    class Meta:
+        proxy = True
+    def get_distribution_slug(self):
+        return "xg-std-gathering-h-0"

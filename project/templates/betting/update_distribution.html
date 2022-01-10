@@ -1,0 +1,79 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Update Distribution{% endblock %}
+{% block form_id %}formUpdateDistribution{% endblock form_id %}
+
+{% block modal-body %}
+  <!-- Row1 -->
+  <div class="form-row">
+    <!-- SLUG -->
+    <div class="form-group col-sm">
+      {% render_field form.slug|add_label_class:"col-form-label"  %}
+      {% render_field form.slug|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.slug.label %}
+      <div class="text-danger">{{form.slug.errors}}</div>
+    </div>
+    <!-- gathering_handler -->
+    <div class="form-group col-sm">
+      {% render_field form.gathering_handler|add_label_class:"col-form-label"  %}
+      {% render_field form.gathering_handler|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.gathering_handler.label %}
+      <div class="text-danger">{{form.gathering_handler.errors}}</div>
+    </div>
+  </div>
+
+  <!-- Row1 -->
+  <div class="form-row">
+    <!-- name -->
+    <div class="form-group col-sm">
+      {% render_field form.name|add_label_class:"col-form-label"  %}
+      {% render_field form.name|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.name.label %}
+      <div class="text-danger">{{form.name.errors}}</div>
+    </div>
+  </div>
+
+  <!-- Row2 -->
+  <div class="form-row">
+    <!-- start_date -->
+    <div class="form-group col-sm">
+      {% render_field form.start_date|add_label_class:"col-form-label"  %}
+      {% render_field form.start_date|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.start_date.label %}
+      <div class="text-danger">{{form.start_date.errors}}</div>
+    </div>
+    <!-- end_date -->
+    <div class="form-group col-sm">
+      {% render_field form.end_date|add_label_class:"col-form-label"  %}
+      {% render_field form.end_date|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.end_date.label %}
+      <div class="text-danger">{{form.end_date.errors}}</div>
+    </div>
+  </div>
+
+  <!-- Row2 -->
+  <div class="form-row">
+    <!-- interpolation -->
+    <div class="form-group col-sm">
+      {% render_field form.interpolation|add_label_class:"col-form-label"  %}
+      {% render_field form.interpolation|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.interpolation.label %}
+      <div class="text-danger">{{form.interpolation.errors}}</div>
+    </div>
+    <!-- step -->
+    <div class="form-group col-sm">
+      {% render_field form.step|add_label_class:"col-form-label"  %}
+      {% render_field form.step|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.step.label %}
+      <div class="text-danger">{{form.step.errors}}</div>
+    </div>
+  </div>
+
+
+  <!-- Row5 -->
+  <div class="form-row">
+    <!-- comment -->
+    <div class="form-group col-sm">
+      {% render_field form.comment|add_label_class:"col-form-label"  %}
+      <textarea class="form-control form-control-sm" id="comment-id" name="comment" rows="6" placeholder="Comment">{{object.comment}}</textarea>
+      <div class="text-danger">{{form.comment.errors}}</div>
+    </div>
+  </div>
+
+
+{% endblock %}
+
+{% block button-action %}Update{% endblock button-action %}
