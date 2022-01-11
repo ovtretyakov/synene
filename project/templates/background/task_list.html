@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Background Tasks{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Background Tasks</h1>
+
+      </div>
+
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th></th>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Task Name</th>
+              <th>Params</th>
+              <th>Attempts</th>
+              <th>Run At</th>
+              <th>Failed At</th>
+              <th>Locked At</th>
+              <th>Locked By</th>
+              <th>Pri</th>
+              <th>Error</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var delete_url = "{% url 'background:delete_task' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<button type="button" class="delete-task btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete task" id="delete-task">' +
+                '   <span class="fa fa-trash"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'background:task_list_api'  %}?format=datatables",
+              'order': [[ 1, 'asc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'2em'},
+                  {'data': 'id'},
+                  {'data': 'verbose_name'},
+                  {'data': 'task_name'},
+                  {'data': 'task_params'},
+                  {'data': 'attempts'},
+                  {'data': 'run_at'},
+                  {'data': 'failed_at'},
+                  {'data': 'locked_at'},
+                  {'data': 'locked_by'},
+                  {'data': 'priority'},
+                  {'data': 'last_error'},
+
+              ],
+
+
+              'drawCallback': function(settings, json) {
+
+                $(".delete-task").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formDeleteTask",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+
+              }
+      });
+
+
+    });
+
+    
+  </script>
+{% endblock %}
+
+
+

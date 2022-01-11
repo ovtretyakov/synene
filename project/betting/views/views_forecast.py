@@ -646,7 +646,8 @@ class ForecastSetCreateView(BSModalCreateView):
                                         name=cleaned_data["name"], 
                                         keep_only_best_int=1 if cleaned_data["keep_only_best"] else 0, 
                                         only_finished_int=1 if cleaned_data["only_finished"] else 0, 
-                                        start_date_str=start_date_str
+                                        start_date_str=start_date_str,
+                                        verbose_name = 'Do ' + cleaned_data["name"]
                                         )
                 messages.success(self.request, self.success_message)
             except Exception as e:
@@ -679,7 +680,8 @@ class ForecastSetUpdateView(BSModalUpdateView):
                                         name=cleaned_data["name"], 
                                         keep_only_best_int=1 if cleaned_data["keep_only_best"] else 0, 
                                         only_finished_int=1 if cleaned_data["only_finished"] else 0, 
-                                        start_date_str=start_date_str
+                                        start_date_str=start_date_str,
+                                        verbose_name = 'Do ' + cleaned_data["name"]
                                         )
                 messages.success(self.request, self.success_message)
             except Exception as e:

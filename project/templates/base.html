@@ -43,7 +43,7 @@
 
           <!-- Load -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'source_list,errors,all_sessions' %}active{% endif %}" 
+            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'source_list,errors,all_sessions,task_list' %}active{% endif %}" 
               href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
             >
             <span class="fa fa-sign-in"></span>
@@ -62,13 +62,17 @@
               </a>
               <a class="dropdown-item {% if request.resolver_match.url_name == 'all_sessions' %} active{% endif %}" 
                 id="navbarSessions" href="{% url 'load:all_sessions' %}">
-                <span class="fa fa-tasks"></span>
+                <span class="fa fa-feed"></span>
                 Sessions
               </a>
-              <a class="dropdown-item " href="{% url 'football:league_list' %}">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
+
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
+
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'task_list' %} active{% endif %}" 
+                id="navbarSessions" href="{% url 'background:task_list' %}">
+                <span class="fa fa-tasks"></span>
+                Background tasks
+              </a>
             </div>
           </li>          
 

@@ -20,6 +20,7 @@ urlpatterns = [
     path("load/", include("project.load.urls", namespace="load")),
     path("football/", include("project.football.urls", namespace="football")),
     path("betting/", include("project.betting.urls", namespace="betting")),
+    path("background/", include("project.background.urls", namespace="background")),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -83,6 +83,7 @@ LOCAL_APPS = [
     "project.football.apps.FootballConfig",
     "project.betting.apps.BettingConfig",
     "project.load.apps.LoadConfig",
+    "project.background.apps.BackgroundConfig",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

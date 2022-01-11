@@ -85,7 +85,7 @@ class DistributionGatheringView(BSModalUpdateView):
                 if end_date:
                     end_date_str = end_date.strftime('%d.%m.%Y')
 
-                distribution_gather(self.object.pk, start_date_str, end_date_str)    
+                distribution_gather(self.object.pk, start_date_str, end_date_str, verbose_name=f'Calc distribution {self.object.slug}')    
                 messages.success(self.request, self.success_message)
             except Exception as e:
                 messages.error(self.request, "Updating error :\n" + str(e))

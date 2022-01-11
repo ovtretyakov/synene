@@ -119,7 +119,7 @@ class LoadSourceProcessView(BSModalUpdateView):
         if self.request.method == "POST" and not self.request.is_ajax():
             cleaned_data = form.cleaned_data
             try:
-                load_source_download(self.object.pk, cleaned_data["local_files"])
+                load_source_download(self.object.pk, cleaned_data["local_files"], verbose_name='Load "' + self.object.name + '"')
                 # self.object.download()
                 messages.success(self.request, self.get_success_message())
             except Exception as e:
@@ -155,7 +155,7 @@ class LoadSourceProcessAllView(BSModalCreateView):
 
                 cnt = 0
                 for load_source in LoadSource.objects.filter(is_loadable=True).order_by("reliability"):
-                    load_source_download(load_source.pk, False)
+                    load_source_download(load_source.pk, False, verbose_name='Load "' + load_source.name + '"')
                     cnt += 1
 
                 messages.success(self.request, self.get_success_message(cnt))
