@@ -286,7 +286,7 @@ class Predictor(models.Model):
                     if success_chance != None:
                         kelly = 0
                         if result_value > 1.05:
-                            kelly = (result_value - 1) / (odd.odd_value - 1)
+                            kelly = (result_value - Decimal(1.0)) / (odd.odd_value - Decimal(1.0))
                         forecast = Forecast.objects.create(
                                         forecast_set=forecast_set,
                                         match=match,
@@ -438,6 +438,18 @@ class PredictorDistributionXG(Mixins.OriginalDataExtraction, Mixins.FixedDistrib
         return "xg-original-gathering"
 
 class PredictorStdDistribH_XG_0(Mixins.StandartExtraction, Mixins.FixedDistributionForecasting, Predictor):
+    class Meta:
+        proxy = True
+    def get_distribution_slug(self):
+        return "xg-std-gathering-h-0"
+
+class PredictorOrigDistrXG(Mixins.OriginalDataExtraction, Mixins.FixedDistributionForecastingEx, Predictor):
+    class Meta:
+        proxy = True
+    def get_distribution_slug(self):
+        return "xg-original-gathering"
+
+class PredictorStdDistrXG(Mixins.StandartExtraction, Mixins.FixedDistributionForecastingEx, Predictor):
     class Meta:
         proxy = True
     def get_distribution_slug(self):

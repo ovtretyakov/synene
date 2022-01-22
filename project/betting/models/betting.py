@@ -616,19 +616,36 @@ class Odd(Mergable, models.Model):
             result_value = 0
         return result, result_value
 
-    def standard_forecasting(self, forecast_data):
-        success_chance = 0
-        lose_chance = 0
-        result_value = 0
-        for data in forecast_data:
-            result, value = self.get_result(value_h=data[0],value_a=data[1])
-            result_value += (value*data[2])
-            if value >= 1:
-                success_chance += data[2] 
-                # if self.bet_type.slug == BetType.WIN_NO_BET:
-                #     print(data, round(success_chance,4), round(result_value,4), result, value)
-            else: 
-                lose_chance += data[2]
+    def standard_forecasting(self, forecast_data, forecast_type="diff_team"):
+        success_chance = float(0.0)
+        lose_chance = float(0.0)
+        result_value = float(0.0)
+        fdata = None
+        if forecast_data.__class__.__name__ == "dict":
+            fdata = forecast_data.get(forecast_type, None)
+            if not fdata and forecast_type != "simple":
+                fdata = forecast_data.get("simple", None)
+        else:
+            fdata = forecast_data
+
+        if fdata:   
+            for data in fdata:
+                result, value = self.get_result(value_h=data[0],value_a=data[1])
+                v = float(value)
+                d = float(data[2])
+                result_value += (v*d)
+                if value >= 1:
+                    success_chance += d 
+                    # if self.bet_type.slug == BetType.WIN_NO_BET:
+                    #     print(data, round(success_chance,4), round(result_value,4), result, value)
+                else: 
+                    lose_chance += d
+            result_value = Decimal(result_value)
+        else:
+            success_chance = None
+            lose_chance = None
+            result_value = None
+
         return success_chance, lose_chance, result_value
 
 
@@ -697,7 +714,7 @@ class OddWDL(OddMixins.WDLResult, OddMixins.OnlyMatchPeriod, OddMixins.OnlyEmpty
     def own_bet_type():
         return BetType.get(BetType.WDL)
     def forecasting(self, forecast_data):
-        return self.standard_forecasting(forecast_data)
+        return self.standard_forecasting(forecast_data, forecast_type="diff")
 ###################################################################
 class OddWDLMinute(OddMixins.WDLResult, OddMixins.OnlyFootballMinutes, OddMixins.OnlyEmptyTeam, OddMixins.WDLParam, Odd):
     class Meta:
@@ -939,7 +956,7 @@ class OddHandicap(OddMixins.OnlyYes, OddMixins.OnlyMatchPeriod, OddMixins.HomeOr
     def get_result(self, value_h=None, value_a=None):
         return self.get_match_handicap_result(value_h=value_h, value_a=value_a)
     def forecasting(self, forecast_data):
-        return self.standard_forecasting(forecast_data)
+        return self.standard_forecasting(forecast_data, forecast_type="diff")
 ###################################################################
 class OddHandicapMinutes(OddMixins.OnlyYes, OddMixins.OnlyFootballMinutes, OddMixins.HomeOrAwayTeam, 
                             OddMixins.HandicapParam, Odd):
@@ -1117,7 +1134,7 @@ class OddMargin(OddMixins.OnlyMatchPeriod, OddMixins.HomeAwayOrEmptyTeam, OddMix
         win = self.get_margin_win(value_h=value_h, value_a=value_a)
         return self.calc_result_with_field_yes(win)
     def forecasting(self, forecast_data):
-        return self.standard_forecasting(forecast_data)
+        return self.standard_forecasting(forecast_data, forecast_type="diff")
 ###################################################################
 class OddWAndTotalOver(OddMixins.OnlyMatchPeriod, OddMixins.HomeOrAwayTeam, OddMixins.HalfIntegerParam, Odd):
     class Meta:

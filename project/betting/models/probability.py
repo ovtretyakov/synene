@@ -34,6 +34,36 @@ class Distribution(models.Model):
     def get_distribution_data(cls, slug, value, param="0", object_id=0):
         distribution = Distribution.objects.get(slug=slug)
         real_distribution = distribution.get_real_distribution()
+        value = Decimal(value)
+
+        if param[1:] == "diff":
+            d = None
+            if value < 0:
+                d = DistributionData.objects.filter(ditribution=distribution, param=param, value__gte=value).order_by("value").first()
+                if not d:
+                    print(f"No distribution data for diff {value}")
+                    return None
+            else:
+                d = DistributionData.objects.filter(ditribution=distribution, param=param, value__lte=value).order_by("-value").first()
+                if not d:
+                    print(f"No distribution data for diff {value}")
+                    return None
+            value = d.value
+
+        elif param[1:] in("diffh","diffa",):
+            d = None
+            if object_id < 0:
+                d = DistributionData.objects.filter(ditribution=distribution, param=param, object_id__gte=object_id).order_by("object_id").first()
+                if not d:
+                    print(f"No distribution data for diff {object_id}")
+                    return None
+            else:
+                d = DistributionData.objects.filter(ditribution=distribution, param=param, object_id__lte=object_id).order_by("-object_id").first()
+                if not d:
+                    print(f"No distribution data for {param} {object_id}")
+                    return None
+            object_id = d.object_id
+
         distribution_data = real_distribution.get_distribution_by_value(value, param, object_id)
         return distribution_data
 
@@ -48,12 +78,15 @@ class Distribution(models.Model):
 
     def get_distribution_by_value(self, value, param="0", object_id=0):
         half_step = Decimal(self.step/2)
-        value = Decimal(value)
         value_floor = Decimal(math.floor(value/half_step)) * half_step
         value_ceil = value_floor + half_step
 
         distribution_data = {}
-        if self.interpolation:
+        if param[1:] == "diff":
+            qs = DistributionData.objects.filter(ditribution=self,param=param,object_id=object_id,value=value)
+            distribution_data = {r[0]:r[1] for r in qs.values_list("result_value", "data")}
+
+        elif self.interpolation:
             distrib_floor = {r[0]:r[1] for r in DistributionData.objects.filter(ditribution=self,
                                                                                 param=param,
                                                                                 object_id=object_id,
@@ -144,8 +177,10 @@ class Distribution(models.Model):
                 to_value = from_value + self.step
                 value = 0
                 print("distribution h")
-                for i in range(1,100):
+                for i in range(1,200):
                     self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period)
+                    exist_data = False
+                    print(i)
                     for row in cursor.fetchall():
                         exist_data = True
                         DistributionData.objects.create(
@@ -156,7 +191,9 @@ class Distribution(models.Model):
                                                     result_value = row[0],
                                                     data = row[1]
                                                     )
-
+                    if i > 20 and not exist_data:
+                        print("exit")
+                        break
                     from_value = from_value + half_step
                     to_value = to_value + half_step
                     value = value + half_step
@@ -166,8 +203,9 @@ class Distribution(models.Model):
                 to_value = from_value + self.step
                 value = 0
                 print("distribution a")
-                for i in range(1,100):
+                for i in range(1,200):
                     self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period)
+                    exist_data = False
                     for row in cursor.fetchall():
                         exist_data = True
                         DistributionData.objects.create(
@@ -178,33 +216,108 @@ class Distribution(models.Model):
                                                     result_value = row[0],
                                                     data = row[1]
                                                     )
-
+                    if i > 20 and not exist_data:
+                        break
                     from_value = from_value + half_step
                     to_value = to_value + half_step
                     value = value + half_step
 
-                team="a"
-                for value_h in range(0,6):
-                    print(f"Distribution a{value_h}")
+                print("distribution diff")
+                for r in ([-1.7, -3.0, -1.4], [-1.3, -1.6, -1.2],
+                          [-1.0, -1.3, -0.9], [-0.8, -0.9, -0.7],
+                          [-0.7, -0.8, -0.6], [-0.6, -0.7, -0.5],
+                          [-0.5, -0.6, -0.4], [-0.4, -0.5, -0.3],
+                          [-0.3, -0.4, -0.2], [-0.2, -0.3, -0.1],
+                          [-0.1, -0.2,  0.0], [ 0.0, -0.1,  0.1],
+                          [ 0.1,  0.0,  0.2], [ 0.2,  0.1,  0.3],
+                          [ 0.3,  0.2,  0.4], [ 0.4,  0.3,  0.5],
+                          [ 0.5,  0.4,  0.6], [ 0.6,  0.5,  0.7],
+                          [ 0.7,  0.6,  0.8], [ 0.8,  0.7,  0.9],
+                          [ 0.9,  0.8,  1.0], [ 1.0,  0.9,  1.1],
+                          [ 1.1,  1.0,  1.2], [ 1.2,  1.1,  1.3],
+                          [ 1.4,  1.2,  1.5], [ 1.6,  1.4,  1.8],
+                          [ 1.8,  1.6,  2.1], [ 2.0,  2.0,  3.5],
+                         ):
+                    value = r[0]
+                    from_value = r[1]
+                    to_value = r[2]
+                    self.prepare_distribution_cursor(cursor, from_value, to_value, team="diff", period=period)
+                    for row in cursor.fetchall():
+                        DistributionData.objects.create(
+                                                    ditribution = self,
+                                                    param = f"{period}diff",
+                                                    object_id = object_id,
+                                                    value = value,
+                                                    result_value = row[0],
+                                                    data = row[1]
+                                                    )
+
+                print("distribution diff team")
+                for r in ([-1.7, -1.5, -1.0], [-1.2, -1.5, -0.8],
+                          [-0.9, -1.0, -0.6], [-0.6, -0.8, -0.4],
+                          [-0.4, -0.6, -0.2], [-0.2, -0.4,  0.0],
+                          [ 0.0, -0.2,  0.2], [ 0.2,  0.0,  0.4],
+                          [ 0.4,  0.2,  0.6], [ 0.6,  0.4,  0.8],
+                          [ 0.8,  0.6,  1.0], [ 1.0,  0.8,  1.2],
+                          [ 1.3,  1.0,  1.5], [ 1.5,  1.2,  1.8],
+                          [ 1.8,  1.4,  2.1], [ 2.1,  1.7,  3.0],
+                         ):
+                    filter_value = r[0]
+                    filter_from = r[1]
+                    filter_to = r[2]
+                    filter_code = ""
+
+                    team="h"
                     from_value = 0 - half_step
                     to_value = from_value + self.step
                     value = 0
-                    for i in range(1,100):
-                        self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, value_h=value_h)
+                    print(f"distribution diff team h {filter_value}" )
+                    for i in range(1,200):
+                        self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, 
+                                                         filter_from=filter_from, filter_to=filter_to)
+                        exist_data = False
                         for row in cursor.fetchall():
                             exist_data = True
                             DistributionData.objects.create(
                                                         ditribution = self,
-                                                        param = f"{period}{team}{value_h}",
-                                                        object_id = object_id,
+                                                        param = f"{period}diff{team}",
+                                                        object_id = int(filter_value*10.0),
                                                         value = value,
                                                         result_value = row[0],
                                                         data = row[1]
                                                         )
-
+                        if i > 20 and not exist_data:
+                            break
                         from_value = from_value + half_step
                         to_value = to_value + half_step
                         value = value + half_step
+
+                    team="a"
+                    from_value = 0 - half_step
+                    to_value = from_value + self.step
+                    value = 0
+                    print(f"distribution diff team a {filter_value}" )
+                    for i in range(1,200):
+                        self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, 
+                                                         filter_from=filter_from, filter_to=filter_to)
+                        exist_data = False
+                        for row in cursor.fetchall():
+                            exist_data = True
+                            DistributionData.objects.create(
+                                                        ditribution = self,
+                                                        param = f"{period}diff{team}",
+                                                        object_id = int(filter_value*10.0),
+                                                        value = value,
+                                                        result_value = row[0],
+                                                        data = row[1]
+                                                        )
+                        if i > 20 and not exist_data:
+                            break
+                        from_value = from_value + half_step
+                        to_value = to_value + half_step
+                        value = value + half_step
+
+        print("finish")
 
 
 
@@ -232,7 +345,7 @@ class xGGathering(Distribution):
     class Meta:
         proxy = True
 
-    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0):
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
         from .forecast import Harvest
 
         harvest_slug = "hg-0"
@@ -244,10 +357,17 @@ class xGGathering(Distribution):
         if team == "a":
             team_str = "a_v1*h_v2"
             g_value_field = "s2_value"
+        elif team == "diff":
+            team_str = "(h_v1*a_v2 - a_v1*h_v2)"
+            g_value_field = "s1_value - s2_value"
+
 
         value_filter = ""
         if team == "a" and value_h != None:
             value_filter = f" AND s1_value = {value_h} "
+        elif filter_from != None and filter_to != None:
+            value_filter = f" AND (h_v1*a_v2 - a_v1*h_v2) >= {filter_from} AND (h_v1*a_v2 - a_v1*h_v2) < {filter_to} "
+
 
         sql_select = f""" 
                     SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
@@ -311,7 +431,7 @@ class xGGatheringHStd0(Distribution):
     class Meta:
         proxy = True
 
-    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0):
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
         from .forecast import Harvest
 
         harvest_slug = f"hg-{period}"
@@ -323,10 +443,15 @@ class xGGatheringHStd0(Distribution):
         if team == "a":
             team_str = "a_v9*h_v10"
             g_value_field = "s2_value"
+        elif team == "diff":
+            team_str = "(h_v9*a_v10 - a_v9*h_v10)"
+            g_value_field = "s1_value - s2_value"
 
         value_filter = ""
         if team == "a" and value_h != None:
             value_filter = f" AND s1_value = {value_h} "
+        elif filter_from != None and filter_to != None:
+            value_filter = f" AND (h_v9*a_v10 - a_v9*h_v10) >= {filter_from} AND (h_v9*a_v10 - a_v9*h_v10) < {filter_to} "
 
         sql_select = f""" 
                     SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
