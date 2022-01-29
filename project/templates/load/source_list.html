@@ -53,6 +53,7 @@
             <tr>
               <th></th>
               <th>Name</th>
+              <th>ID</th>
               <th>Rely lvl</th>
               <th>Load date</th>
               <th>Err limit</th>
@@ -112,10 +113,11 @@
               // 'dom': 'Bfrtip',
               'lengthMenu': [ 25, 50, 75, 100 ],
               'ajax': "{% url 'load:source_list_api'  %}?format=datatables",
-              'order': [[ 2, 'asc' ]],
+              'order': [[ 3, 'asc' ]],
               // 'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'6em'},
+                  {'data': 'id', 'width':'3em'},
                   {'data': 'name'},
                   {'data': 'reliability', 'width':'8em'},
                   {'data': 'load_date', 'width':'12em'},

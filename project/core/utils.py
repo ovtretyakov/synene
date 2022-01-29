@@ -2,6 +2,9 @@ import datetime
 import math
 from decimal import Decimal
 
+from django.db.models.query import RawQuerySet
+from django.db.models import sql
+
 def get_date_from_string(date_str):
     if not date_str: return None
     try:
@@ -84,3 +87,12 @@ def get_handicap_result(param_value, match_value, odd_value):
     result = (get_simple_handicap_result(param_value1, match_value, odd_value)/2 +
               get_simple_handicap_result(param_value2, match_value, odd_value)/2)
     return round(result,5)
+
+
+
+class SimpleRawQuerySet(RawQuerySet):
+    def count(self, *args, **kwargs):
+        lst = list(sql.RawQuery(sql=self.raw_query, using=self.db, params=self.params))
+        return len(lst)
+    # def order_by(self, *args, **kwargs):
+    #     return ""

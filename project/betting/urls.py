@@ -59,5 +59,13 @@ urlpatterns = [
     url(r'^odds/distribution/update/(?P<pk>\d+)/$', views.DistributionUpdateView.as_view(), name='update_distribution'),
     url(r'^odds/distribution/delete/(?P<pk>\d+)/$', views.DistributionDeleteView.as_view(), name='delete_distribution'),
     url(r'^odds/distribution/gather/(?P<pk>\d+)/$', views.DistributionGatheringView.as_view(), name='gather_distribution'),
+    #forecast matches
+    url(r'^odds/forecast/set/matches/(?P<forecast_set>\d+)/$', views.ForecastMatchesView.as_view(), name='forecast_match_list'),
+    url(r'^odds/forecast/set/matches/(?P<forecast_set>\d+)/api/$', views.ForecastMatchesAPI.as_view(), name='forecast_match_list_api'),
+    url(r'^odds/forecast/set/(?P<forecast_set>\d+)/(?P<pk>\d+)/$', views.ForecastMatchDetail.as_view(), name='forecast_match_detail'),
+    url(r'^odds/forecast/previous/matches/(?P<match>\d+)/(?P<team>[ah]+)/api/$', views.PreviousMatchesAPI.as_view(), name='previous_matches_api'),
+    url(r'^odds/season/chart/(?P<match>\d+)/api/$', views.SeasonChartAPI.as_view(), name='season_chart_api'),
+    #forecast
+    url(r'^odds/forecast/(?P<forecast_set>\d+)/(?P<match>\d+)/$', views.ForecastAPI.as_view(), name='forecast_odd_api'),
     ####
 ]

@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
 from project.core.helpers import DisplayChoiceField
+from project.core.models import Match
 from .models import (Odd, VOdd, 
                      HarvestHandler, Harvest, HarvestConfig, HarvestGroup, 
-                     ForecastHandler, Predictor, ForecastSet,
+                     ForecastHandler, Predictor, ForecastSet, Forecast,
                      Distribution
                      )
 
@@ -102,3 +103,54 @@ class DistributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Distribution
         fields = ("id", "slug", "name", "gathering_date", "start_date", "end_date", "interpolation", "step")
+
+
+class ForecastMatchesSerializer(serializers.Serializer):
+    match_id = serializers.IntegerField()
+    league_name = serializers.CharField(max_length=100)
+    name_h = serializers.CharField(max_length=100)
+    name_a = serializers.CharField(max_length=100)
+    match_score = serializers.CharField(max_length=20)
+    match_date = serializers.DateField(format="%d.%m.%Y")
+    odds = serializers.IntegerField()
+    odds_plus = serializers.IntegerField()
+    match_status = DisplayChoiceField(choices = Match.STATUS_CHOICES)
+    best_chance = serializers.DecimalField(max_digits=10, decimal_places=3)
+    best_result_value = serializers.DecimalField(max_digits=10, decimal_places=3)
+    best_kelly = serializers.DecimalField(max_digits=10, decimal_places=3)
+
+
+class ForecastSerializer(serializers.ModelSerializer):
+    odd_status = DisplayChoiceField(choices = Odd.RESULT_CHOICES)
+    class Meta:
+        model = Forecast
+        fields = ("id", "predictor", "success_chance", "lose_chance", "result_value", "kelly", "odd", "odd_status", )
+        depth = 2
+
+
+class PreviousMatchesSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    result = serializers.CharField(max_length=5)
+    ha = serializers.CharField(max_length=5)
+    match_date = serializers.DateField(format="%d.%m.%Y")
+    score = serializers.CharField(max_length=20)
+    team_h_id = serializers.IntegerField()
+    team_a_id = serializers.IntegerField()
+    h_name = serializers.CharField(max_length=100)
+    a_name = serializers.CharField(max_length=100)
+    gx = serializers.CharField(max_length=20)
+    fore_gx = serializers.CharField(max_length=20)
+    fore_g = serializers.CharField(max_length=20)
+
+
+class SeasonChartSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    n = serializers.IntegerField()
+    team_name = serializers.CharField(max_length=100)
+    m = serializers.IntegerField()
+    w = serializers.IntegerField()
+    d = serializers.IntegerField()
+    l = serializers.IntegerField()
+    g = serializers.IntegerField()
+    ga = serializers.IntegerField()
+    pts = serializers.IntegerField()

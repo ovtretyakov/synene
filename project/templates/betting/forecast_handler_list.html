@@ -34,6 +34,7 @@
             <tr>
             <tr>
               <th></th>
+              <th>ID</th>
               <th>Slug</th>
               <th>Name</th>
               <th>Handler</th>
@@ -78,11 +79,12 @@
               'serverSide': true,
               'lengthMenu': [ 25, 50, 75, 100 ],
               'ajax': "{% url 'betting:forecast_handler_list_api'  %}?format=datatables",
-              'order': [[ 2, 'asc' ]],
+              'order': [[ 1, 'asc' ]],
               'select': true,
               'columns': [
-                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'5em'},
-                  {'data': 'slug', 'width':'7em'},
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'3em'},
+                  {'data': 'id', 'width':'3em'},
+                  {'data': 'slug', 'width':'15em'},
                   {'data': 'name'},
                   {'data': 'handler', 'width':'20em'},
 

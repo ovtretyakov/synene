@@ -51,6 +51,16 @@ class Harvest(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def api_do_harvest_all(cls, start_date=None):
+        for harvest in Harvest.objects.filter(status=Harvest.ACTIVE).order_by("pk"):
+            harvest.api_do_harvest(start_date)
+
+    @classmethod
+    def get_xg_harvest(cls, period=0):
+        slug = "hg-" + str(period)
+        harvest = Harvest.objects.filter(slug=slug).first()
+        return harvest
 
     def do_harvest(self, start_date=None):
         from .harvest import TeamSkill
@@ -61,10 +71,6 @@ class Harvest(models.Model):
         with transaction.atomic():
             self.do_harvest(start_date)
 
-    @classmethod
-    def api_do_harvest_all(cls, start_date=None):
-        for harvest in Harvest.objects.filter(status=Harvest.ACTIVE).order_by("pk"):
-            harvest.api_do_harvest(start_date)
 
 
 
@@ -387,6 +393,7 @@ class ForecastSet(models.Model):
 
         Forecast.objects.filter(forecast_set=self).delete()
         for predictor in Predictor.objects.filter(status=Predictor.ACTIVE).order_by("priority", "pk"):
+            print("predictor", predictor)
             real_predictor = predictor.get_real_predictor()
             real_predictor.forecasting(self)
 

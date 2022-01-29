@@ -1,0 +1,755 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static i18n %}
+{% block title %}Match Forecasting {% endblock %}
+
+{% block content %}
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Match Forecasting </h1>
+
+
+
+      </div>
+
+      <div class="btn-toolbar">
+      <a class="btn btn-sm btn-secondary mb-2" href="{% url 'betting:forecast_match_list' forecast_set_id %}"><span class="fa" title="Forecast matches">
+        << Matches</span></a>
+      </div>
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+
+      <!--                                                Match Information -->
+      <div class="row">
+
+
+        <!--                                                   Match                                    -->
+        <div class="col-sm-6 mb-3">
+          <div class="card">
+            <div class="card-body">
+
+                <h5 class="card-title">Match Information</h5>
+
+                <!-- Row1 -->
+                <div class="form-row">
+                  <!-- League -->
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">League</span>
+                    </div>
+                    <input type="text" class="form-control" value="{{object.league.name}}" readonly>
+                  </div>
+                  <!-- score -->
+                  <div class="input-group input-group-sm mb-3 col-sm-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">Date</span>
+                    </div>
+                    <input type="text" class="form-control" value="{{object.match_date}}" readonly>
+                  </div>
+                  <!-- status -->
+                  <div class="input-group input-group-sm mb-3 col-sm-3">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-status">Status</span></div>
+                    <input type="text" class="form-control" value="{{object.get_status_display}}" readonly>
+                  </div>
+                </div>
+
+
+                <!-- Row2 -->
+                <div class="form-row">
+                  <!-- score -->
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Score</span></div>
+                    <input type="text" class="form-control text-right" value="{{object.score}}" readonly>
+                  </div>
+                  <!-- Fore G -->
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore G Home-Away</span></div>
+                    <input type="text" class="form-control text-right" value="{{fG_h}} - {{fG_a}}" readonly>
+                  </div>
+                </div>
+
+                <!-- Row3 -->
+                <div class="form-row">
+                  <!-- xG_h -->
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">xG Home-Away</span>
+                    </div>
+                    <input type="text" class="form-control text-right" value="{{xG_h}} - {{xG_a}}" readonly>
+                  </div>
+                  <!-- Fore xG -->
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore xG Home-Away</span></div>
+                    <input type="text" class="form-control text-right" value="{{fxG_h}} - {{fxG_a}}" readonly>
+                  </div>
+                </div>
+
+
+            </div>
+          </div>
+        </div>
+
+
+        <!--                                                   Home                                     -->
+        <div class="col-sm-3">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{object.team_h.name}}</h5>
+
+                <!-- Row1 -->
+                <div class="form-row">
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">Fore xG</span>
+                    </div>
+                    <input type="text" class="form-control text-right" value="{{xG_h_skill}}" readonly>
+                  </div>
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore xA</span></div>
+                    <input type="text" class="form-control text-right" value="{{xA_h_skill}}" readonly>
+                  </div>
+                </div>
+
+                <!-- Row2 -->
+                <div class="form-row">
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">Fore kG</span>
+                    </div>
+                    <input type="text" class="form-control text-right" value="{{kG_h_skill}}" readonly>
+                  </div>
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore kA</span></div>
+                    <input type="text" class="form-control text-right" value="{{kA_h_skill}}" readonly>
+                  </div>
+                </div>
+
+                <!-- Row3 -->
+                <div class="form-row">
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">Fore G</span>
+                    </div>
+                    <input type="text" class="form-control text-right" value="{{G_h_skill}}" readonly>
+                  </div>
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore A</span></div>
+                    <input type="text" class="form-control text-right" value="{{A_h_skill}}" readonly>
+                  </div>
+                </div>
+
+            </div>
+          </div>
+        </div>
+
+
+
+        <!--                                                   Away                                    -->
+        <div class="col-sm-3">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{object.team_a.name}}</h5>
+
+
+                <!-- Row1 -->
+                <div class="form-row">
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">Fore xG</span>
+                    </div>
+                    <input type="text" class="form-control text-right" value="{{xG_a_skill}}" readonly>
+                  </div>
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore xA</span></div>
+                    <input type="text" class="form-control text-right" value="{{xA_a_skill}}" readonly>
+                  </div>
+                </div>
+
+                <!-- Row2 -->
+                <div class="form-row">
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">Fore kG</span>
+                    </div>
+                    <input type="text" class="form-control text-right" value="{{kG_a_skill}}" readonly>
+                  </div>
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore kA</span></div>
+                    <input type="text" class="form-control text-right" value="{{kA_a_skill}}" readonly>
+                  </div>
+                </div>
+
+                <!-- Row3 -->
+                <div class="form-row">
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">Fore G</span>
+                    </div>
+                    <input type="text" class="form-control text-right" value="{{G_a_skill}}" readonly>
+                  </div>
+                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore A</span></div>
+                    <input type="text" class="form-control text-right" value="{{A_a_skill}}" readonly>
+                  </div>
+                </div>
+
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+
+
+        <!--                                            Odds                                -->
+          <div class="card mb-3">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h5 class="card-title">Forecasting</h5>
+
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group mr-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Add harvestor group" id="create-harvestor-group" 
+                    onclick="create_harvestor_group_dlg()">Add harvestor group</button >
+                  </div>
+                </div>
+              </div>
+
+
+
+              <!-- Filter -->
+              <div class="pb-3 mb-1 " >
+                  <form  method="GET" id="odd-filter-id">
+
+                    <!-- row1 -->
+                    <div class="form-row">
+                      <!-- bookies -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" for="bookie">Bookie</span>
+                          </div>
+                          <select name="bookie" class="custom-select" id="bookie">
+                            <option {% if selected_bookie == 0 %}selected{% endif %} value="0"> All bookies </option>
+                            {% for source in bookies %}
+                              <option {% if selected_bookie == source.id %}selected{% endif %} value="{{ source.bookie_id }}"> {{ source.bookie_name }} </option>
+                            {% endfor %}                  
+                          </select>
+                        </div>
+                      </div>
+                      <!-- predictors -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" for="predictor">Predicors</span>
+                          </div>
+                          <select name="predictor" class="custom-select" id="predictor">
+                            <option {% if selected_predictor == 0 %}selected{% endif %} value="0"> All predictors </option>
+                            {% for predictor in predictors %}
+                              <option {% if selected_predictor == predictor.pred_id %}selected{% endif %} value="{{ predictor.pred_id }}"> {{ predictor.pred_name }} </option>
+                            {% endfor %}                  
+                          </select>
+                        </div>
+                      </div>
+                      <!-- Section -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" for="section">Sect</span>
+                          </div>
+                          <select name="section" class="custom-select" id="section">
+                            <option {% if selected_section == 0 %}selected{% endif %} value="0"> All sections </option>
+                            {% for section in sections %}
+                              <option {% if selected_section == section.id %}selected{% endif %} value="{{ section.id }}"> {{ section.name }} </option>
+                            {% endfor %}                  
+                          </select>
+                        </div>
+                      </div>
+                      <!-- Type -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" for="type">Type</span>
+                          </div>
+                          <select name="type" class="custom-select" id="type">
+                            <option {% if selected_type == 0 %}selected{% endif %} value="0"> All types </option>
+                            {% for type in types %}
+                              <option {% if selected_type == type.id %}selected{% endif %} value="{{ type.id }}"> {{ type.name }} </option>
+                            {% endfor %}                  
+                          </select>
+                        </div>
+                      </div>
+                      <!-- odd_from -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" id="label_odd_from">Odd from</span>
+                          </div>
+                          <input type="text" name="odd_from" class="form-control" aria-describedby="label_odd_from" value="{{odd_from}}">
+                        </div>
+                      </div>
+                      <!-- odd_to -->
+                      <div class="col-1">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" id="label_odd_to">To</span>
+                          </div>
+                          <input type="text" name="odd_to" class="form-control" aria-describedby="label_odd_to" value="{{odd_to}}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- row2 -->
+                    <div class="form-row">
+                      <!-- expect -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" id="label_expect">Expect</span>
+                          </div>
+                          <input type="text" name="expect" class="form-control" aria-describedby="label_expect" value="{{expect}}">
+                        </div>
+                      </div>
+                      <!-- Per -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" id="label_per">Per</span>
+                          </div>
+                          <input type="text" name="per" class="form-control" placeholder="0,1,2 ..." aria-describedby="label_per" value="{{per}}">
+                        </div>
+                      </div>
+                      <!-- Team -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" for="team">Team</span>
+                          </div>
+                          <select name="team" class="custom-select" id="team">
+                            <option {% if selected_team == "all" %}selected{% endif %} value="all"> All teams </option>
+                            <option {% if selected_team == "h" %}selected{% endif %} value="h"> Home </option>
+                            <option {% if selected_team == "a" %}selected{% endif %} value="a"> Away </option>
+                            <option {% if selected_team == "empty" %}selected{% endif %} value="empty"> </option>
+                          </select>
+                        </div>
+                      </div>
+                      <!-- par -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" id="label_par">Par</span>
+                          </div>
+                          <input type="text" name="par" class="form-control" aria-describedby="label_par" value="{{par}}">
+                        </div>
+                      </div>
+                      <!-- result -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" for="result">Res</span>
+                          </div>
+                          <select name="result" class="custom-select" id="result">
+                            {% for result in results %}
+                              <option {% if selected_result == result.0 %}selected{% endif %} value="{{ result.0 }}"> {{ result.1 }} </option>
+                            {% endfor %}                  
+                          </select>
+                        </div>
+                      </div>
+                      <!-- Button -->
+                    </div>
+
+                    <!-- row5 -->
+                    <div class="form-row">
+                      <div class="input-group input-group-sm mb-3">
+                        <button type="submit" class="btn btn-sm btn-outline-primary col-2">Set Filter</button>
+                      </div>
+                    </div>
+
+                  </form>
+              </div>
+              <!-- Filter -->
+
+
+
+              <div class="table-responsive small">
+                <table id="odd_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+                  <thead>
+                    <tr>
+                    <tr>
+                          <th></th>
+                          <th>Success</th>
+                          <th>Expect</th>
+                          <th>Kelly</th>
+                          <th>Bet Name</th>
+                          <th>Odd</th>
+                          <th>Period</th>
+                          <th>Param</th>
+                          <th>Team</th>
+                          <th>Yes</th>
+                          <th>Result</th>
+                          <th>Bookie</th>
+                          <th>Predictor</th>
+                    </tr>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+
+
+            </div>
+          </div>
+
+
+
+
+      <!--                                                PREVIOUS MATCHES                             -->
+      <div class="row">
+
+
+        <!--                                              Previous Home                                   -->
+        <div class="col-sm-7 mb-2">
+
+          <div class="card mb-2">
+            <div class="card-body">
+
+                <h5 class="card-title">Previous {{object.team_h.name}}</h5>
+                <div class="table-responsive small">
+                  <table id="prev-h-table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+                    <thead>
+                      <tr>
+                      <tr>
+                            <th>Date</th>
+                            <th>Home</th>
+                            <th>Away</th>
+                            <th>Score</th>
+                            <th>gX</th>
+                            <th>Fore gX</th>
+                            <th>fore G</th>
+                            <th>HA</th>
+                            <th>result</th>
+                      </tr>
+                      </tr>
+                    </thead>
+                  </table>
+                </div>
+
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+
+                <h5 class="card-title">Previous {{object.team_a.name}}</h5>
+                <div class="table-responsive small">
+                  <table id="prev-a-table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+                    <thead>
+                      <tr>
+                      <tr>
+                            <th>Date</th>
+                            <th>Home</th>
+                            <th>Away</th>
+                            <th>Score</th>
+                            <th>gX</th>
+                            <th>Fore gX</th>
+                            <th>fore G</th>
+                            <th>HA</th>
+                            <th>result</th>
+                      </tr>
+                      </tr>
+                    </thead>
+                  </table>
+                </div>
+
+
+            </div>
+          </div>
+        </div>
+
+
+
+        <!--                                               Season Chart                                -->
+        <div class="col-sm-5">
+          <div class="card">
+            <div class="card-body">
+
+              <h5 class="card-title">Seasom {{object.season.name}}</h5>
+                <div class="table-responsive small">
+                  <table id="chart-table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+                    <thead>
+                      <tr>
+                      <tr>
+                            <th>N</th>
+                            <th>Team</th>
+                            <th>M</th>
+                            <th>W</th>
+                            <th>D</th>
+                            <th>L</th>
+                            <th>G</th>
+                            <th>GA</th>
+                            <th>Pts</th>
+                            <th>id</th>
+                      </tr>
+                      </tr>
+                    </thead>
+                  </table>
+                </div>
+
+
+
+            </div>
+          </div>
+        </div>
+
+
+
+      </div>
+
+
+
+
+
+    </main>
+
+{% endblock content %}
+
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+
+
+    /*                            TABLE ODD                                        */    
+    var editIcons = function ( data, type, row ) {
+          var delete_url = "{% url 'betting:delete_harvest_config' 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<button type="button" class="delete-harvest-config btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete Configuration Parameter" id="delete-harvest-config">' +
+                '   <span class="fa fa-trash fa-sm"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#odd_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 10, 25, 50, 75, 100 ],
+              'paging': true,
+              'ajax': "{% url 'betting:forecast_odd_api' forecast_set_id match_id %}?format=datatables" +
+                      "&selected_bookie={{selected_bookie}}" +
+                      "&selected_section={{selected_section}}" +
+                      "&selected_type={{selected_type}}" +
+                      "&per={{per}}" +
+                      "&odd_from={{odd_from}}" +
+                      "&odd_to={{odd_to}}" +
+                      "&selected_team={{selected_team}}" +
+                      "&selected_predictor={{selected_predictor}}" +
+                      "&par={{par_encoding}}" +
+                      "&expect={{expect}}" +
+                      "&selected_result={{selected_result}}",
+              'order': [[ 3, 'desc' ], [ 2, 'desc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'success_chance', 'width':'3em'},
+                  {'data': 'result_value', 'width':'3em'},
+                  {'data': 'kelly', 'width':'3em'},
+                  {'data': 'odd.bet_type.name'},
+                  {'data': 'odd.odd_value', 'width':'3em'},
+                  {'data': 'odd.period', 'width':'3em'},
+                  {'data': 'odd.param', 'width':'3em'},
+                  {'data': 'odd.team', 'width':'2em'},
+                  {'data': 'odd.yes', 'width':'2em'},
+                  {'data': 'odd_status', 'width':'4em'},
+                  {'data': 'odd.bookie.name'},
+                  {'data': 'predictor.name'},
+
+              ],
+
+              "rowCallback": function( row, data, index ) {
+                  if (data.odd_status == "Success") {
+                    $(row).addClass('text-success');
+                  } else if (data.odd_status == "Fail") {
+                    $(row).addClass('text-danger');
+                  }
+              },
+
+              'drawCallback': function(settings, json) {
+                $(".delete-harvest-config").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal1",
+                        modalContent: ".modal1-content",
+                        modalForm: "#formDeleteHarvest",
+                        submitBtn: "#submit-form-config-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+               }
+
+      });
+
+    });
+
+
+    function createdCell_HA(td, cellData, rowData, row, col, ha) 
+      {
+
+        if ( rowData.ha == ha ) {
+            $(td).addClass('font-weight-bold');
+            if (rowData.result == 'w') $(td).addClass('text-success');
+            if (rowData.result == 'l') $(td).addClass('text-danger');
+        }
+      };
+
+
+
+
+    /*                            TABLE PREVIOUS HOME                                        */    
+    $(document).ready(function () {
+      var table = $('#prev-h-table').DataTable({
+              'serverSide': true,
+              'paging': false,
+              'ordering': false,
+              'searching': false,
+              'ajax': "{% url 'betting:previous_matches_api' match_id 'h' %}?format=datatables",
+              'order': [[ 3, 'desc' ], [ 2, 'desc' ]],
+              'select': true,
+
+              "columnDefs": [ 
+                {
+                "targets": 1,
+                "createdCell": function (td, cellData, rowData, row, col) {
+                                  createdCell_HA(td, cellData, rowData, row, col, "h")
+                                }
+                },
+                {
+                "targets": 2,
+                "createdCell": function (td, cellData, rowData, row, col) {
+                                  createdCell_HA(td, cellData, rowData, row, col, "a")
+                                }
+                } 
+              ],
+
+              'columns': [
+                  {'data': 'match_date'},
+                  {'data': 'h_name'},
+                  {'data': 'a_name'},
+                  {'data': 'score'},
+                  {'data': 'gx'},
+                  {'data': 'fore_gx'},
+                  {'data': 'fore_g'},
+                  {'data': 'ha', "visible":false},
+                  {'data': 'result', "visible":false},
+
+              ],
+
+      });
+    });
+
+
+    /*                            TABLE PREVIOUS AWAY                                        */    
+    $(document).ready(function () {
+      var table = $('#prev-a-table').DataTable({
+              'serverSide': true,
+              'paging': false,
+              'ordering': false,
+              'searching': false,
+              'ajax': "{% url 'betting:previous_matches_api' match_id 'a' %}?format=datatables",
+              'order': [[ 3, 'desc' ], [ 2, 'desc' ]],
+              'select': true,
+
+              "columnDefs": [ 
+                {
+                "targets": 1,
+                "createdCell": function (td, cellData, rowData, row, col) {
+                                  createdCell_HA(td, cellData, rowData, row, col, "h")
+                                }
+                },
+                {
+                "targets": 2,
+                "createdCell": function (td, cellData, rowData, row, col) {
+                                  createdCell_HA(td, cellData, rowData, row, col, "a")
+                                }
+                } 
+              ],
+
+              'columns': [
+                  {'data': 'match_date'},
+                  {'data': 'h_name'},
+                  {'data': 'a_name'},
+                  {'data': 'score'},
+                  {'data': 'gx'},
+                  {'data': 'fore_gx'},
+                  {'data': 'fore_g'},
+                  {'data': 'ha', "visible":false},
+                  {'data': 'result', "visible":false},
+
+              ],
+
+      });
+    });
+
+
+
+
+
+
+    /*                            T\SEASON CHART                                        */    
+    $(document).ready(function () {
+      var table = $('#chart-table').DataTable({
+              'serverSide': true,
+              'paging': false,
+              'ordering': false,
+              'searching': false,
+              'ajax': "{% url 'betting:season_chart_api' match_id %}?format=datatables",
+              'order': [[ 3, 'desc' ], [ 2, 'desc' ]],
+              'select': true,
+
+              'columns': [
+                  {'data': 'n'},
+                  {'data': 'team_name'},
+                  {'data': 'm'},
+                  {'data': 'w'},
+                  {'data': 'd'},
+                  {'data': 'l'},
+                  {'data': 'g'},
+                  {'data': 'ga'},
+                  {'data': 'pts'},
+                  {'data': 'id', "visible":false},
+              ],
+
+
+              "rowCallback": function( row, data, index ) {
+                  if (data.id == {{object.team_h.id}} || data.id == {{object.team_a.id}}) {
+                    $(row).addClass('font-weight-bold')
+                  }
+              }
+
+
+      });
+    });
+
+    
+  </script>
+{% endblock %}

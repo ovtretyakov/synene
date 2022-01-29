@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Foreacst Matches{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Foreacst Matches</h1>
+      </div>
+
+
+
+
+    <!-- Filter -->
+    <div class="pb-1 mb-1" >
+        <form  method="GET" id="league-filter-id">
+
+          <div class="form-row">
+
+
+            <div>
+            <a class="btn btn-sm btn-secondary" href="{% url 'betting:forecast_set_list' %}"><span class="fa" title="Forecast set"><<  Forecast Set</span></a>
+            </div>
+
+            <!-- league -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="sources">League</span>
+                </div>
+                <select name="selected_league" class="custom-select" id="selected_league">
+                  <option {% if selected_league == 0 %}selected{% endif %} value="0"> All leagues </option>
+                  {% for league in leagues %}
+                    <option {% if selected_league == league.league_id %}selected{% endif %} value="{{ league.league_id }}"> {{ league.league_name }} ({{ league.country_name }})</option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+ 
+            <!-- status -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" for="statuses">Status</span>
+                </div>
+                <select name="status" class="custom-select" id="status">
+                  {% for status in statuses %}
+                    <option {% if selected_status == status.0 %}selected{% endif %} value="{{ status.0 }}"> {{ status.1 }} </option>
+                  {% endfor %}                  
+                </select>
+              </div>
+            </div>
+
+            <!-- date_from -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_from">From</span>
+                </div>
+                <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}">
+              </div>
+            </div>
+
+            <!-- date_to -->
+            <div class="col-2">
+              <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="label_to">To</span>
+                </div>
+                <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}">
+              </div>
+            </div>
+
+
+
+            <div class="col-auto">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+            </div>
+          </div>
+        </form>
+    </div>
+
+
+
+
+
+
+
+
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th></th>
+              <th>ID</th>
+              <th>League</th>
+              <th>Home</th>
+              <th>Avay</th>
+              <th>Date</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>Odds</th>
+              <th>Odds+</th>
+              <th>Chance</th>
+              <th>Value</th>
+              <th>Kelly</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var view_url = "{% url 'betting:forecast_match_detail' forecast_set_id 0 %}";
+          if ( type === 'display' ) {
+              var r = 
+                '<a class="btn btn-sm btn-outline-secondary" href="' + view_url + '"><span class="fa fa-exchange" title="League matches"></span></a>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'lengthMenu': [ 25, 50, 75, 100 ],
+              'ajax': "{% url 'betting:forecast_match_list_api' forecast_set_id %}?format=datatables&selected_league={{selected_league}}&date_from={{date_from}}&date_to={{date_to}}&selected_status={{selected_status}}",
+              'order': [[ 5, 'asc' ], [ 2, 'asc' ], [ 1, 'asc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'match_id', 'render': editIcons, 'orderable': false, 'width':'1em'},
+                  {'data': 'match_id'},
+                  {'data': 'league_name'},
+                  {'data': 'name_h'},
+                  {'data': 'name_a'},
+                  {'data': 'match_date'},
+                  {'data': 'match_score'},
+                  {'data': 'match_status'},
+                  {'data': 'odds', className:"dt-body-right"},
+                  {'data': 'odds_plus', className:"dt-body-right"},
+                  {'data': 'best_chance', className:"dt-body-right"},
+                  {'data': 'best_result_value', className:"dt-body-right"},
+                  {'data': 'best_kelly', className:"dt-body-right"},
+
+              ],
+
+              'drawCallback': function(settings, json) {
+                $(".update-distribution").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formUpdateDistribution",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+              }
+      });
+
+
+    });
+
+
+
+  </script>
+{% endblock %}
+
+
+

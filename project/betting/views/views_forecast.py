@@ -4,20 +4,23 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.db.models.query import RawQuerySet
-from django.db.models import sql
+from django.db.models import sql, F, Q, Count, Max
 
 from background_task import background
 
+import urllib.parse
 from rest_framework.generics import ListAPIView
 from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalUpdateView,
                                            BSModalReadView,
                                            BSModalDeleteView)
 
-from project.core.utils import get_date_from_string
-from project.core.models import Sport
+from project.core.utils import get_date_from_string, SimpleRawQuerySet
+from project.core.models import Sport, League, Match, LoadSource, Team
 from ..models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
-                     ForecastHandler, Predictor, ForecastSet)
+                     ForecastHandler, Predictor, ForecastSet,
+                     Forecast, TeamSkill,
+                     Odd, ValueType, BetType)
 from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
                      HarvestForm, HarvestDeleteForm, HarvestDoHarvestForm, HarvestDoHarvestAllForm,
                      HarvestConfigForm, HarvestConfigDeleteForm,
@@ -28,7 +31,9 @@ from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
                      ForecastSetForm, ForecastSetDeleteForm
                      )
 from ..serializers import (HarvestHandlerSerializer, HarvestSerializer, HarvestConfigSerializer, HarvestGroupSerializer,
-                           ForecastHandlerSerializer, PredictorSerializer, ForecastSetSerializer
+                           ForecastHandlerSerializer, PredictorSerializer, ForecastSetSerializer,
+                           ForecastMatchesSerializer, ForecastSerializer, PreviousMatchesSerializer,
+                           SeasonChartSerializer
                            )
 
 
@@ -721,3 +726,448 @@ class ForecastSetDeleteView(BSModalCreateView):
             except Exception as e:
                 messages.error(self.request, "Deleting error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
+
+
+####################################################
+#  ForecastMatches
+####################################################
+class ForecastMatchesView(generic.TemplateView):
+    template_name = "betting/forecast_match_list.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(ForecastMatchesView, self).get_context_data(**kwargs)
+
+        forecast_set_id = self.kwargs['forecast_set']
+        if forecast_set_id:
+            context["forecast_set_id"] = forecast_set_id
+
+        leagues = (Forecast.objects.filter(forecast_set=forecast_set_id)
+                                   .values(league_id=F("match__league__id"),
+                                           league_name=F("match__league__name"),
+                                           country_name=F("match__league__country__name")
+                                          )
+                                   .distinct()
+                  )
+
+        # leagues = League.objects.all()
+        context["leagues"] = leagues
+
+        load_statuses = (("A", "All"),) + Match.STATUS_CHOICES
+        context["statuses"] = load_statuses
+
+        date_to = self.request.GET.get("date_to", None)
+        if date_to:
+            context["date_to"] = date_to
+        date_from = self.request.GET.get("date_from", None)
+        if date_from:
+            context["date_from"] = date_from
+        selected_league = self.request.GET.get("selected_league", None)
+        if selected_league:
+            context["selected_league"] = int(selected_league)
+        selected_status = self.request.GET.get("status", None)
+        if selected_status:
+            context["selected_status"] = selected_status
+        else:
+            context["selected_status"] = "A"
+
+        return context    
+
+
+
+class ForecastMatchesAPI(ListAPIView):
+    serializer_class = ForecastMatchesSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        forecast_set_id = self.kwargs.get("forecast_set",0)
+
+        queryset = Forecast.objects.filter(forecast_set=forecast_set_id)
+
+        date_from = get_date_from_string(self.request.query_params.get("date_from", None))
+        if date_from:
+            queryset = queryset.filter(match_date__gte=date_from)
+        date_to = get_date_from_string(self.request.query_params.get("date_to", None))
+        if date_to:
+            queryset = queryset.filter(match_date__lte=date_to)
+        selected_status = self.request.query_params.get("selected_status", None)
+        if selected_status and selected_status != "A":
+            queryset = queryset.filter(match__status=selected_status)
+        selected_league = self.request.query_params.get("selected_league", None)
+        if selected_league and selected_league != "0":
+            selected_league = int(selected_league)
+            print("!!!! selected_league",selected_league)
+            queryset = queryset.filter(match__league=selected_league)
+
+        queryset = (queryset.values(
+                             "match_date",
+                             "match_id",
+                             league_name=F("match__league__name"), 
+                             name_h=F("match__team_h__name"), 
+                             name_a=F("match__team_a__name"), 
+                             match_status=F("match__status"), 
+                             match_score=F("match__score"), 
+                             ) 
+                     .annotate(odds=Count("odd", distinct=True),
+                               odds_plus=Count("odd", distinct=True, filter=Q(result_value__gt=1)),
+                               best_chance=Max("success_chance"),
+                               best_result_value=Max("result_value"),
+                               best_kelly=Max("kelly"),
+                              )
+                    )
+        return queryset
+
+
+
+
+class ForecastMatchDetail(BSModalReadView):
+    model = Match
+    template_name = 'betting/detail_forecast_match.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super().get_context_data(**kwargs)
+
+        forecast_set_id = self.kwargs['forecast_set']
+        if forecast_set_id:
+            context["forecast_set_id"] = forecast_set_id
+        context["match_id"] = self.object.pk
+
+        harvest = Harvest.objects.get(slug="hg-0")
+        xG_h0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_h, skill_date=self.object.match_date, param="h")
+        xG_a0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_a, skill_date=self.object.match_date, param="a")
+
+
+        context["xG_h"] = self.object.get_stat("xg", "h", 0)
+        context["xG_a"] = self.object.get_stat("xg", "a", 0)
+        if xG_h0_skill and xG_a0_skill:
+            context["fxG_h"] = round(xG_h0_skill.value1*xG_a0_skill.value2,3)
+            context["fxG_a"] = round(xG_a0_skill.value1*xG_h0_skill.value2,3)
+            context["fG_h"]  = round(xG_h0_skill.value9*xG_a0_skill.value10,3)
+            context["fG_a"]  = round(xG_a0_skill.value9*xG_h0_skill.value10,3)
+
+            context["xG_h_skill"] = round(xG_h0_skill.value1,3)
+            context["xA_h_skill"] = round(xG_h0_skill.value2,3)
+            context["kG_h_skill"] = round(xG_h0_skill.value3,3)
+            context["kA_h_skill"] = round(xG_h0_skill.value4,3)
+            context["G_h_skill"]  = round(xG_h0_skill.value9,3)
+            context["A_h_skill"]  = round(xG_h0_skill.value10,3)
+
+            context["xG_a_skill"] = round(xG_a0_skill.value1,3)
+            context["xA_a_skill"] = round(xG_a0_skill.value2,3)
+            context["kG_a_skill"] = round(xG_a0_skill.value3,3)
+            context["kA_a_skill"] = round(xG_a0_skill.value4,3)
+            context["G_a_skill"]  = round(xG_a0_skill.value9,3)
+            context["A_a_skill"]  = round(xG_a0_skill.value10,3)
+
+        # odd filter
+        context["bookies"] = Forecast.objects.filter(forecast_set=forecast_set_id,
+                                                     match = self.object
+                                                     ).values(
+                                                                bookie_id=F("odd__bookie__id"),
+                                                                bookie_name=F("odd__bookie__name")
+                                                                ).distinct().order_by("bookie_id")
+        context["results"] = (("a", "All results"),) + Odd.RESULT_CHOICES
+        context["sections"] = ValueType.objects.all().order_by("name")
+        context["types"] = BetType.objects.all().order_by("name")
+        context["predictors"] = Forecast.objects.filter(forecast_set=forecast_set_id,
+                                                        match = self.object
+                                                        ).values(
+                                                                pred_id=F("predictor__id"),
+                                                                pred_name=F("predictor__name")
+                                                                ).distinct().order_by("pred_id")
+
+        Predictor.objects.all().order_by("pk")
+
+        selected_predictor = self.request.GET.get("predictor", None)
+        if selected_predictor:
+            context["selected_predictor"] = int(selected_predictor)
+        selected_bookie = self.request.GET.get("bookie", None)
+        if selected_bookie == None:
+            selected_bookie = 0
+        context["selected_bookie"] = int(selected_bookie)
+        selected_section = self.request.GET.get("section", None)
+        if selected_section:
+            context["selected_section"] = int(selected_section)
+        selected_type = self.request.GET.get("type", None)
+        if selected_type:
+            context["selected_type"] = int(selected_type)
+        expect = self.request.GET.get("expect", None)
+        if expect == None:
+            expect = 0.98
+        context["expect"] = expect
+        per = self.request.GET.get("per", None)
+        if per:
+            context["per"] = per
+        odd_from = self.request.GET.get("odd_from", None)
+        if odd_from:
+            context["odd_from"] = odd_from
+        odd_to = self.request.GET.get("odd_to", None)
+        if odd_to:
+            context["odd_to"] = odd_to
+        selected_team = self.request.GET.get("team", None)
+        if selected_team:
+            context["selected_team"] = selected_team
+        else:
+            context["selected_team"] = "all"
+        par = self.request.GET.get("par", None)
+        if par:
+            context["par"] = par
+            context["par_encoding"] = urllib.parse.quote(par) #par.replace("+", "%2B")
+        selected_result = self.request.GET.get("result", None)
+        if selected_result:
+            context["selected_result"] = selected_result
+        else:
+            context["selected_result"] = "a"
+
+        return context    
+
+
+class ForecastAPI(ListAPIView):
+    serializer_class = ForecastSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        forecast_set_id = self.kwargs.get("forecast_set",0)
+        match_id = self.kwargs.get("match",0)
+
+        queryset = Forecast.objects.filter(forecast_set=forecast_set_id, match=match_id)
+
+        selected_bookie = self.request.query_params.get("selected_bookie", None)
+        if selected_bookie and int(selected_bookie) > 0:
+            queryset = queryset.filter(odd__bookie_id=selected_bookie)
+        selected_section = self.request.query_params.get("selected_section", None)
+        if selected_section and int(selected_section) > 0:
+            queryset = queryset.filter(odd__value_type_id=selected_section)
+        selected_type = self.request.query_params.get("selected_type", None)
+        if selected_type and int(selected_type) > 0:
+            queryset = queryset.filter(odd__bet_type_id=selected_type)
+        per = self.request.query_params.get("per", None)
+        if per:
+            queryset = queryset.filter(odd__period=per)
+        odd_from = self.request.query_params.get("odd_from", None)
+        if odd_from:
+            queryset = queryset.filter(odd__odd_value__gte=odd_from)
+        odd_to = self.request.query_params.get("odd_to", None)
+        if odd_to:
+            queryset = queryset.filter(odd__odd_value__lte=odd_to)
+        selected_team = self.request.query_params.get("selected_team", None)
+        if selected_team:
+            if selected_team in("h","a"):
+                queryset = queryset.filter(odd__team=selected_team)
+            elif selected_team == "empty":
+                queryset = queryset.filter(odd__team="")
+        par = self.request.query_params.get("par", None)
+        if par:
+            queryset = queryset.filter(odd__param=par)
+        selected_result = self.request.query_params.get("selected_result", None)
+        if selected_result and selected_result != "a":
+            queryset = queryset.filter(odd__result=selected_result)
+        expect = self.request.query_params.get("expect", None)
+        if expect:
+            queryset = queryset.filter(result_value__gte=expect)
+        selected_predictor = self.request.query_params.get("selected_predictor", None)
+        if selected_predictor and int(selected_predictor) > 0:
+            queryset = queryset.filter(predictor_id=selected_predictor)
+
+        queryset = queryset.annotate(odd_status=F("odd__result"))
+        return queryset
+
+
+
+
+class PreviousMatchesAPI(ListAPIView):
+    serializer_class = PreviousMatchesSerializer
+    lookup_field = "id"
+
+    def get_queryset(self, *args, **kwargs):
+
+        match_id = self.kwargs.get("match",0)
+        team = self.kwargs.get("team",0)
+        team_id = 0
+        match_date = None
+        league_id = 0
+        if match_id:
+            match = Match.objects.filter(pk=match_id).first()
+            if match:
+                team_id = match.team_h.pk if team == 'h' else match.team_a.pk
+                match_date = match.match_date
+                league_id = match.league.pk
+
+        harvest_id = 0
+        harvest = Harvest.get_xg_harvest()
+        if harvest:
+            harvest_id = harvest.pk
+
+        sql = """ 
+                    WITH m AS 
+                      (
+                        SELECT *
+                          FROM 
+                            (
+                            SELECT d.*, ROW_NUMBER() OVER(ORDER BY match_date DESC, match_id DESC) AS rn
+                              FROM 
+                                (
+                            SELECT m.result, 
+                                   'h' AS ha, m.id AS match_id, m.match_date, m.score, m.team_h_id, m.team_a_id, 
+                                   h.name AS h_name, a.name AS a_name, 
+                                   TO_NUMBER(gh.value,'99999999.9999') AS gxH,
+                                   TO_NUMBER(ga.value,'99999999.9999') AS gxA
+                              FROM core_match m
+                                   JOIN core_matchstats gh 
+                                     ON(gh.stat_type = 'xg' AND gh.period = 0 AND gh.match_id = m.id AND gh.competitor = 'h')
+                                   JOIN core_matchstats ga 
+                                     ON(ga.stat_type = 'xg' AND ga.period = 0 AND ga.match_id = m.id AND ga.competitor = 'a')
+                                   JOIN core_team h ON (m.team_h_id = h.id)
+                                   JOIN core_team a ON (m.team_a_id = a.id)
+                              WHERE m.league_id = %s AND m.match_date < %s AND m.team_h_id = %s
+                                AND m.status = 'F'
+                            UNION ALL
+                            SELECT CASE WHEN m.result='w' THEN 'l' WHEN m.result='l' THEN 'w' ELSE m.result END AS result, 
+                                   'a' AS ha, m.id AS match_id, m.match_date, m.score, m.team_h_id, m.team_a_id,
+                                   h.name AS h_name, a.name AS a_name, 
+                                   TO_NUMBER(gh.value,'99999999.9999') AS gxH,
+                                   TO_NUMBER(ga.value,'99999999.9999') AS gxA
+                              FROM core_match m
+                                   JOIN core_matchstats gh 
+                                     ON(gh.stat_type = 'xg' AND gh.period = 0 AND gh.match_id = m.id AND gh.competitor = 'h')
+                                   JOIN core_matchstats ga 
+                                     ON(ga.stat_type = 'xg' AND ga.period = 0 AND ga.match_id = m.id AND ga.competitor = 'a')
+                                   JOIN core_team h ON (m.team_h_id = h.id)
+                                   JOIN core_team a ON (m.team_a_id = a.id)
+                              WHERE m.league_id = %s AND m.match_date < %s AND m.team_a_id = %s
+                                AND m.status = 'F'
+                                ) d
+                            ) d2
+                          WHERE rn <= 10
+                      ),
+                    mh AS 
+                      (
+                        SELECT *
+                          FROM 
+                            (
+                            SELECT m.*,
+                                   sh.value1 AS hv1, sh.value2 AS hv2, sh.value9 AS hv9, sh.value10 AS hv10,
+                                   row_number() OVER(PARTITION BY m.match_id ORDER BY sh.event_date DESC, sh.match_id DESC)  AS rnh
+                              FROM m 
+                                   JOIN betting_teamskill sh
+                                     ON(sh.harvest_id = %s AND 
+                                        sh.team_id = m.team_h_id AND 
+                                        sh.param = 'h' AND 
+                                        sh.event_date < m.match_date 
+                                        AND sh.match_cnt > 3
+                                        )
+                            ) d
+                          WHERE rnh = 1
+                      ),
+                    ma AS 
+                      (
+                        SELECT d.*,
+                               hv1*av2 AS gxH1, av1*hv2 AS gxA1, hv9*av10 AS gxH1, av9*hv10 AS gxA2,
+                               ROUND(hv1*av2,3) AS ph1, ROUND(av1*hv2,3) AS pa1, ROUND(hv9*av10,3) AS ph2, ROUND(av9*hv10,3) AS pa2
+                          FROM 
+                            (
+                            SELECT mh.*,
+                                   sh.value1 AS av1, sh.value2 AS av2, sh.value9 AS av9, sh.value10 AS av10,
+                                   row_number() OVER(PARTITION BY mh.match_id ORDER BY sh.event_date DESC, sh.match_id DESC) AS rna
+                              FROM mh 
+                                   JOIN betting_teamskill sh
+                                       ON(sh.harvest_id = %s AND 
+                                          sh.team_id = mh.team_a_id AND 
+                                          sh.param = 'a' AND 
+                                          sh.event_date < mh.match_date 
+                                          AND sh.match_cnt > 3
+                                          )
+                            ) d
+                          WHERE rna = 1
+                      )
+                    SELECT match_id AS id, result, ha, match_date, score, team_h_id, team_a_id, h_name, a_name,
+                           gxH::text || '-' || gxA::text  AS gx,
+                           ph1::text || '-' || pa1::text  AS fore_gx,
+                           ph2::text || '-' || pa2::text  AS fore_g
+                      FROM ma
+                      ORDER BY match_date DESC, match_id DESC
+              """
+        params  = [league_id, match_date, team_id,
+                   league_id, match_date, team_id,
+                   harvest_id, harvest_id,
+                   ]      
+        queryset = SimpleRawQuerySet(sql, params=params, model=Match)
+        return queryset
+
+
+
+
+
+class SeasonChartAPI(ListAPIView):
+    serializer_class = SeasonChartSerializer
+    lookup_field = "id"
+
+    def get_queryset(self, *args, **kwargs):
+
+        match_id = self.kwargs.get("match",0)
+        season_id = 0
+        match_date = None
+        league_id = 0
+        if match_id:
+            match = Match.objects.filter(pk=match_id).first()
+            if match:
+                season_id = match.season.pk
+                match_date = match.match_date
+                league_id = match.league.pk
+
+        sql = """ 
+                WITH m AS 
+                  (
+                    SELECT m.id AS match_id, m.*, 
+                           h.name AS h_name, a.name AS a_name, l.name AS league_name,
+                           TO_NUMBER(s1.value,'99999999.9999') AS gH,
+                           TO_NUMBER(s2.value,'99999999.9999') AS gA,
+                           TO_NUMBER(gh.value,'99999999.9999') AS gxH,
+                           TO_NUMBER(ga.value,'99999999.9999') AS gxA
+                      FROM core_match m
+                           JOIN core_matchstats s1 
+                             ON(s1.stat_type = 'g' AND s1.period = 0 AND s1.match_id = m.id AND s1.competitor = 'h' )
+                           JOIN core_matchstats s2 
+                             ON(s2.stat_type = 'g' AND s2.period = 0 AND s2.match_id = m.id AND s2.competitor = 'a')
+                           JOIN core_matchstats gh 
+                             ON(gh.stat_type = 'xg' AND gh.period = 0 AND gh.match_id = m.id AND gh.competitor = 'h')
+                           JOIN core_matchstats ga 
+                             ON(ga.stat_type = 'xg' AND ga.period = 0 AND ga.match_id = m.id AND ga.competitor = 'a')
+                           JOIN core_team h 
+                             ON (m.team_h_id = h.id)
+                           JOIN core_team a 
+                             ON (m.team_a_id = a.id)
+                           JOIN core_league l 
+                             ON (m.league_id = l.id)
+                      WHERE m.league_id = %s AND m.season_id = %s AND m.match_date < %s
+                        AND m.status = 'F'
+                  ),
+                t AS (
+                  SELECT m.team_h_id AS team_id, h_name AS team_name, 
+                         result, 
+                         gH, gA
+                    FROM m
+                  UNION ALL
+                  SELECT m.team_a_id AS team_id, a_name AS team_name, 
+                         CASE WHEN result = 'w' THEN 'l' WHEN result = 'l' THEN 'w' ELSE result END AS result, 
+                         gA, gH
+                    FROM m
+                ),
+                agg AS (
+                  SELECT team_id, team_name,
+                         COUNT(*) AS match_cnt, SUM(gH) AS gH, SUM(gA) AS gA,
+                         COUNT(*) FILTER(WHERE result='w') AS w,
+                         COUNT(*) FILTER(WHERE result='d') AS d,
+                         COUNT(*) FILTER(WHERE result='l') AS l,
+                         SUM(CASE WHEN result='w' THEN 3 WHEN result='d' THEN 1 ELSE 0 END) AS points 
+                    FROM t
+                    GROUP BY team_id, team_name
+                )
+                SELECT  ROW_NUMBER() OVER(ORDER BY points DESC, gH - gA DESC, gH DESC, team_id) AS n,
+                        team_id AS id, team_name, match_cnt AS m, w, d, l, gH AS G, gA, points AS pts 
+                  FROM agg
+                  ORDER BY n
+              """
+        params  = [league_id, season_id, match_date, 
+                   ]      
+        queryset = SimpleRawQuerySet(sql, params=params, model=Team)
+        return queryset

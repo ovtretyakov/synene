@@ -57,7 +57,7 @@ class TeamSkill(models.Model):
         ]
 
     def __str__(self):
-        return f'W:{self.harvest},T:{self.team},D:{self.event_date},M:{self.match}'
+        return f'W:{self.harvest},T:{self.team},D:{self.event_date}'
 
     @classmethod
     def _get_team_skill(cls, harvest, team, skill_date, match=None, param="0"):
