@@ -5,8 +5,12 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.db.models.query import RawQuerySet
 from django.db.models import sql, F, Q, Count, Max
+from django.db.models.expressions import Window
+from django.db.models.functions import RowNumber
 
 from background_task import background
+from graphos.sources.model import ModelDataSource
+from graphos.renderers import gchart
 
 import urllib.parse
 from rest_framework.generics import ListAPIView
@@ -919,6 +923,55 @@ class ForecastMatchDetail(BSModalReadView):
         else:
             context["selected_result"] = "a"
 
+        harvest_id = 0
+        harvest = Harvest.get_xg_harvest()
+        if harvest:
+            harvest_id = harvest.pk
+
+        sql = """
+                SELECT *
+                  FROM 
+                    (
+                    SELECT s.*,
+                           row_number() OVER(ORDER BY event_date DESC) AS rn
+                      FROM betting_teamskill s
+                      WHERE harvest_id = %s AND team_id = %s AND event_date < %s AND param = %s
+                    ) d
+                  WHERE rn <= 10
+                  ORDER BY event_date
+              """
+        fields = ["event_date", "value1", "value2"
+, "value9", "value10"]
+        headers = ["Date", "xG", "xA", "G", "A"]
+        options={'title': "xG skills",
+                 'colors': ['green', 'red', 'green', 'red'],
+                 'series': { 2: {'lineDashStyle':[4, 4]}, 3: {'lineDashStyle':[4, 4]}},
+                 'chartArea':{'left':30,'width':'80%',}
+                 }
+        chart_width = 650
+        h_chart = gchart.LineChart(ModelDataSource(queryset=
+                                                     TeamSkill.objects.raw(sql, 
+                                                                           [harvest_id, self.object.team_h.pk, self.object.match_date, 'h']
+                                                                           ), 
+                                                   fields=fields,
+                                                   headers=headers,
+                                                   ),
+                                   options=options
+                                   )
+        h_chart.width = chart_width
+        a_chart = gchart.LineChart(ModelDataSource(queryset=
+                                                     TeamSkill.objects.raw(sql, 
+                                                                           [harvest_id, self.object.team_a.pk, self.object.match_date, 'a']
+                                                                           ), 
+                                                   fields=fields,
+                                                   headers=headers,
+                                                   ),
+                                   options=options
+                                   )
+        a_chart.width = chart_width
+        context["h_chart"] = h_chart
+        context["a_chart"] = a_chart
+
         return context    
 
 
@@ -1171,3 +1224,8 @@ class SeasonChartAPI(ListAPIView):
                    ]      
         queryset = SimpleRawQuerySet(sql, params=params, model=Team)
         return queryset
+
+
+
+
+

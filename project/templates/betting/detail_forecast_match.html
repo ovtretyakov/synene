@@ -3,6 +3,14 @@
 {% load static i18n %}
 {% block title %}Match Forecasting {% endblock %}
 
+{% block extra_head %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+    </script>
+{% endblock %}
+
+
 {% block content %}
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 
@@ -517,8 +525,39 @@
 
 
 
+      <!--                                                xG Graphics                             -->
+      <div class="row">
+
+
+        <!--                                              Home                                   -->
+        <div class="col-sm-6 mb-2">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{object.team_h.name}}</h5>
+              {{ h_chart.as_html }}
+            </div>
+          </div>
+        </div>
+
+
+        <!--                                              Away                                   -->
+        <div class="col-sm-6 mb-2">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{object.team_a.name}}</h5>
+              {{ a_chart.as_html }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+
 
     </main>
+
+
 
 {% endblock content %}
 
@@ -715,7 +754,7 @@
 
 
 
-    /*                            T\SEASON CHART                                        */    
+    /*                            SEASON CHART                                        */    
     $(document).ready(function () {
       var table = $('#chart-table').DataTable({
               'serverSide': true,

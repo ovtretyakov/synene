@@ -1,3 +1,14 @@
+SELECT *
+  FROM 
+    (
+    SELECT s.*,
+           row_number() OVER(ORDER BY event_date DESC) AS rn
+      FROM synene.betting_teamskill s
+      WHERE harvest_id = 1 AND team_id = 400 AND event_date <= DATE '2021-12-01' AND param = 'h'
+    ) d
+  WHERE rn <= 10
+;
+
 WITH m AS 
   (
     SELECT m.id AS match_id, m.*, 
