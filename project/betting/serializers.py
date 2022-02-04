@@ -2,9 +2,9 @@ from rest_framework import serializers
 
 from project.core.helpers import DisplayChoiceField
 from project.core.models import Match
-from .models import (Odd, VOdd, 
+from .models import (Odd, VOdd, BetType,
                      HarvestHandler, Harvest, HarvestConfig, HarvestGroup, 
-                     ForecastHandler, Predictor, ForecastSet, Forecast,
+                     ForecastHandler, Predictor, ForecastSet, Forecast, ForecastSandbox,
                      Distribution
                      )
 
@@ -42,6 +42,11 @@ class OddSerializer(serializers.ModelSerializer):
                     "result_value", 
                     )
 
+
+class BetTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BetType
+        fields =    ("id", "slug", "name", "description", "handler",)
 
 
 class HarvestHandlerSerializer(serializers.ModelSerializer):
@@ -122,9 +127,10 @@ class ForecastMatchesSerializer(serializers.Serializer):
 
 class ForecastSerializer(serializers.ModelSerializer):
     odd_status = DisplayChoiceField(choices = Odd.RESULT_CHOICES)
+    growth = serializers.DecimalField(max_digits=10, decimal_places=3)
     class Meta:
-        model = Forecast
-        fields = ("id", "predictor", "success_chance", "lose_chance", "result_value", "kelly", "odd", "odd_status", )
+        model = ForecastSandbox
+        fields = ("id", "predictor", "success_chance", "lose_chance", "result_value", "kelly", "odd", "odd_status", "growth", )
         depth = 2
 
 

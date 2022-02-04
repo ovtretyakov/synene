@@ -17,7 +17,18 @@
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Match Forecasting </h1>
 
+        <div class="btn-toolbar mb-2 mb-md-0">
 
+
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="recalulate-forecast" 
+            onclick="recalculate_forecast_dlg()">Recalculate the forecast</button >
+          </div>
+          <div class="btn-group mr-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-forecast" 
+          onclick="restore_forecast_dlg()">Restore the forecast</button >
+          </div>
+        </div>
 
       </div>
 
@@ -25,6 +36,7 @@
       <a class="btn btn-sm btn-secondary mb-2" href="{% url 'betting:forecast_match_list' forecast_set_id %}"><span class="fa" title="Forecast matches">
         << Matches</span></a>
       </div>
+
 
       {% if messages %}
           {% for message in messages %}
@@ -250,7 +262,7 @@
                           <select name="bookie" class="custom-select" id="bookie">
                             <option {% if selected_bookie == 0 %}selected{% endif %} value="0"> All bookies </option>
                             {% for source in bookies %}
-                              <option {% if selected_bookie == source.id %}selected{% endif %} value="{{ source.bookie_id }}"> {{ source.bookie_name }} </option>
+                              <option {% if selected_bookie == source.bookie_id  %}selected{% endif %} value="{{ source.bookie_id }}"> {{ source.bookie_name }} </option>
                             {% endfor %}                  
                           </select>
                         </div>
@@ -289,12 +301,18 @@
                           <div class="input-group-prepend">
                             <span class="input-group-text" for="type">Type</span>
                           </div>
-                          <select name="type" class="custom-select" id="type">
+                          <input type="text" id="bet-types-info" class="form-control text-right" value="{{bet_types_info}}" readonly>
+                          <input type="hidden" id="bet-types" name="bet_types" class="form-control text-right" value="{{bet_types}}" >
+                          <div class="input-group-append">
+                              <button class="btn btn-outline-secondary" type="button" onclick="select_bet_type_dlg()">...</button>
+                           </div>
+<!--                           <select name="type" class="custom-select" id="type">
                             <option {% if selected_type == 0 %}selected{% endif %} value="0"> All types </option>
                             {% for type in types %}
                               <option {% if selected_type == type.id %}selected{% endif %} value="{{ type.id }}"> {{ type.name }} </option>
                             {% endfor %}                  
                           </select>
+ -->
                         </div>
                       </div>
                       <!-- odd_from -->
@@ -378,10 +396,19 @@
 
                     <!-- row5 -->
                     <div class="form-row">
-                      <div class="input-group input-group-sm mb-3">
-                        <button type="submit" class="btn btn-sm btn-outline-primary col-2">Set Filter</button>
+                      <div class="col-2  mb-3">
+                        <button type="submit" class="btn btn-sm btn-outline-primary col-12">Set Filter</button>
+                      </div>
+                      <div class="col-2  mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary col-12" id="clear-odd-filter" onclick="clear_odd_filter_dlg()">Clear Filter</button>
                       </div>
                     </div>
+
+
+
+
+
+
 
                   </form>
               </div>
@@ -397,6 +424,7 @@
                           <th></th>
                           <th>Success</th>
                           <th>Expect</th>
+                          <th>Growth</th>
                           <th>Kelly</th>
                           <th>Bet Name</th>
                           <th>Odd</th>
@@ -533,7 +561,19 @@
         <div class="col-sm-6 mb-2">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">{{object.team_h.name}}</h5>
+
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{{object.team_h.name}}</h1>
+
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group mr-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="recalulate-forecast_h" 
+                    onclick="recalculate_forecast_dlg()">Recalculate the forecast</button >
+                  </div>
+                </div>
+
+              </div>
+
               {{ h_chart.as_html }}
             </div>
           </div>
@@ -544,7 +584,19 @@
         <div class="col-sm-6 mb-2">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">{{object.team_a.name}}</h5>
+
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{{object.team_a.name}}</h1>
+
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group mr-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="recalulate-forecast_a" 
+                    onclick="recalculate_forecast_dlg()">Recalculate the forecast</button >
+                  </div>
+                </div>
+
+              </div>
+
               {{ a_chart.as_html }}
             </div>
           </div>
@@ -567,6 +619,44 @@
 {% block javascript %}
 {{ block.super }} 
   <script>
+
+
+    function recalculate_forecast_dlg() 
+      {
+        
+        var url = "{% url 'betting:forecast_match_xg_update'  forecast_set_id match_id %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formUpdateMatchXG",
+                url,
+                ".invalid",
+                "#submit-form-update-match-xg-id")
+      };
+
+    function restore_forecast_dlg() 
+      {
+        
+        var url = "{% url 'betting:forecast_match_xg_restore'  forecast_set_id match_id %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formRestoreMatchXG",
+                url,
+                ".invalid",
+                "#submit-form-restore-match-xg-id")
+      };
+
+    function select_bet_type_dlg() 
+      {
+        
+        var url = "{% url 'betting:select_bet_type' %}?bet_types={{bet_types}}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formSelectBetType",
+                url,
+                ".invalid",
+                "#submit-form-select-bet-type-id")
+      };
+
 
 
     /*                            TABLE ODD                                        */    
@@ -596,7 +686,7 @@
               'ajax': "{% url 'betting:forecast_odd_api' forecast_set_id match_id %}?format=datatables" +
                       "&selected_bookie={{selected_bookie}}" +
                       "&selected_section={{selected_section}}" +
-                      "&selected_type={{selected_type}}" +
+                      "&bet_types={{bet_types}}" +
                       "&per={{per}}" +
                       "&odd_from={{odd_from}}" +
                       "&odd_to={{odd_to}}" +
@@ -605,12 +695,13 @@
                       "&par={{par_encoding}}" +
                       "&expect={{expect}}" +
                       "&selected_result={{selected_result}}",
-              'order': [[ 3, 'desc' ], [ 2, 'desc' ]],
+              'order': [[ 4, 'desc' ], [ 2, 'desc' ]],
               'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
                   {'data': 'success_chance', 'width':'3em'},
                   {'data': 'result_value', 'width':'3em'},
+                  {'data': 'growth', 'width':'3em'},
                   {'data': 'kelly', 'width':'3em'},
                   {'data': 'odd.bet_type.name'},
                   {'data': 'odd.odd_value', 'width':'3em'},
@@ -649,6 +740,25 @@
       });
 
     });
+
+
+    function clear_odd_filter_dlg() 
+      {
+        document.getElementsByName('predictor')[0].value = null;
+        document.getElementsByName('bookie')[0].value = null;
+        document.getElementsByName('section')[0].value = null;
+        document.getElementsByName('bet_types')[0].value = null;
+        document.getElementsByName('expect')[0].value = null;
+        document.getElementsByName('per')[0].value = null;
+        document.getElementsByName('odd_from')[0].value = null;
+        document.getElementsByName('odd_to')[0].value = null;
+        document.getElementsByName('team')[0].value = null;
+        document.getElementsByName('par')[0].value = null;
+        document.getElementsByName('result')[0].value = null;
+        $('#odd-filter-id').submit();
+      };
+
+
 
 
     function createdCell_HA(td, cellData, rowData, row, col, ha) 

@@ -1,0 +1,127 @@
+{% extends "base_modal_form.html" %}
+{% block title %}Choose betting type{% endblock %}
+{% block form_id %}formSelectBetType{% endblock form_id %}
+
+{% block modal-body %}
+
+
+      <div class="table-responsive small">
+        <table id="select_bet_type_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Slug</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+
+  <script>
+
+    var getName = function ( data, type, row ) {
+          if ( type == 'display' ) {
+              var r = row.name + " (" + row.slug + ")"
+              return r;
+          }
+        return data;
+    };
+
+    var setEmpty = function ( data, type, row ) {
+          if ( type == 'display' ) {
+              var r = ""
+              return r;
+          }
+        return data;
+    };
+
+    $(document).ready(function () {
+      var events = $('#events');
+
+      var table = $('#select_bet_type_table').DataTable({
+              'serverSide': true,
+              'select': true,
+              'paging': false,
+              'deferRender': true,
+              'rowId': 'id',
+              'ajax': "{% url 'betting:bet_type_api'  %}?format=datatables",
+              'order': [[ 1, 'asc' ]],
+              'dom': 'Bfrtip',
+              'buttons': [
+                    {
+                        text: 'Select & Close',
+                        action: function () {
+                            select_bet_types_and_close();
+                        }
+                    },
+                  'selectAll',
+                  'selectNone'
+              ],
+              'columnDefs': [ {
+                      "orderable": false,
+                      "className": 'select-checkbox',
+                      "targets":   0
+              } ],
+              'select': {
+                      'style':    'multi',
+                      'selector': 'td:first-child'
+              },
+              'columns': [
+                  {'data': 'id', 'render': setEmpty},
+                  {'data': 'name', 'render': getName},
+                  {'data': 'slug', "visible":false},
+              ],
+
+              "rowCallback": function( row, data, index ) {
+                  selected_rows = ",{{bet_types}},"
+                  if (selected_rows.indexOf("," + data.id.toString() + ",") >= 0){
+                    $(row).addClass('initial-selected');
+                  }
+              },
+              "initComplete": function( settings, json ) {
+                var table = $('#select_bet_type_table').DataTable();
+                table.rows('.initial-selected').select();
+              },
+
+
+      });
+
+
+    });
+
+
+    function select_bet_types_and_close() 
+      {
+        var table = $('#select_bet_type_table').DataTable();
+        var data = table.rows( { selected: true } ).data();
+        var idarray=[]; 
+        var info = "";
+        for (var i=0; i < data.length ;i++){
+          idarray.push(data[i]["id"]);
+        }
+        if (data.length == 0) {
+          info = "All types"
+        } else if (data.length == 1) {
+          info = "1 type"
+        } else {
+          info = data.length.toString() + " types"
+        }
+        $('#bet-types').val(idarray.toString());
+        $('#bet-types-info').val(info);
+        $("#closeBetTypeForm").trigger({ type: "click" });
+
+      };
+
+
+  </script>
+
+
+
+{% endblock %}
+
+
+{% block modal-footer %}
+    <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal" id="closeBetTypeForm">Close</button>
+    <button type="button" class="btn btn-primary btn-sm" id="selectBetTypeForm" onclick="select_bet_types_and_close()">Select & Close</button>
+{% endblock modal-footer %}

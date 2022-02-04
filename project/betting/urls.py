@@ -65,7 +65,12 @@ urlpatterns = [
     url(r'^odds/forecast/set/(?P<forecast_set>\d+)/(?P<pk>\d+)/$', views.ForecastMatchDetail.as_view(), name='forecast_match_detail'),
     url(r'^odds/forecast/previous/matches/(?P<match>\d+)/(?P<team>[ah]+)/api/$', views.PreviousMatchesAPI.as_view(), name='previous_matches_api'),
     url(r'^odds/season/chart/(?P<match>\d+)/api/$', views.SeasonChartAPI.as_view(), name='season_chart_api'),
+    url(r'^odds/forecast/match/update/(?P<forecast_set>\d+)/(?P<pk>\d+)/$', views.MatchXGUpdateView.as_view(), name='forecast_match_xg_update'),
+    url(r'^odds/forecast/match/restore/(?P<forecast_set>\d+)/(?P<pk>\d+)/$', views.MatchXGRestoreView.as_view(), name='forecast_match_xg_restore'),
     #forecast
     url(r'^odds/forecast/(?P<forecast_set>\d+)/(?P<match>\d+)/$', views.ForecastAPI.as_view(), name='forecast_odd_api'),
+    #bet type
+    url(r'^odds/bet_type/select/$', views.SelectBetTypeView.as_view(), name='select_bet_type'),
+    url(r'^odds/bet_type/api/$', views.BetTypeAPI.as_view(), name='bet_type_api'),
     ####
 ]

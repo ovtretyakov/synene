@@ -23,7 +23,7 @@ from project.core.utils import get_date_from_string, SimpleRawQuerySet
 from project.core.models import Sport, League, Match, LoadSource, Team
 from ..models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
                      ForecastHandler, Predictor, ForecastSet,
-                     Forecast, TeamSkill,
+                     Forecast, TeamSkill, ForecastSandbox, TeamSkillSandbox,
                      Odd, ValueType, BetType)
 from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
                      HarvestForm, HarvestDeleteForm, HarvestDoHarvestForm, HarvestDoHarvestAllForm,
@@ -32,7 +32,8 @@ from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
                      HarvestLeagueForm, HarvestLeagueDeleteForm,
                      ForecastHandlerForm, ForecastHandlerDeleteForm,
                      PredictorForm, PredictorDeleteForm,
-                     ForecastSetForm, ForecastSetDeleteForm
+                     ForecastSetForm, ForecastSetDeleteForm,
+                     MatchXGForm, RestoreMatchXGForm
                      )
 from ..serializers import (HarvestHandlerSerializer, HarvestSerializer, HarvestConfigSerializer, HarvestGroupSerializer,
                            ForecastHandlerSerializer, PredictorSerializer, ForecastSetSerializer,
@@ -832,13 +833,17 @@ class ForecastMatchDetail(BSModalReadView):
         context = super().get_context_data(**kwargs)
 
         forecast_set_id = self.kwargs['forecast_set']
+        forecast_set = ForecastSet.objects.get(pk=forecast_set_id)
         if forecast_set_id:
             context["forecast_set_id"] = forecast_set_id
         context["match_id"] = self.object.pk
 
         harvest = Harvest.objects.get(slug="hg-0")
-        xG_h0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_h, skill_date=self.object.match_date, param="h")
-        xG_a0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_a, skill_date=self.object.match_date, param="a")
+        forecast_set.preapre_sandbox(match=self.object, harvest=harvest)
+        xG_h0_skill = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_h, event_date=self.object.match_date, param="h")
+        xG_a0_skill = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_a, event_date=self.object.match_date, param="a")
+        # xG_h0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_h, skill_date=self.object.match_date, param="h")
+        # xG_a0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_a, skill_date=self.object.match_date, param="a")
 
 
         context["xG_h"] = self.object.get_stat("xg", "h", 0)
@@ -892,11 +897,18 @@ class ForecastMatchDetail(BSModalReadView):
         selected_section = self.request.GET.get("section", None)
         if selected_section:
             context["selected_section"] = int(selected_section)
-        selected_type = self.request.GET.get("type", None)
-        if selected_type:
-            context["selected_type"] = int(selected_type)
+        bet_types = self.request.GET.get("bet_types", None)
+        bet_types_info = "All types"
+        if bet_types:
+            bet_types_len = len(bet_types.split(","))
+            if bet_types_len == 1:
+                bet_types_info = "1 type"
+            elif bet_types_len > 1:
+                bet_types_info = str(bet_types_len) + " types"
+            context["bet_types"] = bet_types
+        context["bet_types_info"] = bet_types_info
         expect = self.request.GET.get("expect", None)
-        if expect == None:
+        if expect == None or expect == "":
             expect = 0.98
         context["expect"] = expect
         per = self.request.GET.get("per", None)
@@ -940,8 +952,7 @@ class ForecastMatchDetail(BSModalReadView):
                   WHERE rn <= 10
                   ORDER BY event_date
               """
-        fields = ["event_date", "value1", "value2"
-, "value9", "value10"]
+        fields = ["event_date", "value1", "value2", "value9", "value10"]
         headers = ["Date", "xG", "xA", "G", "A"]
         options={'title': "xG skills",
                  'colors': ['green', 'red', 'green', 'red'],
@@ -982,7 +993,11 @@ class ForecastAPI(ListAPIView):
         forecast_set_id = self.kwargs.get("forecast_set",0)
         match_id = self.kwargs.get("match",0)
 
-        queryset = Forecast.objects.filter(forecast_set=forecast_set_id, match=match_id)
+        queryset = (ForecastSandbox.objects
+                            .filter(forecast_set=forecast_set_id, match=match_id)
+                            .annotate(growth=(1-F("kelly")+F("kelly")*F("result_value")))
+                    )
+        # queryset = Forecast.objects.filter(forecast_set=forecast_set_id, match=match_id)
 
         selected_bookie = self.request.query_params.get("selected_bookie", None)
         if selected_bookie and int(selected_bookie) > 0:
@@ -990,9 +1005,9 @@ class ForecastAPI(ListAPIView):
         selected_section = self.request.query_params.get("selected_section", None)
         if selected_section and int(selected_section) > 0:
             queryset = queryset.filter(odd__value_type_id=selected_section)
-        selected_type = self.request.query_params.get("selected_type", None)
-        if selected_type and int(selected_type) > 0:
-            queryset = queryset.filter(odd__bet_type_id=selected_type)
+        bet_types = self.request.query_params.get("bet_types", None)
+        if bet_types:
+            queryset = queryset.filter(odd__bet_type_id__in=bet_types.split(","))
         per = self.request.query_params.get("per", None)
         if per:
             queryset = queryset.filter(odd__period=per)
@@ -1227,5 +1242,101 @@ class SeasonChartAPI(ListAPIView):
 
 
 
+class MatchXGUpdateView(BSModalUpdateView):
+    model = Match
+    form_class = MatchXGForm
+    template_name = 'betting/update_match_xg.html'
+    success_message = "Success: xG values were updated."
 
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def get_initial(self, **kwargs):
+        forecast_set_id = self.kwargs['forecast_set']
+        harvest = Harvest.objects.get(slug="hg-0")
+        self.forecast_set_id = forecast_set_id
+        self.harvest = harvest
+        xG_h0 = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_h, event_date=self.object.match_date, param="h")
+        xG_a0 = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_a, event_date=self.object.match_date, param="a")
+        init = {
+                'xG_h': round(xG_h0.value1,3),
+                'xA_h': round(xG_h0.value2,3),
+                'G_h':  round(xG_h0.value9,3),
+                'A_h':  round(xG_h0.value10,3),
+                'xG_a': round(xG_a0.value1,3),
+                'xA_a': round(xG_a0.value2,3),
+                'G_a':  round(xG_a0.value9,3),
+                'A_a':  round(xG_a0.value10,3),
+        }
+        return init
+
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super().get_context_data(**kwargs)
+
+        forecast_set_id = self.kwargs['forecast_set']
+        context["forecast_set_id"] = forecast_set_id
+        context["match_id"] = self.object.pk
+
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                forecast_set = ForecastSet.objects.get(pk=self.forecast_set_id)
+                forecast_set.api_update_match_xG(self.harvest, 
+                                                 self.object, 
+                                                 cleaned_data["xG_h"], 
+                                                 cleaned_data["xA_h"], 
+                                                 cleaned_data["G_h"], 
+                                                 cleaned_data["A_h"], 
+                                                 cleaned_data["xG_a"], 
+                                                 cleaned_data["xA_a"], 
+                                                 cleaned_data["G_a"], 
+                                                 cleaned_data["A_a"]
+                                                 )
+                messages.success(self.request, self.success_message)
+            except Exception as e:
+                messages.error(self.request, "Error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+
+class MatchXGRestoreView(BSModalUpdateView):
+    model = Match
+    form_class = RestoreMatchXGForm
+    template_name = 'betting/restore_match_xg.html'
+    success_message = "Success: xG values were restored."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super().get_context_data(**kwargs)
+
+        forecast_set_id = self.kwargs['forecast_set']
+        harvest = Harvest.objects.get(slug="hg-0")
+        self.harvest = harvest
+        self.forecast_set_id = forecast_set_id
+
+        context["forecast_set_id"] = forecast_set_id
+        context["match_id"] = self.object.pk
+
+        return context    
+
+    def form_valid(self, form, **kwargs):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                forecast_set_id = self.kwargs['forecast_set']
+                harvest = Harvest.objects.get(slug="hg-0")
+                cleaned_data = form.cleaned_data
+                forecast_set = ForecastSet.objects.get(pk=forecast_set_id)
+                forecast_set.api_restore_match_xG(harvest, self.object)
+                messages.success(self.request, self.success_message)
+            except Exception as e:
+                messages.error(self.request, "Error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
 

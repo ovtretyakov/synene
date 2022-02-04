@@ -13,7 +13,7 @@ from project.core.utils import get_date_from_string
 from project.core.models import LoadSource
 from project.football.models import FootballLeague
 from ..models import Odd, VOdd, ValueType, BetType, Match
-from ..serializers import OddSerializer
+from ..serializers import OddSerializer, BetTypeSerializer
 
 
 
@@ -158,3 +158,33 @@ class OddAPI(ListAPIView):
 class OddDetail(BSModalReadView):
     model = VOdd
     template_name = 'betting/odd_detail.html'
+
+
+
+####################################################
+#  BetType
+####################################################
+class SelectBetTypeView(generic.TemplateView):
+    template_name = "betting/select_bet_type.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(SelectBetTypeView, self).get_context_data(**kwargs)
+
+        bet_types = self.request.GET.get("bet_types", None)
+        if bet_types:
+            context["bet_types"] = bet_types
+        return context    
+
+
+class BetTypeAPI(ListAPIView):
+    serializer_class = BetTypeSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = BetType.objects.all()
+        bet_types = self.request.query_params.get("bet_types", None)
+        if bet_types:
+            queryset = queryset.filter(id__in=bet_types.split(','))
+        return queryset
+

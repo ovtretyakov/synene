@@ -241,7 +241,14 @@ class Odd(Mergable, models.Model):
             #method is called from real class (not from class Odd)
             bet_type = BetType.objects.get(slug=cls.own_bet_type()) 
             try:
-                obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                obj = cls.objects.get(match_id=match.id,
+                                      bet_type_id=bet_type.id,
+                                      bookie_id=bookie.id,
+                                      value_type_id=value_type.id,
+                                      period=period,
+                                      yes=yes,
+                                      team=team,
+                                      param=param)
             except cls.DoesNotExist:
                 obj = None
         else:
@@ -252,12 +259,26 @@ class Odd(Mergable, models.Model):
             if not real_cls:
                 #cant find real class handler - create default class 
                 try:
-                    obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                    obj = cls.objects.get(match_id=match.id,
+                                          bet_type_id=bet_type.id,
+                                          bookie_id=bookie.id,
+                                          value_type_id=value_type.id,
+                                          period=period,
+                                          yes=yes,
+                                          team=team,
+                                          param=param)
                 except cls.DoesNotExist:
                     obj = None
             else:
                 try:
-                    obj = real_cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                    obj = real_cls.objects.get(match_id=match.id,
+                                               bet_type_id=bet_type.id,
+                                               bookie_id=bookie.id,
+                                               value_type_id=value_type.id,
+                                               period=period,
+                                               yes=yes,
+                                               team=team,
+                                               param=param)
                 except real_cls.DoesNotExist:
                     obj = None
         return obj
@@ -311,11 +332,11 @@ class Odd(Mergable, models.Model):
         try:
             if bookie:
                 odd = cls.objects.select_related('load_source').get(
-                                      match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,
+                                      match_id=match.id,bet_type_id=bet_type.id,bookie_id=bookie.id,value_type_id=value_type.id,
                                       period=period,yes=yes,team=team,param=param)
             else:
                 odd = cls.objects.select_related('load_source').get(
-                                      match=match,bet_type=bet_type,bookie__isnull=True,value_type=value_type,
+                                      match_id=match.id,bet_type_id=bet_type.id,bookie__isnull=True,value_type_id=value_type.id,
                                       period=period,yes=yes,team=team,param=param)
         except Odd.DoesNotExist:
             odd = None
