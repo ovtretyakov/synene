@@ -314,3 +314,22 @@ class RestoreMatchXGForm(BSModalForm):
     class Meta:
         model = Match
         fields = []
+
+
+######################################################################
+class ProcessAllForm(BSModalForm):
+
+    only_betting = forms.BooleanField(required=False)
+    process_date = forms.DateField(required=False)
+    forecast_set_name = forms.CharField(max_length=100)
+
+    class Meta:
+        model = Match
+        fields = []
+
+    def clean_forecast_set_name(self):
+        data = self.cleaned_data["forecast_set_name"]
+        if not ForecastSet.objects.filter(slug=data).exists():
+            raise ValidationError(_("Unknown forecast set"))
+        return data
+

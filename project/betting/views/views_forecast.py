@@ -1,6 +1,8 @@
+from datetime import datetime, date, timedelta
+
+
 from django.views import generic
 from django.http import HttpResponseRedirect
-from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.db.models.query import RawQuerySet
@@ -20,6 +22,8 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from project.core.utils import get_date_from_string, SimpleRawQuerySet
+from project.load.background_utils import load_source_download
+
 from project.core.models import Sport, League, Match, LoadSource, Team
 from ..models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
                      ForecastHandler, Predictor, ForecastSet,
@@ -33,7 +37,7 @@ from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
                      ForecastHandlerForm, ForecastHandlerDeleteForm,
                      PredictorForm, PredictorDeleteForm,
                      ForecastSetForm, ForecastSetDeleteForm,
-                     MatchXGForm, RestoreMatchXGForm
+                     MatchXGForm, RestoreMatchXGForm, ProcessAllForm
                      )
 from ..serializers import (HarvestHandlerSerializer, HarvestSerializer, HarvestConfigSerializer, HarvestGroupSerializer,
                            ForecastHandlerSerializer, PredictorSerializer, ForecastSetSerializer,
@@ -56,6 +60,18 @@ def forecast_set_update(forecast_set_pk, slug, name, keep_only_best_int, only_fi
     start_date = get_date_from_string(start_date_str)
     forecast_set = ForecastSet.objects.get(pk=forecast_set_pk)
     forecast_set.api_update(slug=slug, name=name, keep_only_best=keep_only_best, only_finished=only_finished, start_date=start_date)
+
+
+@background
+def harvestor_do(harvest_pk, harvest_date_str):
+    harvest_date = get_date_from_string(harvest_date_str)
+    harvestor = Harvest.objects.get(pk=harvest_pk)
+    harvestor.api_do_harvest(harvest_date)
+
+@background
+def harvestor_do_all(harvest_date_str):
+    harvest_date = get_date_from_string(harvest_date_str)
+    Harvest.api_do_harvest_all(harvest_date)
 
 
 ####################################################
@@ -198,7 +214,7 @@ class HarvestDoHarvestView(BSModalUpdateView):
     model = Harvest
     template_name = "betting/do_harvest_harvest.html"
     form_class = HarvestDoHarvestForm
-    success_message = "Success harvesting"
+    success_message = "Task is queues"
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
     def get_success_message(self):
@@ -209,7 +225,11 @@ class HarvestDoHarvestView(BSModalUpdateView):
             try:
                 cleaned_data = form.cleaned_data
                 harvest_date = cleaned_data["harvest_date"]
-                self.object.api_do_harvest(harvest_date)
+                if harvest_date:
+                    harvest_date_str = harvest_date.strftime('%d.%m.%Y')
+                else:
+                    harvest_date_str = ""
+                harvestor_do(self.object.pk, harvest_date_str, verbose_name = 'Harvest ' + self.object.slug)
                 messages.success(self.request, self.get_success_message())
             except Exception as e:
                 messages.error(self.request, "Harvesting error :\n" + str(e))
@@ -219,7 +239,7 @@ class HarvestDoHarvestView(BSModalUpdateView):
 class HarvestDoHarvestAllView(BSModalCreateView):
     template_name = "betting/do_harvest_harvest_all.html"
     form_class = HarvestDoHarvestAllForm
-    success_message = "Success harvesting"
+    success_message = "All tasks are queues"
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER")
     def get_success_message(self):
@@ -230,7 +250,11 @@ class HarvestDoHarvestAllView(BSModalCreateView):
             try:
                 cleaned_data = form.cleaned_data
                 harvest_date = cleaned_data["harvest_date"]
-                Harvest.api_do_harvest_all(harvest_date)
+                if harvest_date:
+                    harvest_date_str = harvest_date.strftime('%d.%m.%Y')
+                else:
+                    harvest_date_str = ""
+                harvestor_do_all(harvest_date_str, verbose_name = 'Harvest all')
                 messages.success(self.request, self.get_success_message())
             except Exception as e:
                 messages.error(self.request, "Harvesting error :\n" + str(e))
@@ -840,8 +864,16 @@ class ForecastMatchDetail(BSModalReadView):
 
         harvest = Harvest.objects.get(slug="hg-0")
         forecast_set.preapre_sandbox(match=self.object, harvest=harvest)
-        xG_h0_skill = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_h, event_date=self.object.match_date, param="h")
-        xG_a0_skill = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_a, event_date=self.object.match_date, param="a")
+        xG_h0_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                                   harvest_id=harvest.id, 
+                                                   team_id=self.object.team_h_id, 
+                                                   event_date=self.object.match_date, 
+                                                   param="h")
+        xG_a0_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                                   harvest_id=harvest.id, 
+                                                   team_id=self.object.team_a_id, 
+                                                   event_date=self.object.match_date, 
+                                                   param="a")
         # xG_h0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_h, skill_date=self.object.match_date, param="h")
         # xG_a0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_a, skill_date=self.object.match_date, param="a")
 
@@ -853,6 +885,11 @@ class ForecastMatchDetail(BSModalReadView):
             context["fxG_a"] = round(xG_a0_skill.value1*xG_h0_skill.value2,3)
             context["fG_h"]  = round(xG_h0_skill.value9*xG_a0_skill.value10,3)
             context["fG_a"]  = round(xG_a0_skill.value9*xG_h0_skill.value10,3)
+            context["fxG_h_ch"] = "*" if (xG_h0_skill.changed1 or xG_a0_skill.changed2) else ""
+            context["fxG_a_ch"] = "*" if (xG_a0_skill.changed1 or xG_h0_skill.changed2) else ""
+            context["fG_h_ch"]  = "*" if (xG_h0_skill.changed9 or xG_a0_skill.changed10) else ""
+            context["fG_a_ch"]  = "*" if (xG_a0_skill.changed9 or xG_h0_skill.changed10) else ""
+
 
             context["xG_h_skill"] = round(xG_h0_skill.value1,3)
             context["xA_h_skill"] = round(xG_h0_skill.value2,3)
@@ -860,6 +897,10 @@ class ForecastMatchDetail(BSModalReadView):
             context["kA_h_skill"] = round(xG_h0_skill.value4,3)
             context["G_h_skill"]  = round(xG_h0_skill.value9,3)
             context["A_h_skill"]  = round(xG_h0_skill.value10,3)
+            context["xG_h_skill_ch"] = "*" if (xG_h0_skill.changed1) else ""
+            context["xA_h_skill_ch"] = "*" if (xG_h0_skill.changed2) else ""
+            context["G_h_skill_ch"]  = "*" if (xG_h0_skill.changed9) else ""
+            context["A_h_skill_ch"]  = "*" if (xG_h0_skill.changed10) else ""
 
             context["xG_a_skill"] = round(xG_a0_skill.value1,3)
             context["xA_a_skill"] = round(xG_a0_skill.value2,3)
@@ -867,6 +908,10 @@ class ForecastMatchDetail(BSModalReadView):
             context["kA_a_skill"] = round(xG_a0_skill.value4,3)
             context["G_a_skill"]  = round(xG_a0_skill.value9,3)
             context["A_a_skill"]  = round(xG_a0_skill.value10,3)
+            context["xG_a_skill_ch"] = "*" if (xG_a0_skill.changed1) else ""
+            context["xA_a_skill_ch"] = "*" if (xG_a0_skill.changed2) else ""
+            context["G_a_skill_ch"]  = "*" if (xG_a0_skill.changed9) else ""
+            context["A_a_skill_ch"]  = "*" if (xG_a0_skill.changed10) else ""
 
         # odd filter
         context["bookies"] = Forecast.objects.filter(forecast_set=forecast_set_id,
@@ -1256,8 +1301,17 @@ class MatchXGUpdateView(BSModalUpdateView):
         harvest = Harvest.objects.get(slug="hg-0")
         self.forecast_set_id = forecast_set_id
         self.harvest = harvest
-        xG_h0 = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_h, event_date=self.object.match_date, param="h")
-        xG_a0 = TeamSkillSandbox.objects.get(harvest=harvest, team=self.object.team_a, event_date=self.object.match_date, param="a")
+
+        xG_h0 = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                               harvest_id=harvest.id, 
+                                               team_id=self.object.team_h_id, 
+                                               event_date=self.object.match_date, 
+                                               param="h")
+        xG_a0 = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                               harvest_id=harvest.id, 
+                                               team_id=self.object.team_a_id, 
+                                               event_date=self.object.match_date, 
+                                               param="a")
         init = {
                 'xG_h': round(xG_h0.value1,3),
                 'xA_h': round(xG_h0.value2,3),
@@ -1304,7 +1358,7 @@ class MatchXGUpdateView(BSModalUpdateView):
 
 
 
-class MatchXGRestoreView(BSModalUpdateView):
+class MatchXGRestoreView(BSModalCreateView):
     model = Match
     form_class = RestoreMatchXGForm
     template_name = 'betting/restore_match_xg.html'
@@ -1340,3 +1394,64 @@ class MatchXGRestoreView(BSModalUpdateView):
                 messages.error(self.request, "Error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
 
+
+
+class ProccessAllView(BSModalCreateView):
+    model = LoadSource
+    template_name = "betting/process_all.html"
+    form_class = ProcessAllForm
+    success_message = 'All betting tasks are queued for processing'
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+    def get_initial(self, **kwargs):
+        forecast_set_name = "main"
+        process_date = date.today() - timedelta(2)
+        init = {
+                'forecast_set_name': forecast_set_name,
+                'process_date': process_date
+        }
+        return init
+
+
+    def form_valid(self, form):
+        # self.object = form.save()
+        # do something with self.object
+        # remember the import: from django.http import HttpResponseRedirect
+
+        if self.request.method == "POST" and not self.request.is_ajax():
+            cleaned_data = form.cleaned_data
+            try:
+
+                only_betting = cleaned_data["only_betting"]
+                sources = LoadSource.objects.filter(is_loadable=True)
+                if only_betting:
+                    sources = sources.filter(is_betting=True)
+                cnt = 0
+                for load_source in sources.order_by("reliability"):
+                    load_source_download(load_source.pk, False, verbose_name='Load "' + load_source.name + '"')
+                    cnt += 1
+
+                process_date = cleaned_data["process_date"]
+                if process_date:
+                    process_date_str = process_date.strftime('%d.%m.%Y')
+                else:
+                    process_date_str = ""
+                harvestor_do_all(process_date_str, verbose_name = 'Harvest all')
+
+                forecast_set_name = cleaned_data["forecast_set_name"]
+                forecast_set = ForecastSet.objects.get(slug=forecast_set_name)
+                forecast_set_update(forecast_set_pk=forecast_set.pk, 
+                                    slug=forecast_set.slug, 
+                                    name=forecast_set.name, 
+                                    keep_only_best_int = 1 if forecast_set.keep_only_best else 0, 
+                                    only_finished_int = 1 if forecast_set.only_finished else 0, 
+                                    start_date_str=process_date_str
+                                    )
+
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Processing error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())

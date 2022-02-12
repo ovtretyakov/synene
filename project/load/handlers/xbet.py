@@ -262,7 +262,10 @@ class XBetHandler(CommonHandler):
                 #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
                 match_id  = match_pattern.search(teams_tag['href'])[1]
                 league_id = league_pattern.search(teams_tag['href'])[1]
-                event_cnt = event_tag.select_one('a.c-events__more.c-events__more_bets.js-showMoreBets').get_text().strip()
+                event_cnt_src = event_tag.select_one('a.c-events__more.c-events__more_bets.js-showMoreBets')
+                if event_cnt_src == None:
+                    event_cnt_src = event_tag.select_one('button.c-events__more.c-events__more_bets')
+                event_cnt = event_cnt_src.get_text().strip()
                 if event_cnt: event_cnt = int(event_cnt)
                 else: event_cnt = 0
                 if event_cnt <= 250: event_cnt = 250

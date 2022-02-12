@@ -10,10 +10,10 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalUpdateView,
                                            BSModalReadView,
                                            BSModalDeleteView)
-from background_task import background
 
 from project.core.utils import get_date_from_string
 from project.core.models import LoadSource
+from .background_utils import load_source_download
 from .models import ErrorLog, SourceDetail, SourceSession
 from .serializers import   (LoadSourceSerializer, 
                             SourceDetailSerializer, 
@@ -29,12 +29,6 @@ from project.core.views import (LeagueMergeView, LeaguesDeleteView, LeaguesConfi
                                 TeamMergeView, TeamsDeleteView, TeamsConfirmView,
                                 RefereeMergeView, RefereesDeleteView, RefereesConfirmView,
                                 )
-
-
-@background
-def load_source_download(load_source_pk, local_files):
-    load_source = LoadSource.objects.get(pk=load_source_pk)
-    load_source.download(local_files)
 
 
 ####################################################
