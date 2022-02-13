@@ -47,19 +47,16 @@ from ..serializers import (HarvestHandlerSerializer, HarvestSerializer, HarvestC
 
 
 @background
-def forecast_set_create(slug, name, keep_only_best_int, only_finished_int, start_date_str):
-    keep_only_best = (keep_only_best_int==1)
-    only_finished = (only_finished_int==1)
+def forecast_set_create(slug, name, start_date_str):
     start_date = get_date_from_string(start_date_str)
-    ForecastSet.api_create(slug=slug, name=name, keep_only_best=keep_only_best, only_finished=only_finished, start_date=start_date)
+    ForecastSet.api_create(slug=slug, name=name, start_date=start_date)
 
 @background
-def forecast_set_update(forecast_set_pk, slug, name, keep_only_best_int, only_finished_int, start_date_str):
-    keep_only_best = (keep_only_best_int==1)
-    only_finished = (only_finished_int==1)
+def forecast_set_update(forecast_set_pk, slug, name, delete_old_int, start_date_str):
+    delete_old = (delete_old_int==1)
     start_date = get_date_from_string(start_date_str)
     forecast_set = ForecastSet.objects.get(pk=forecast_set_pk)
-    forecast_set.api_update(slug=slug, name=name, keep_only_best=keep_only_best, only_finished=only_finished, start_date=start_date)
+    forecast_set.api_update(slug=slug, name=name, delete_old=delete_old, start_date=start_date)
 
 
 @background
@@ -126,7 +123,9 @@ class HarvestHandlerDeleteView(BSModalCreateView):
         return context    
 
     def get_success_url(self):
-        return reverse_lazy("betting:harvest_handler_list")
+        return self.request.META.get("HTTP_REFERER")
+    # def get_success_url(self):
+    #     return reverse_lazy("betting:harvest_handler_list")
 
     def form_valid(self, form):
         if self.request.method == "POST" and not self.request.is_ajax():
@@ -175,7 +174,9 @@ class HarvestUpdateView(BSModalUpdateView):
     success_message = "Success: Harvester was updated."
 
     def get_success_url(self):
-        return reverse_lazy("betting:harvest_list")
+        return self.request.META.get("HTTP_REFERER")
+    # def get_success_url(self):
+    #     return reverse_lazy("betting:harvest_list")
 
 
 class HarvestDeleteView(BSModalCreateView):
@@ -561,7 +562,9 @@ class ForecastHandlerDeleteView(BSModalCreateView):
         return context    
 
     def get_success_url(self):
-        return reverse_lazy("betting:forecast_handler_list")
+        return self.request.META.get("HTTP_REFERER")
+    # def get_success_url(self):
+    #     return reverse_lazy("betting:forecast_handler_list")
 
     def form_valid(self, form):
         if self.request.method == "POST" and not self.request.is_ajax():
@@ -627,8 +630,10 @@ class PredictorDeleteView(BSModalCreateView):
 
         return context    
 
+    # def get_success_url(self):
+    #     return reverse_lazy("betting:predictor_list")
     def get_success_url(self):
-        return reverse_lazy("betting:predictor_list")
+        return self.request.META.get("HTTP_REFERER")
 
     def form_valid(self, form):
         if self.request.method == "POST" and not self.request.is_ajax():
@@ -678,8 +683,6 @@ class ForecastSetCreateView(BSModalCreateView):
                 forecast_set_create(
                                         slug=cleaned_data["slug"], 
                                         name=cleaned_data["name"], 
-                                        keep_only_best_int=1 if cleaned_data["keep_only_best"] else 0, 
-                                        only_finished_int=1 if cleaned_data["only_finished"] else 0, 
                                         start_date_str=start_date_str,
                                         verbose_name = 'Do ' + cleaned_data["name"]
                                         )
@@ -712,8 +715,7 @@ class ForecastSetUpdateView(BSModalUpdateView):
                                         forecast_set_pk=self.object.pk,
                                         slug=cleaned_data["slug"], 
                                         name=cleaned_data["name"], 
-                                        keep_only_best_int=1 if cleaned_data["keep_only_best"] else 0, 
-                                        only_finished_int=1 if cleaned_data["only_finished"] else 0, 
+                                        delete_old_int=1 if cleaned_data["delete_old"] else 0, 
                                         start_date_str=start_date_str,
                                         verbose_name = 'Do ' + cleaned_data["name"]
                                         )
@@ -742,7 +744,7 @@ class ForecastSetDeleteView(BSModalCreateView):
         return context    
 
     def get_success_url(self):
-        return reverse_lazy("betting:forecast_set_list")
+        return self.request.META.get("HTTP_REFERER")
 
     def form_valid(self, form):
         if self.request.method == "POST" and not self.request.is_ajax():
@@ -789,8 +791,9 @@ class ForecastMatchesView(generic.TemplateView):
         if date_to:
             context["date_to"] = date_to
         date_from = self.request.GET.get("date_from", None)
-        if date_from:
-            context["date_from"] = date_from
+        if not date_from:
+            date_from = (date.today() - timedelta(1)).strftime('%d.%m.%Y')
+        context["date_from"] = date_from
         selected_league = self.request.GET.get("selected_league", None)
         if selected_league:
             context["selected_league"] = int(selected_league)
@@ -824,7 +827,6 @@ class ForecastMatchesAPI(ListAPIView):
         selected_league = self.request.query_params.get("selected_league", None)
         if selected_league and selected_league != "0":
             selected_league = int(selected_league)
-            print("!!!! selected_league",selected_league)
             queryset = queryset.filter(match__league=selected_league)
 
         queryset = (queryset.values(
@@ -979,6 +981,26 @@ class ForecastMatchDetail(BSModalReadView):
             context["selected_result"] = selected_result
         else:
             context["selected_result"] = "a"
+        odd_order = self.request.GET.get("odd_order", None)
+        if odd_order:
+            odd_order_init = "["
+            i = 0
+            for v in odd_order.split(","):
+                if i == 0:
+                    if odd_order_init:
+                        odd_order_init += ","
+                    odd_order_init += "[" + v
+                    i = 1
+                else:
+                    odd_order_init += ",'" + v + "']"
+                    i = 0 
+            odd_order_init += "]"
+            context["odd_order"] = odd_order
+            context["odd_order_init"] = urllib.parse.unquote(odd_order_init) 
+        else:
+            context["odd_order"] = "4,desc,2,desc"
+            context["odd_order_init"] = [[ 4,'desc' ], [2,'desc']]
+        print("odd_order", context["odd_order_init"])
 
         harvest_id = 0
         harvest = Harvest.get_xg_harvest()
@@ -1358,7 +1380,7 @@ class MatchXGUpdateView(BSModalUpdateView):
 
 
 
-class MatchXGRestoreView(BSModalCreateView):
+class MatchXGRestoreView(BSModalUpdateView):
     model = Match
     form_class = RestoreMatchXGForm
     template_name = 'betting/restore_match_xg.html'
@@ -1377,7 +1399,7 @@ class MatchXGRestoreView(BSModalCreateView):
         self.forecast_set_id = forecast_set_id
 
         context["forecast_set_id"] = forecast_set_id
-        context["match_id"] = self.object.pk
+        context["match_id"] = self.object.id
 
         return context    
 
@@ -1446,8 +1468,7 @@ class ProccessAllView(BSModalCreateView):
                 forecast_set_update(forecast_set_pk=forecast_set.pk, 
                                     slug=forecast_set.slug, 
                                     name=forecast_set.name, 
-                                    keep_only_best_int = 1 if forecast_set.keep_only_best else 0, 
-                                    only_finished_int = 1 if forecast_set.only_finished else 0, 
+                                    delete_old_int = 0, 
                                     start_date_str=process_date_str
                                     )
 

@@ -397,7 +397,7 @@
                     <!-- row5 -->
                     <div class="form-row">
                       <div class="col-2  mb-3">
-                        <button type="submit" class="btn btn-sm btn-outline-primary col-12">Set Filter</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary col-12" onclick="odd_filter_dlg()"">Set Filter</button>
                       </div>
                       <div class="col-2  mb-3">
                         <button type="button" class="btn btn-sm btn-outline-secondary col-12" id="clear-odd-filter" onclick="clear_odd_filter_dlg()">Clear Filter</button>
@@ -405,9 +405,7 @@
                     </div>
 
 
-
-
-
+                    <input type="hidden" name="odd_order" value="{{odd_order}}">
 
 
                   </form>
@@ -679,10 +677,26 @@
       // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
       // $('#navbarOrders').addClass('active');      
 
+      var odd_order = "{{odd_order}}";
+      var arOrder = odd_order.split(",");
+      var odd_order_init = [];
+      i = 0;
+      var v1;
+      for (const value of arOrder) {
+        if (i == 0){
+          v1 = value;
+          i = 1;
+        } else{
+          odd_order_init.push([v1,value]);
+          i = 0;
+        }
+      }
       var table = $('#odd_table').DataTable({
+              'colReorder': true,
               'serverSide': true,
               'lengthMenu': [ 10, 25, 50, 75, 100 ],
-              'paging': true,
+              'scrollY':    '400px',
+               'paging':     false,
               'ajax': "{% url 'betting:forecast_odd_api' forecast_set_id match_id %}?format=datatables" +
                       "&selected_bookie={{selected_bookie}}" +
                       "&selected_section={{selected_section}}" +
@@ -695,7 +709,7 @@
                       "&par={{par_encoding}}" +
                       "&expect={{expect}}" +
                       "&selected_result={{selected_result}}",
-              'order': [[ 4, 'desc' ], [ 2, 'desc' ]],
+              'order': odd_order_init,
               'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'1em'},
@@ -755,9 +769,20 @@
         document.getElementsByName('team')[0].value = null;
         document.getElementsByName('par')[0].value = null;
         document.getElementsByName('result')[0].value = null;
+
+        var ord = $('#odd_table').DataTable().order();
+        document.getElementsByName('odd_order')[0].value = ord.toString();
+
         $('#odd-filter-id').submit();
       };
 
+    function odd_filter_dlg() 
+      {
+        var ord = $('#odd_table').DataTable().order();
+        document.getElementsByName('odd_order')[0].value = ord.toString();
+
+        $('#odd-filter-id').submit();
+      };
 
 
 

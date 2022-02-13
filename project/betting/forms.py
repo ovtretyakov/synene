@@ -195,10 +195,11 @@ class PredictorDeleteForm(BSModalForm):
 
 ######################################################################
 class ForecastSetForm(BSModalForm):
+    delete_old = forms.BooleanField(required=False)
 
     class Meta:
         model = ForecastSet
-        fields = ["slug", "name", "keep_only_best", "only_finished", "start_date", "status", ]
+        fields = ["slug", "name", "start_date", ]
 
     def clean_slug(self):
         data = slugify(self.cleaned_data["slug"])

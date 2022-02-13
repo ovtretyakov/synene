@@ -42,9 +42,10 @@
       var table = $('#select_bet_type_table').DataTable({
               'serverSide': true,
               'select': true,
-              'paging': false,
+              'paging': true,
               'deferRender': true,
               'rowId': 'id',
+               "pageLength": 100,
               'ajax': "{% url 'betting:bet_type_api'  %}?format=datatables",
               'order': [[ 1, 'asc' ]],
               'dom': 'Bfrtip',

@@ -409,23 +409,41 @@ class ForecastSet(models.Model):
         return self.slug
 
     @classmethod
-    def api_create(cls, slug, name, keep_only_best, only_finished, start_date):
-        with transaction.atomic():
-            forecast_set = ForecastSet.objects.create(
-                                slug = slug,
-                                name = name,
-                                forecast_date = datetime.now(),
-                                status = ForecastSet.PREPARED,
-                                match_cnt = 0,
-                                odd_cnt = 0,
-                                keep_only_best = keep_only_best,
-                                only_finished = only_finished,
-                                start_date = start_date
-                                )
-            forecast_set.forecasting()
+    def api_create(cls, slug, name, start_date):
+        try:
+            with transaction.atomic():
+                forecast_set = ForecastSet.objects.create(
+                                    slug = slug,
+                                    name = name,
+                                    forecast_date = datetime.now(),
+                                    status = ForecastSet.PREPARED,
+                                    match_cnt = 0,
+                                    odd_cnt = 0,
+                                    keep_only_best = False,
+                                    only_finished = False,
+                                    start_date = start_date
+                                    )
+                forecast_set.forecasting()
+        except Exception as e:
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Forecasting Error"
+            load_source = LoadSource.objects.get(slug=LoadSource.SRC_UNKNOWN)
+            ErrorLog.objects.create(
+                                load_source = load_source,
+                                source_session = None,
+                                error_text = error_text,
+                                error_context = "",
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '',
+                                match_name = '',
+                                file_name = '',
+                                source_detail = None)
+            raise e
 
 
-    def api_update(self, slug, name, keep_only_best, only_finished, start_date):
+    def api_update(self, slug, name, delete_old, start_date):
         try:
             with transaction.atomic():
                 self.slug = slug
@@ -434,11 +452,11 @@ class ForecastSet(models.Model):
                 self.status = ForecastSet.PREPARED
                 self.match_cnt = 0
                 self.odd_cnt = 0
-                self.keep_only_best = keep_only_best
-                self.only_finished = only_finished
+                self.keep_only_best = False
+                self.only_finished = False
                 self.start_date = start_date
                 self.save()
-                self.forecasting()
+                self.forecasting(delete_old=delete_old)
         except Exception as e:
             error_text = str(e)[:255]
             if not error_text:
@@ -605,7 +623,7 @@ class ForecastSet(models.Model):
         self.preapre_sandbox(match, harvest)
 
 
-    def forecasting(self):
+    def forecasting(self, delete_old=False):
         start_time = datetime.now()
 
         for m in TeamSkillSandbox.objects.filter(forecast_set=self).order_by("match_id").distinct("match_id"): 
@@ -617,7 +635,8 @@ class ForecastSet(models.Model):
                                                   ):
                 ForecastSandbox.objects.filter(forecast_set=self, match_id=m.match_id).delete()
                 TeamSkillSandbox.objects.filter(forecast_set=self, match_id=m.match_id).delete()
-        # Forecast.objects.filter(forecast_set=self).delete() #!!!
+        if delete_old:
+            Forecast.objects.filter(forecast_set=self).delete()
         for predictor in Predictor.objects.filter(status=Predictor.ACTIVE).order_by("priority", "pk"):
             print("predictor", predictor)
             real_predictor = predictor.get_real_predictor()
