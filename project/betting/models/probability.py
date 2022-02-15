@@ -348,8 +348,7 @@ class xGGathering(Distribution):
     def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
         from .forecast import Harvest
 
-        harvest_slug = "hg-0"
-        harvest = Harvest.objects.get(slug=harvest_slug)
+        harvest = Harvest.get_xg_harvest(period)
         harvest_pk = harvest.pk
 
         team_str = "h_v1*a_v2"
@@ -434,8 +433,7 @@ class xGGatheringHStd0(Distribution):
     def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
         from .forecast import Harvest
 
-        harvest_slug = f"hg-{period}"
-        harvest = Harvest.objects.get(slug=harvest_slug)
+        harvest = Harvest.get_xg_harvest(period)
         harvest_pk = harvest.pk
 
         team_str = "h_v9*a_v10"

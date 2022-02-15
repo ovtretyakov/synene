@@ -864,7 +864,7 @@ class ForecastMatchDetail(BSModalReadView):
             context["forecast_set_id"] = forecast_set_id
         context["match_id"] = self.object.pk
 
-        harvest = Harvest.objects.get(slug="hg-0")
+        harvest = Harvest.get_xg_harvest(0)
         forecast_set.preapre_sandbox(match=self.object, harvest=harvest)
         xG_h0_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
                                                    harvest_id=harvest.id, 
@@ -1320,7 +1320,7 @@ class MatchXGUpdateView(BSModalUpdateView):
 
     def get_initial(self, **kwargs):
         forecast_set_id = self.kwargs['forecast_set']
-        harvest = Harvest.objects.get(slug="hg-0")
+        harvest = Harvest.get_xg_harvest(0)
         self.forecast_set_id = forecast_set_id
         self.harvest = harvest
 
@@ -1394,7 +1394,7 @@ class MatchXGRestoreView(BSModalUpdateView):
         context = super().get_context_data(**kwargs)
 
         forecast_set_id = self.kwargs['forecast_set']
-        harvest = Harvest.objects.get(slug="hg-0")
+        harvest = Harvest.get_xg_harvest(0)
         self.harvest = harvest
         self.forecast_set_id = forecast_set_id
 
@@ -1407,7 +1407,7 @@ class MatchXGRestoreView(BSModalUpdateView):
         if self.request.method == "POST" and not self.request.is_ajax():
             try:
                 forecast_set_id = self.kwargs['forecast_set']
-                harvest = Harvest.objects.get(slug="hg-0")
+                harvest = Harvest.get_xg_harvest(0)
                 cleaned_data = form.cleaned_data
                 forecast_set = ForecastSet.objects.get(pk=forecast_set_id)
                 forecast_set.api_restore_match_xG(harvest, self.object)

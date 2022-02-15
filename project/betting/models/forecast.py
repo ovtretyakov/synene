@@ -58,7 +58,7 @@ class Harvest(models.Model):
 
     @classmethod
     def get_xg_harvest(cls, period=0):
-        slug = "hg-" + str(period)
+        slug = "xg-" + str(period)
         harvest = Harvest.objects.filter(slug=slug).first()
         return harvest
 
@@ -787,22 +787,22 @@ class PredictorDistributionXG(Mixins.OriginalDataExtraction, Mixins.FixedDistrib
     class Meta:
         proxy = True
     def get_distribution_slug(self):
-        return "xg-original-gathering"
+        return "xg-distr"
 
 class PredictorStdDistribH_XG_0(Mixins.StandartExtraction, Mixins.FixedDistributionForecasting, Predictor):
     class Meta:
         proxy = True
     def get_distribution_slug(self):
-        return "xg-std-gathering-h-0"
+        return "xg-ext-distr"
 
 class PredictorOrigDistrXG(Mixins.OriginalDataExtraction, Mixins.FixedDistributionForecastingEx, Predictor):
     class Meta:
         proxy = True
     def get_distribution_slug(self):
-        return "xg-original-gathering"
+        return "xg-distr"
 
 class PredictorStdDistrXG(Mixins.StandartExtraction, Mixins.FixedDistributionForecastingEx, Predictor):
     class Meta:
         proxy = True
     def get_distribution_slug(self):
-        return "xg-std-gathering-h-0"
+        return "xg-ext-distr"

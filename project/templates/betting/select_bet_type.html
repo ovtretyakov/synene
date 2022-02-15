@@ -5,7 +5,7 @@
 {% block modal-body %}
 
 
-      <div class="table-responsive small">
+      <div class="table-responsive small" style="width:100%">
         <table id="select_bet_type_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
           <thead>
             <tr>
@@ -40,12 +40,12 @@
       var events = $('#events');
 
       var table = $('#select_bet_type_table').DataTable({
-              'serverSide': true,
+              'serverSide': false,
               'select': true,
-              'paging': true,
+              'paging': false,
               'deferRender': true,
               'rowId': 'id',
-               "pageLength": 100,
+              'scrollY':    '400px',
               'ajax': "{% url 'betting:bet_type_api'  %}?format=datatables",
               'order': [[ 1, 'asc' ]],
               'dom': 'Bfrtip',
@@ -69,7 +69,7 @@
                       'selector': 'td:first-child'
               },
               'columns': [
-                  {'data': 'id', 'render': setEmpty},
+                  {'data': 'id', 'render': setEmpty, 'width':'3em'},
                   {'data': 'name', 'render': getName},
                   {'data': 'slug', "visible":false},
               ],
@@ -90,6 +90,7 @@
 
 
     });
+
 
 
     function select_bet_types_and_close() 

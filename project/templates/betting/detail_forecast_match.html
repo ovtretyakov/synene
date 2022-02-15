@@ -693,10 +693,10 @@
       }
       var table = $('#odd_table').DataTable({
               'colReorder': true,
-              'serverSide': true,
-              'lengthMenu': [ 10, 25, 50, 75, 100 ],
+              'serverSide': false,
               'scrollY':    '400px',
-               'paging':     false,
+              'scrollCollapse': true,
+              'paging':     false,
               'ajax': "{% url 'betting:forecast_odd_api' forecast_set_id match_id %}?format=datatables" +
                       "&selected_bookie={{selected_bookie}}" +
                       "&selected_section={{selected_section}}" +
