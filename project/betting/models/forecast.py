@@ -380,6 +380,34 @@ class Predictor(models.Model):
                     else:
                         Forecast.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
 
+    def forecasting_odd(self, odd):
+        from .harvest import TeamSkill
+        predictor = self.get_real_predictor()
+
+        predictor.period = odd.period
+        predictor.value_type_slug = odd.value_type.slug
+        predictor.value_type = odd.value_type
+
+        predictor.skill_h = TeamSkill.get_team_skill(predictor.harvest, 
+                                                     odd.match.team_h, 
+                                                     odd.match.match_date, 
+                                                     odd.match, 
+                                                     param="h")
+        predictor.skill_a = TeamSkill.get_team_skill(predictor.harvest, 
+                                                     odd.match.team_a, 
+                                                     odd.match.match_date, 
+                                                     odd.match, 
+                                                     param="a")
+        predictor.extract_skills()
+        forecast_data = predictor.get_forecast_data()
+        real_odd = odd.get_own_object()
+        real_odd.odd_value = odd.odd_value
+        success_chance, lose_chance, result_value = real_odd.forecasting(forecast_data)
+        kelly = 0
+        if result_value > 1.001:
+            kelly = (result_value - Decimal(1.0)) / (Decimal(odd.odd_value) - Decimal(1.0))
+        return success_chance, lose_chance, result_value, kelly
+
 
 class ForecastSet(models.Model):
 

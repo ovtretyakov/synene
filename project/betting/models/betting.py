@@ -173,6 +173,11 @@ class Odd(Mergable, models.Model):
     PART_FAIL     = 'fp'
     FAIL          = 'f'
 
+    #Select
+    UNSELECTED     = 'u'
+    SELECTED      = 's'
+    BID           = 'b'
+
     YES_CHOICES = (
         ('Y', 'Yes'),
         ('N', 'No'),
@@ -194,7 +199,11 @@ class Odd(Mergable, models.Model):
         (PART_FAIL, 'Part fail'),
         (FAIL, 'Fail'),
     )
-
+    SELECT_CHOICES = (
+        (UNSELECTED, 'Unselected'),
+        (SELECTED, 'Selected'),
+        (BID, 'Bid'),
+    )
 
     match = models.ForeignKey(Match, on_delete=models.CASCADE, verbose_name='Match')
     bet_type = models.ForeignKey(BetType, on_delete=models.PROTECT, verbose_name='Bet type')
@@ -214,7 +223,7 @@ class Odd(Mergable, models.Model):
                                     verbose_name='Source', related_name='betting_odd_source_fk')
     odd_update = models.DateTimeField('Odd update', null=True, blank=True)
     result_update = models.DateTimeField('Result update', null=True, blank=True)
-
+    selected = models.CharField('Selected', max_length=5, choices=SELECT_CHOICES, null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -417,6 +426,17 @@ class Odd(Mergable, models.Model):
             raise ValueError('Invalid bet value: %s' % value)
         return value
 
+    @classmethod
+    def update_selected(cls, odd_id):
+        from .my_betting import SelectedOdd, BetOdd
+        selected = Odd.UNSELECTED
+        if BetOdd.objects.filter(odd_id=odd_id).exists():
+            selected = Odd.BID
+        elif SelectedOdd.objects.filter(odd_id=odd_id).exists():
+            selected = Odd.SELECTED
+        Odd.objects.filter(pk=odd_id).update(selected=selected)    
+
+
     def get_own_object(self):
         real_cls = globals().get(self.bet_type.handler)
         if not real_cls:
@@ -524,6 +544,10 @@ class Odd(Mergable, models.Model):
                 self.status = Odd.FINISHED
                 self.result_update = timezone.now()
                 self.save()
+                if self.selected == Odd.BID:
+                    from .my_betting import BetOdd
+                    BetOdd.settle_by_odd(self)
+
 
     def get_result_of_periods(self, period1, period2):
         #first half

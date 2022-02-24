@@ -268,6 +268,7 @@ class LoadSource(models.Model):
     max_odd = models.DecimalField('Max odd', max_digits=10, decimal_places=3, default=10)
     error_limit = models.IntegerField('Error limit', default=10)
     load_days = models.IntegerField('Load days', default=10)
+    saldo_amt  = models.DecimalField('Saldo', max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         constraints = [
