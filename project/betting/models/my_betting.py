@@ -61,8 +61,37 @@ class SelectedOdd(models.Model):
                                 source_detail = None)
             raise e
 
+
     @classmethod
-    def api_delete_all(cls, items):
+    def api_delete_odd(cls, odd_id):
+        try:
+            with transaction.atomic():
+                n = 0
+                for obj in cls.objects.filter(odd_id=odd_id):
+                    n += 1
+                    obj.delete_object()
+                return n
+        except Exception as e:
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Unselect odd error"
+            load_source = LoadSource.objects.get(slug=LoadSource.SRC_UNKNOWN)
+            ErrorLog.objects.create(
+                                load_source = load_source,
+                                source_session = None,
+                                error_text = error_text,
+                                error_context = "",
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '',
+                                match_name = '',
+                                file_name = '',
+                                source_detail = None)
+            raise e
+
+
+    @classmethod
+    def api_delete_all(cls):
         try:
             with transaction.atomic():
                 for obj in cls.objects.all():

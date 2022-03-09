@@ -1000,7 +1000,6 @@ class ForecastMatchDetail(BSModalReadView):
         else:
             context["odd_order"] = "4,desc,2,desc"
             context["odd_order_init"] = [[ 4,'desc' ], [2,'desc']]
-        print("odd_order", context["odd_order_init"])
 
         harvest_id = 0
         harvest = Harvest.get_xg_harvest()

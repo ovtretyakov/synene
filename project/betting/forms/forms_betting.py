@@ -7,7 +7,7 @@ from django.template.defaultfilters import slugify
 from bootstrap_modal_forms.forms import BSModalForm
 
 from project.core.models import Match
-from .models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
+from ..models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
                     ForecastHandler, Predictor, ForecastSet,
                     Distribution
                     )

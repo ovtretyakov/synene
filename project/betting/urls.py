@@ -74,5 +74,13 @@ urlpatterns = [
     url(r'^odds/bet_type/api/$', views.BetTypeAPI.as_view(), name='bet_type_api'),
     #process all
     url(r'^odds/process/all/$', views.ProccessAllView.as_view(), name='process_all'),
+    #select all
+    url(r'^odds/pick/$', views.PickOddsView.as_view(), name='pick_odds'),
+    url(r'^odds/deselect/(?P<pk>\d+)/$', views.DeselectOddView.as_view(), name='deselect_odd'),
+    #selected odd
+    url(r'^odds/selected/$', views.SelectedOddsView.as_view(), name='selected_odd_list'),
+    url(r'^odds/selected/api/$', views.SelectedOddListAPI.as_view(), name='selected_odd_list_api'),
+    #Bet
+    url(r'^odds/bet/create/$', views.CreateBetView.as_view(), name='create_bet'),
     ####
 ]

@@ -1,0 +1,22 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Deselect odd{% endblock %}
+{% block form_id %}formDeselectOdd{% endblock form_id %}
+
+
+{% block modal-body %}
+
+
+  <div class="alert alert-info" role="alert">
+    <p class="lead">Are you sure to deselect odd ?</p>
+  </div>
+
+
+  <input type="hidden" class="form-control form-control-sm" id="id" name="id" value="{{object.id}}">
+
+
+
+{% endblock %}
+
+
+{% block button-action %}Select odds{% endblock %}

@@ -239,8 +239,8 @@
 
                 <div class="btn-toolbar mb-2 mb-md-0">
                   <div class="btn-group mr-2">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Add harvestor group" id="create-harvestor-group" 
-                    onclick="create_harvestor_group_dlg()">Add harvestor group</button >
+                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Pick odds" id="pick-odds" 
+                    onclick="pick_odds_dlg('')" disabled>Pick odds</button >
                   </div>
                 </div>
               </div>
@@ -433,6 +433,8 @@
                           <th>Result</th>
                           <th>Bookie</th>
                           <th>Predictor</th>
+                          <th>Selected</th>
+                          <th>Odd id</th>
                     </tr>
                     </tr>
                   </thead>
@@ -659,15 +661,28 @@
 
     /*                            TABLE ODD                                        */    
     var editIcons = function ( data, type, row ) {
-          var delete_url = "{% url 'betting:delete_harvest_config' 0 %}";
+          var delete_url = "{% url 'betting:deselect_odd' 0 %}";
+          var d = "'" + data + "'";
           if ( type === 'display' ) {
-              var r = 
-                '<button type="button" class="delete-harvest-config btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete Configuration Parameter" id="delete-harvest-config">' +
-                '   <span class="fa fa-trash fa-sm"></span>' +
-                '</button>'
+              var r = "";
+              if (row.odd.selected == "s") {
+                r =
+                '<button type="button" class="deselect-odd btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Deselecting odd" id="deselect-odd">' +
+                '   <span class="fa fa-flash fa-sm text-warning"></span>' +
+                '</button>';
+                r = r.replace(new RegExp('/0/', 'g'), '/'+row.odd.id+'/');
+              } else if(row.odd.selected == "s") {
+                r =
+                '<button type="button" class="btn btn-sm btn-outline-secondary title="Betted. Select odd" onclick="pick_odds_dlg(' + d + ')">' +
+                '   <span class="fa fa-fire fa-sm text-success"></span>' +
+                '</button>';
+              } else {
+                r =
+                '<button type="button" class="btn btn-sm btn-outline-secondary title="Select odd" onclick="pick_odds_dlg(' + d + ')">' +
+                '   <span class="fa fa-plus fa-sm"></span>' +
+                '</button>';
+              }
               ;
-              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
-              r = r.replace(new RegExp('=0', 'g'), '='+data);
               return r;
           }
         return data;
@@ -726,8 +741,25 @@
                   {'data': 'odd_status', 'width':'4em'},
                   {'data': 'odd.bookie.name'},
                   {'data': 'predictor.name'},
+                  {'data': 'odd.selected', "visible":false},
+                  {'data': 'odd.id', "visible":false},
 
               ],
+
+              'drawCallback': function(settings, json) {
+                $(".deselect-odd").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formDeselectOdd",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+              },
+
 
               "rowCallback": function( row, data, index ) {
                   if (data.odd_status == "Success") {
@@ -735,25 +767,46 @@
                   } else if (data.odd_status == "Fail") {
                     $(row).addClass('text-danger');
                   }
-              },
-
-              'drawCallback': function(settings, json) {
-                $(".delete-harvest-config").each(function () {
-                    $(this).modalForm(
-                      {formURL: $(this).data('id'),
-                        modalID: "#modal1",
-                        modalContent: ".modal1-content",
-                        modalForm: "#formDeleteHarvest",
-                        submitBtn: "#submit-form-config-id",
-                        isDeleteForm: true
-                      }
-                    );
-                  });
-               }
+              }
 
       });
 
+      table.on('select', function ( e, dt, type, indexes) {
+          $('#pick-odds').prop('disabled', false);
+        });
+      table.on('deselect', function ( e, dt, type, indexes) {
+          var rows = table.rows( { selected: true } );
+          var count = rows.count();
+          if (count == 0) {
+              $('#pick-odds').prop('disabled', true);
+          }
+        });
+
+
     });
+
+
+    function pick_odds_dlg(selected_odds) 
+      { 
+        var odds = selected_odds;
+        if (odds == ""){
+                var table = $('#odd_table').DataTable();
+                var data = table.rows( { selected: true } ).data();
+                var idarray=[]; 
+                for (var i=0; i < data.length ;i++){
+                  idarray.push(data[i]["id"]);
+                }
+                odds = idarray.toString();
+        }
+        
+        var url = "{% url 'betting:pick_odds' %}?odds=" + odds;
+        newForm("#modal",
+                ".modal0-content",
+                "#formPickOdds",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
 
 
     function clear_odd_filter_dlg() 
