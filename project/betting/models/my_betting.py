@@ -91,11 +91,50 @@ class SelectedOdd(models.Model):
 
 
     @classmethod
+    def api_delete_by_idds(cls, ids, obj_type=0):
+        try:
+            with transaction.atomic():
+                queryset = None
+                if obj_type == 0:
+                    queryset = SelectedOdd.objects.filter(id__in=ids)
+                elif obj_type == 1:
+                    queryset = SelectedOdd.objects.filter(match_id__in=ids)
+                elif obj_type == 2:
+                    queryset = SelectedOdd.objects.filter(match__league_id__in=ids)
+
+                n = 0
+                for select_odd in queryset:
+                    select_odd.delete_object()
+                    n += 1
+                return n
+        except Exception as e:
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Delete selected odds error"
+            load_source = LoadSource.objects.get(slug=LoadSource.SRC_UNKNOWN)
+            ErrorLog.objects.create(
+                                load_source = load_source,
+                                source_session = None,
+                                error_text = error_text,
+                                error_context = "",
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '',
+                                match_name = '',
+                                file_name = '',
+                                source_detail = None)
+            raise e
+
+
+    @classmethod
     def api_delete_all(cls):
         try:
             with transaction.atomic():
+                n = 0
                 for obj in cls.objects.all():
                     obj.delete_object()
+                    n += 1
+                return n
         except Exception as e:
             error_text = str(e)[:255]
             if not error_text:
@@ -258,7 +297,7 @@ class Transaction(models.Model):
     trans_date = models.DateField('Transaction date')
     ins_time = models.DateTimeField('Ins time')
     amount  = models.DecimalField('Amount', max_digits=10, decimal_places=2)
-    comment = models.CharField('Comment', max_length=2000, choices=TYPE_CHOICES, blank=True)
+    comment = models.CharField('Comment', max_length=2000, blank=True)
 
     def __str__(self):
         return f'{self.id}:{self.bookie}:{self.trans_type}:{self.trans_date}:{self.amount}'
@@ -372,8 +411,8 @@ class Bet(models.Model):
         (FAIL, 'Fail'),
     )
     BETTING_TYPE_CHOICES = (
-        (SETTLED, 'Settled'),
-        (UNSETTLED, 'Unsettled'),
+        (SINGLE, 'Single'),
+        (EXPRESS, 'Express'),
     )
 
     bookie = models.ForeignKey(LoadSource, on_delete=models.CASCADE, verbose_name='Bookie', null=True)

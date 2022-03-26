@@ -1,0 +1,32 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}{{action}} Odds{% endblock %}
+{% block form_id %}formDeleteSelectedOdds{% endblock form_id %}
+
+{% block modal-body %}
+
+
+  <p>{{info}}</p>
+  <input type="hidden" name="selected_odds_id" value="{{selected_odds_id}}">
+  <input type="hidden" name="hodd" value="{{hodd}}">
+  <input type="hidden" name="hmatch" value="{{hmatch}}">
+  <input type="hidden" name="hleague" value="{{hleague}}">
+  <input type="hidden" name="obj_type" value="{{obj_type}}">
+
+
+  <input type="hidden" name="bookie" value="{{bookie}}">
+  <input type="hidden" name="show_hidden" value="{{show_hidden}}">
+  <input type="hidden" name="bid_matches" value="{{bid_matches}}">
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+{% endblock %}
+
+
+
+{% block button-action %}Do{% endblock button-action %}

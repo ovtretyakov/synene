@@ -118,7 +118,7 @@
 
           <!-- Betting -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'odd_list,selected_odd_list' %}active{% endif %}" 
+            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'odd_list,selected_odd_list,my_bet_list,transaction_list' %}active{% endif %}" 
               href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
             >
             <span class="fa fa-bitcoin"></span>
@@ -129,6 +129,16 @@
                 id="navbarSources"  href="{% url 'betting:selected_odd_list' %}">
                 <span class="fa fa-flash"></span>
                 Selected Odds
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'my_bet_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:my_bet_list' %}">
+                <span class="fa fa-fire"></span>
+                My Bets
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'transaction_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:transaction_list' %}">
+                <span class="fa fa-money"></span>
+                Transactions
               </a>
 
               <div class="dropdown-divider"></div>
@@ -286,11 +296,17 @@
         </div>
       </div>
 
+      <div class="modal fade" tabindex="-1" role="dialog" id="modalxl">
+        <div class="modal-dialog modal-xl" role="document">
+          <div class="modalxl-content modal-content">
+          </div>
+        </div>
+      </div>
+
     {% endblock modal %}
 
 
     {% block javascript %}
-
 
 
       <script src="{% static 'js/project.js' %}"></script>

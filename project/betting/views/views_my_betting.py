@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.views import generic
 from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.db.models.query import RawQuerySet
@@ -20,9 +21,9 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
 from project.core.utils import get_date_from_string, SimpleRawQuerySet
 
 from project.core.models import Sport, League, Match, LoadSource, Team
-from ..forms import PickOddsForm, DeselectOddForm, BetForm
-from ..models import Odd, ForecastSandbox, SelectedOdd, Bet
-from ..serializers import SelectedOddsSerializer
+from ..forms import PickOddsForm, DeselectOddForm, BetForm, SelectedOddsForm, TransactionForm
+from ..models import Odd, ForecastSandbox, SelectedOdd, Bet, Transaction
+from ..serializers import SelectedOddsSerializer, MyBetSerializer, TransactionSerializer
 
 
 ####################################################
@@ -109,6 +110,23 @@ class SelectedOddsView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
         context = super(SelectedOddsView, self).get_context_data(**kwargs)
+        hodd = self.request.GET.get("hodd", "")
+        hmatch = self.request.GET.get("hmatch", "")
+        hleague = self.request.GET.get("hleague", "")
+        context["hodd"] = hodd
+        context["hmatch"] = hmatch
+        context["hleague"] = hleague
+        bookie = self.request.GET.get("bookie", "")
+        show_hidden = self.request.GET.get("show_hidden", "")
+        bid_matches = self.request.GET.get("bid_matches", "")
+        context["bookie"] = bookie
+        context["show_hidden"] = show_hidden
+        context["bid_matches"] = bid_matches
+
+        context["bookies"] = LoadSource.objects.filter(is_betting=True).order_by("pk")
+        selected_bookie = self.request.GET.get("bookie", None)
+        if selected_bookie:
+            context["selected_bookie"] = int(selected_bookie)
 
         return context    
 
@@ -119,7 +137,29 @@ class SelectedOddListAPI(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
 
-        sql = """ 
+        hodd_condition = ""
+        hmatch_condition = ""
+        hleague_condition = ""
+
+        show_hidden = self.request.query_params.get("show_hidden", "")
+        if show_hidden != "y":
+            hodd = self.request.query_params.get("hodd", None)
+            if hodd:
+                hodd_condition = f" AND s.id NOT IN({hodd})"
+            hmatch = self.request.query_params.get("hmatch", None)
+            if hmatch:
+                hmatch_condition = f" AND s.match_id NOT IN({hmatch})"
+            hleague = self.request.query_params.get("hleague", None)
+            if hleague:
+                hleague_condition = f" AND m.league_id NOT IN({hleague})"
+
+        bid_matches = self.request.query_params.get("bid_matches", "")
+        bid_matches_condition = ""
+        if bid_matches != "s":
+            bid_matches_condition = " AND match_bid=0 "
+
+
+        sql = f""" 
                 WITH s2 AS (
                   SELECT s.id AS select_id,
                          m.league_id, l.name AS legue_name,
@@ -128,14 +168,18 @@ class SelectedOddListAPI(ListAPIView):
                          s.odd_id, bt.name AS bet_type_name, o.odd_value, o.period, o.param, o.team, o.yes, o.selected,
                          b.name AS bookie_name, p.name AS predictor_name
                     FROM betting_selectedodd s
-                    JOIN core_match m ON(s.match_id = m.id)
-                    JOIN core_league l ON(m.league_id = l.id)
-                    JOIN core_team h ON(m.team_h_id = h.id)
-                    JOIN core_team a ON(m.team_a_id = a.id)
-                    JOIN betting_odd o ON(s.odd_id = o.id)
-                    JOIN betting_bettype bt ON(o.bet_type_id = bt.id)
-                    JOIN core_loadsource b ON(o.bookie_id = b.id)
-                    JOIN betting_predictor p ON(s.predictor_id = p.id)
+                        JOIN core_match m ON(s.match_id = m.id)
+                        JOIN core_league l ON(m.league_id = l.id)
+                        JOIN core_team h ON(m.team_h_id = h.id)
+                        JOIN core_team a ON(m.team_a_id = a.id)
+                        JOIN betting_odd o ON(s.odd_id = o.id)
+                        JOIN betting_bettype bt ON(o.bet_type_id = bt.id)
+                        JOIN core_loadsource b ON(o.bookie_id = b.id)
+                        JOIN betting_predictor p ON(s.predictor_id = p.id)
+                    WHERE 1=1
+                      {hodd_condition}
+                      {hmatch_condition}
+                      {hleague_condition}
                 ),
                 s3 AS (
                 SELECT CASE WHEN match_id IS NULL AND select_id IS NULL THEN 1 ELSE 0 END AS league_grp, 
@@ -190,7 +234,9 @@ class SelectedOddListAPI(ListAPIView):
                     ) s41
                 )
                 SELECT * FROM s5
-                  ORDER BY league_id, league_grp DESC, match_id, match_grp DESC, select_id                        
+                  WHERE 1=1
+                  {bid_matches_condition}
+                  ORDER BY league_id, league_grp DESC, match_id, match_grp DESC, kelly DESC, result_value DESC, select_id                        
               """
         params  = []      
         queryset = SimpleRawQuerySet(sql, params=params, model=SelectedOdd)
@@ -200,6 +246,49 @@ class SelectedOddListAPI(ListAPIView):
 ####################################################
 #  Bet
 ####################################################
+class MyBetView(generic.TemplateView):
+    template_name = "betting/my_bet_list.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(MyBetView, self).get_context_data(**kwargs)
+        context["bookies"] = LoadSource.objects.filter(is_betting=True).order_by("pk")
+
+        date_to = self.request.GET.get("date_to", None)
+        if date_to:
+            context["date_to"] = date_to
+        date_from = self.request.GET.get("date_from", None)
+        if not date_from:
+            date_from = (date.today() - timedelta(1)).strftime('%d.%m.%Y')
+        context["date_from"] = date_from
+        selected_bookie = self.request.GET.get("bookie", None)
+        if selected_bookie:
+            context["selected_bookie"] = int(selected_bookie)
+
+        return context    
+
+
+class MyBetAPI(ListAPIView):
+    serializer_class = MyBetSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = Bet.objects.all()
+
+        date_from = get_date_from_string(self.request.query_params.get("date_from", None))
+        if date_from:
+            queryset = queryset.filter(ins_time__gte=date_from)
+        date_to = get_date_from_string(self.request.query_params.get("date_to", None))
+        if date_to:
+            queryset = queryset.filter(ins_time__lte=date_to)
+        bookie = self.request.query_params.get("selected_bookie", None)
+        if bookie and int(bookie) > 0:
+            queryset = queryset.filter(bookie=bookie)
+
+        return queryset
+
+
+
 class CreateBetView(BSModalCreateView):
     model = Bet
     form_class = BetForm
@@ -268,4 +357,230 @@ class CreateBetView(BSModalCreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+####################################################
+#  SelectedOdd
+####################################################
+class SelectedOddsDeleteView(BSModalCreateView):
+    model = SelectedOdd
+    form_class = SelectedOddsForm
+    success_message = "Success: %(cnt)s odds were deselected."
+    template_name = 'betting/delete_selected_odds.html'
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, cnt):
+        return self.success_message % {"cnt":cnt,}
 
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(SelectedOddsDeleteView, self).get_context_data(**kwargs)
+
+        selected_odds_id = self.request.GET.get("odds", None)
+        obj_type = self.request.GET.get("type", None)
+        context["action"] = "Erase"
+        if not obj_type:
+            obj_type = "0"
+        if selected_odds_id:
+            context["obj_type"] = obj_type
+            context["selected_odds_id"] = selected_odds_id
+            info = ""
+            if obj_type == "1":
+                info = "Are you sure to erase all match odds?"
+            elif obj_type == "2":
+                info = "Are you sure to erase all league odds?"
+            elif selected_odds_id == "all":
+                info = "Are you sure to erase all odds?"
+            else:
+                cnt = len(selected_odds_id.split(","))
+                info = f'Are you sure to erase {cnt} odds?'
+            context["info"] = info
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                selected_odds_id = cleaned_data["selected_odds_id"]
+                obj_type = int(cleaned_data["obj_type"])
+                cnt = 0
+                if selected_odds_id == "all":
+                    cnt = SelectedOdd.api_delete_all()
+                else:
+                    ids = selected_odds_id.split(",")
+                    cnt = SelectedOdd.api_delete_by_idds(ids, obj_type)
+                messages.success(self.request, self.get_success_message(cnt))
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+
+class SelectedOddsHideView(BSModalCreateView):
+    model = SelectedOdd
+    form_class = SelectedOddsForm
+    template_name = 'betting/delete_selected_odds.html'
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self, cnt):
+        return self.success_message % {"cnt":cnt,}
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(SelectedOddsHideView, self).get_context_data(**kwargs)
+
+        selected_odds_id = self.request.GET.get("odds", None)
+        hodd = self.request.GET.get("hodd", "")
+        hmatch = self.request.GET.get("hmatch", "")
+        hleague = self.request.GET.get("hleague", "")
+        obj_type = self.request.GET.get("type", None)
+
+        bookie = self.request.GET.get("bookie", "")
+        show_hidden = self.request.GET.get("show_hidden", "")
+        bid_matches = self.request.GET.get("bid_matches", "")
+        context["bookie"] = bookie
+        context["show_hidden"] = show_hidden
+        context["bid_matches"] = bid_matches
+        if not obj_type:
+            obj_type = "0"
+        context["action"] = "Hide"
+        if selected_odds_id:
+            context["obj_type"] = obj_type
+            context["selected_odds_id"] = selected_odds_id
+            context["hodd"] = hodd
+            context["hmatch"] = hmatch
+            context["hleague"] = hleague
+            info = ""
+            if obj_type == "1":
+                info = "Are you sure to hide all match odds?"
+            elif obj_type == "2":
+                info = "Are you sure to hide all league odds?"
+            elif selected_odds_id == "all":
+                info = "Are you sure to hide all odds?"
+            else:
+                cnt = len(selected_odds_id.split(","))
+                info = f'Are you sure to hide {cnt} odds?'
+            context["info"] = info
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            cleaned_data = form.cleaned_data
+            selected_odds_id = cleaned_data["selected_odds_id"]
+            obj_type = int(cleaned_data["obj_type"])
+
+            bookie = cleaned_data["bookie"]
+            show_hidden = cleaned_data["show_hidden"]
+            bid_matches = cleaned_data["bid_matches"]
+
+            hodd = cleaned_data["hodd"]
+            hmatch = cleaned_data["hmatch"]
+            hleague = cleaned_data["hleague"]
+            ar_hodd = [] if not hodd else hodd.split(",")
+            ar_hmatch = [] if not hmatch else hmatch.split(",")
+            ar_hleague = [] if not hleague else hleague.split(",")
+
+            ar_hide = [] if not selected_odds_id else selected_odds_id.split(",")
+
+            for hide in ar_hide:
+                if obj_type == 1:
+                    if not hide in(ar_hmatch):
+                        ar_hmatch.append(hide)
+                elif obj_type == 2:
+                    if not hide in(ar_hleague):
+                        ar_hleague.append(hide)
+                else:
+                    if not hide in(ar_hodd):
+                        print("add", hide)
+                        ar_hodd.append(hide)
+
+            url = reverse_lazy("betting:selected_odd_list")
+            url += "?bookie=" + bookie
+            url += "&show_hidden=" + show_hidden
+            url += "&bid_matches=" + bid_matches
+            url += "&hodd=" + ",".join([elem for elem in ar_hodd])
+            url += "&hmatch=" + ",".join([elem for elem in ar_hmatch])
+            url += "&hleague=" + ",".join([elem for elem in ar_hleague])
+            return HttpResponseRedirect(url)
+        return HttpResponseRedirect(self.get_success_url())
+
+
+####################################################
+#  Transaction
+####################################################
+class TransactionView(generic.TemplateView):
+    template_name = "betting/transaction_list.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(TransactionView, self).get_context_data(**kwargs)
+        context["bookies"] = LoadSource.objects.filter(is_betting=True).order_by("pk")
+
+        date_to = self.request.GET.get("date_to", None)
+        if date_to:
+            context["date_to"] = date_to
+        date_from = self.request.GET.get("date_from", None)
+        if not date_from:
+            date_from = (date.today() - timedelta(1)).strftime('%d.%m.%Y')
+        context["date_from"] = date_from
+        selected_bookie = self.request.GET.get("bookie", None)
+        if selected_bookie:
+            context["selected_bookie"] = int(selected_bookie)
+
+        return context    
+
+
+class TransactionAPI(ListAPIView):
+    serializer_class = TransactionSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = Transaction.objects.all()
+
+        date_from = get_date_from_string(self.request.query_params.get("date_from", None))
+        if date_from:
+            queryset = queryset.filter(trans_date__gte=date_from)
+        date_to = get_date_from_string(self.request.query_params.get("date_to", None))
+        if date_to:
+            queryset = queryset.filter(trans_date__lte=date_to)
+        bookie = self.request.query_params.get("selected_bookie", None)
+        if bookie and int(bookie) > 0:
+            queryset = queryset.filter(bookie=bookie)
+
+        return queryset
+
+
+class TransactionCreateView(BSModalCreateView):
+    model = Transaction
+    form_class = TransactionForm
+    template_name = 'betting/create_transaction.html'
+    success_message = "Success: Transaction was created."
+
+    def get_success_message(self):
+        return self.success_message
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def get_initial(self):
+        trans_date = date.today()
+        return {'trans_date':trans_date,}
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(TransactionCreateView, self).get_context_data(**kwargs)
+        context["bookies"] = LoadSource.objects.filter(is_betting=True).order_by("pk")
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                bookie = cleaned_data["bookie"]
+                trans_type = cleaned_data["trans_type"]
+                amount = cleaned_data["amount"]
+                comment = cleaned_data["comment"]
+                trans_date = cleaned_data["trans_date"]
+
+                Transaction.api_add(bookie_id=bookie.id, trans_type=trans_type, amount=amount, comment=comment, trans_date=trans_date)
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Creating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())

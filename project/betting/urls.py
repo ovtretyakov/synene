@@ -80,7 +80,15 @@ urlpatterns = [
     #selected odd
     url(r'^odds/selected/$', views.SelectedOddsView.as_view(), name='selected_odd_list'),
     url(r'^odds/selected/api/$', views.SelectedOddListAPI.as_view(), name='selected_odd_list_api'),
+    url(r'^odds/selected/delete/$', views.SelectedOddsDeleteView.as_view(), name='delete_selected_odds'),
+    url(r'^odds/selected/hide/$', views.SelectedOddsHideView.as_view(), name='hide_selected_odds'),
     #Bet
+    url(r'^odds/bet/$', views.MyBetView.as_view(), name='my_bet_list'),
+    url(r'^odds/bet/api/$', views.MyBetAPI.as_view(), name='my_bet_api'),
     url(r'^odds/bet/create/$', views.CreateBetView.as_view(), name='create_bet'),
+    #Transaction
+    url(r'^odds/transaction/$', views.TransactionView.as_view(), name='transaction_list'),
+    url(r'^odds/transaction/api/$', views.TransactionAPI.as_view(), name='transaction_api'),
+    url(r'^odds/transaction/create/$', views.TransactionCreateView.as_view(), name='create_transaction'),
     ####
 ]

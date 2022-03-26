@@ -671,10 +671,10 @@
                 '   <span class="fa fa-flash fa-sm text-warning"></span>' +
                 '</button>';
                 r = r.replace(new RegExp('/0/', 'g'), '/'+row.odd.id+'/');
-              } else if(row.odd.selected == "s") {
+              } else if(row.odd.selected == "b") {
                 r =
                 '<button type="button" class="btn btn-sm btn-outline-secondary title="Betted. Select odd" onclick="pick_odds_dlg(' + d + ')">' +
-                '   <span class="fa fa-fire fa-sm text-success"></span>' +
+                '   <span class="fa fa-fire fa-sm text-danger"></span>' +
                 '</button>';
               } else {
                 r =

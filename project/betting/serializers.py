@@ -5,7 +5,7 @@ from project.core.models import Match
 from .models import (Odd, VOdd, BetType,
                      HarvestHandler, Harvest, HarvestConfig, HarvestGroup, 
                      ForecastHandler, Predictor, ForecastSet, Forecast, ForecastSandbox,
-                     Distribution
+                     Distribution, Bet, BetOdd, Transaction
                      )
 
 
@@ -183,3 +183,45 @@ class SelectedOddsSerializer(serializers.Serializer):
     yes = serializers.CharField(max_length=10)
     bookie_name = serializers.CharField(max_length=255)
     predictor_name = serializers.CharField(max_length=255)
+    selected = serializers.CharField(max_length=10)
+
+
+class MyBetSerializer(serializers.ModelSerializer):
+    status = DisplayChoiceField(choices = Bet.STATUS_CHOICES)
+    result = DisplayChoiceField(choices = Bet.RESULT_CHOICES)
+    betting_type = DisplayChoiceField(choices = Bet.BETTING_TYPE_CHOICES)
+    ins_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    min_date = serializers.DateField(format="%d.%m.%y")
+    max_date = serializers.DateField(format="%d.%m.%y")
+    class Meta:
+        model = Bet
+        fields = ("id", "bookie", "name", "status", "result", "betting_type", "odd_cnt", "ins_time", "min_date", "max_date",
+                  "success_chance", "lose_chance", "odd_value", "expect_value", "kelly", "bet_amt", "result_value", "win_amt",
+                 )
+        depth = 1
+
+
+class BetOddSerializer(serializers.ModelSerializer):
+    status = DisplayChoiceField(choices = Bet.STATUS_CHOICES)
+    result = DisplayChoiceField(choices = Bet.RESULT_CHOICES)
+    ins_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    settled_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    finish_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    match_date = serializers.DateField(format="%d.%m.%y")
+    class Meta:
+        model = BetOdd
+        fields = ("id", "match", "odd", "status", "result", "ins_time", "settled_time", "finish_time", "predictor", "match_date",
+                  "harvest", "success_chance", "lose_chance", "odd_value", "expect_value", "kelly", "result_value",
+                 )
+        depth = 2
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    trans_type = DisplayChoiceField(choices = Transaction.TYPE_CHOICES)
+    ins_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    trans_date = serializers.DateField(format="%d.%m.%y")
+    class Meta:
+        model = Transaction
+        fields = ("id", "bookie", "trans_type", "trans_date", "ins_time", "amount", "comment", )
+        depth = 1
+    
