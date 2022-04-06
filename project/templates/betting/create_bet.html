@@ -1,15 +1,32 @@
 {% extends "base_modal_form.html" %}
 {% load widget_tweaks %}
-{% block title %}Create bet{% endblock %}
+{% block title %}
+    {% if not bet_id %}
+        Create bet
+    {% elif action_type == "update" %}
+        Update bet
+    {% elif action_type == "settle" %}
+        Settle bet
+    {% else %}
+        Unknown
+    {% endif %}
+{% endblock %}
 {% block form_id %}formCreateBet{% endblock form_id %}
 
 
 {% block modal-body %}
 
 
-  <div class="alert alert-info" role="alert">
-    <p class="lead">Are you sure to create bet?</p>
-  </div>
+    {% if not bet_id %}
+        <div class="alert alert-info" role="alert">
+          <p class="lead">Are you sure to create bet?</p>
+        </div>
+    {% endif %}
+
+
+
+  <input type="text" name="action_type" value={{ action_type }} hidden>
+  <input type="text" name="bet_id" value={{ bet_id }} hidden>
 
 
 
@@ -18,19 +35,41 @@
           <input type="text" name="bookie_id" value={{ bookie_id }} hidden>
 
           <div class="form-row">
-              <div class="col-8">
+
+              <div class="col-6">
                     <h5 class="card-title">{{bookie_name}}</h5>
               </div>
-
+    {% if action_type == "settle" %}
+              <!-- finished -->
+              <div class="col-3">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="finished">Finished</span>
+                  </div>
+                  <input type="checkbox" name="finished" class="form-control" aria-describedby="label_finished" value="1" checked>
+                </div>
+              </div>
+              <!-- Win_amt -->
+              <div class="col-3">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="win_amt">Win amt</span>
+                  </div>
+                  <input type="text" name="win_amt" class="form-control" aria-describedby="label_win_amt" value="0">
+                </div>
+              </div>
+    {% else %}
               <!-- bet_amt -->
               <div class="col-4">
                 <div class="input-group input-group-sm mb-3">
                   <div class="input-group-prepend">
                     <span class="input-group-text" for="bet_amt">Bet amt</span>
                   </div>
-                  <input type="text" name="bet_amt" class="form-control" aria-describedby="label_bet_amt" value="0">
+                  <input type="text" name="bet_amt" class="form-control" aria-describedby="label_bet_amt" value="{{bet_amt}}">
                 </div>
               </div>
+    {% endif %}
+
           </div>
 
       </div>
@@ -45,16 +84,15 @@
           <h5 class="card-title">{{item.h_name}} - {{item.a_name}}</h5>
           <h6 class="card-title">{{item.league_name}}</h6>
 
-          <div class="form-row">
+          <input type="text" name="id" value={{ item.id }} hidden>
+          <input type="text" name="odd_id-{{ item.id }}" value={{ item.odd_id }} hidden>
+          <input type="text" name="predictor_id-{{ item.id }}" value={{ item.predictor_id }} hidden>
+          <input type="text" name="match_id-{{ item.id }}" value={{ item.match_id }} hidden>
+          <input type="text" name="harvest_id-{{ item.id }}" value={{ item.harvest_id }} hidden>
+          <input type="text" name="success_chance-{{ item.id }}" value={{ item.success_chance }} hidden>
+          <input type="text" name="lose_chance-{{ item.id }}" value={{ item.lose_chance }} hidden>
 
-              <input type="text" name="id" value={{ item.id }} hidden>
-              <input type="text" name="odd_id-{{ item.id }}" value={{ item.odd_id }} hidden>
-              <input type="text" name="predictor_id-{{ item.id }}" value={{ item.predictor_id }} hidden>
-              <input type="text" name="result_value-{{ item.id }}" value={{ item.result_value }} hidden>
-              <input type="text" name="match_id-{{ item.id }}" value={{ item.match_id }} hidden>
-              <input type="text" name="harvest_id-{{ item.id }}" value={{ item.harvest_id }} hidden>
-              <input type="text" name="success_chance-{{ item.id }}" value={{ item.success_chance }} hidden>
-              <input type="text" name="lose_chance-{{ item.id }}" value={{ item.lose_chance }} hidden>
+          <div class="form-row">
 
               <!-- odd_name -->
               <div class="col-3">
@@ -106,11 +144,33 @@
                   <div class="input-group-prepend">
                     <span class="input-group-text" for="odd_value-{{ item.id }}">Odd</span>
                   </div>
-                  <input type="text" name="odd_value-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_value}}">
+                  <input type="text" name="odd_value-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_value}}"
+    {% if action_type == "settle" %}
+        readonly
+    {% endif %}
+                  >
                 </div>
               </div>
 
           </div>
+
+
+    {% if action_type == "settle" %}
+          <div class="form-row justify-content-end">
+              <!-- result_value -->
+              <div class="col-2">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="result_value-{{ item.id }}">Real</span>
+                  </div>
+                  <input type="text" name="result_value-{{ item.id }}" class="form-control" aria-describedby="label_result_value" value="{{item.result_value}}">
+                </div>
+              </div>
+          </div>
+    {% else %}
+          <input type="text" name="result_value-{{ item.id }}" value={{ item.result_value }} hidden>
+    {% endif %}
+
 
 
       </div>
@@ -122,4 +182,14 @@
 {% endblock %}
 
 
-{% block button-action %}Create bet{% endblock %}
+{% block button-action %}
+    {% if not bet_id %}
+        Create bet
+    {% elif action_type == "update" %}
+        Update bet
+    {% elif action_type == "settle" %}
+        Settle bet
+    {% else %}
+        Unknown
+    {% endif %}
+{% endblock %}

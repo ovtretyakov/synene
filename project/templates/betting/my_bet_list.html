@@ -132,23 +132,23 @@
 {{ block.super }} 
   <script>
     var editIcons = function ( data, type, row ) {
-          var hide_url = "{% url 'betting:hide_selected_odds' %}?odds=0&hodd={{hodd}}&hmatch={{hmatch}}&hleague={{hleague}}";
-          hide_url += "&bookie={{bookie}}&show_hidden={{show_hidden}}&bid_matches={{bid_matches}}"
-          var delete_url = "{% url 'betting:delete_selected_odds' %}?odds=0";
+          var detail_url = "{% url 'betting:my_bet_detail' 0 %}";
+          var update_url = "{% url 'betting:create_bet' %}?type=update&bet_id=0";
+          var settle_url = "{% url 'betting:create_bet' %}?type=settle&bet_id=0";
+          var delete_url = "{% url 'betting:my_bet_delete' 0 %}";
           if ( type === 'display' ) {
               var r = "";
-              if (row.league_grp == 1) {
-                  hide_url += "&type=2";
-                  delete_url += "&type=2";
-              } else if(row.match_grp == 1) {
-                  hide_url += "&type=1";
-                  delete_url += "&type=1";
-              }
               r = 
-                '<button type="button" class="delete-selected-odd btn btn-sm btn-outline-secondary" data-id="' + hide_url + '" title="Hide odds" id="delete-selected-odd">' +
-                '   <span class="fa fa-low-vision"></span>' +
+                '<button type="button" class="my-bet-detail btn btn-sm btn-outline-secondary" data-id="' + detail_url + '" title="View my bet" id="my-bet-detail">' +
+                '   <span class="fa fa-eye"></span>' +
                 '</button>' +
-                '<button type="button" class="delete-selected-odd btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Erase odds" id="delete-selected-odd">' +
+                '<button type="button" class="my-bet-update btn btn-sm btn-outline-secondary" data-id="' + update_url + '" title="Update my bet" id="my-bet-update">' +
+                '   <span class="fa fa-pencil"></span>' +
+                '</button>' +
+                '<button type="button" class="my-bet-settle btn btn-sm btn-outline-secondary" data-id="' + settle_url + '" title=Settle bet" id="my-bet-settle">' +
+                '   <span class="fa fa-check"></span>' +
+                '</button>' +
+                '<button type="button" class="my-bet-delete btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete my bet" id="my-bet-delete">' +
                 '   <span class="fa fa-trash"></span>' +
                 '</button>'
               ;
@@ -192,7 +192,7 @@
               'order': [[ 5, 'asc' ]],
               'select': true,
               'columns': [
-                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'4em'},
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'9em'},
                   {'data': 'name'},
                   {'data': 'result'},
                   {'data': 'betting_type'},
@@ -209,22 +209,47 @@
               ],
 
               'drawCallback': function(settings, json) {
-                $(".update-handler").each(function () {
+
+
+                $(".my-bet-detail").each(function () {
                     $(this).modalForm(
                       {formURL: $(this).data('id'),
-                        modalID: "#modal",
-                        modalContent: ".modal0-content",
-                        modalForm: "#formUpdateForecastHandler",
+                        modalID: "#modalxl",
+                        modalContent: ".modalxl-content",
+                        modalForm: "#formMyBetDetail",
                         submitBtn: "#submit-form-id"
                       }
                     );
                   });
-                $(".delete-selected-odd").each(function () {
+
+                $(".my-bet-update").each(function () {
                     $(this).modalForm(
                       {formURL: $(this).data('id'),
                         modalID: "#modal",
                         modalContent: ".modal0-content",
-                        modalForm: "#formDeleteSelectedOdds",
+                        modalForm: "#formCreateBet",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".my-bet-settle").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formCreateBet",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".my-bet-delete").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modalxl",
+                        modalContent: ".modalxl-content",
+                        modalForm: "#formMyBetDetail",
                         submitBtn: "#submit-form-id",
                         isDeleteForm: true
                       }

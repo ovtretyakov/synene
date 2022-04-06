@@ -109,46 +109,16 @@
 {{ block.super }} 
   <script>
     var editIcons = function ( data, type, row ) {
-          var hide_url = "{% url 'betting:hide_selected_odds' %}?odds=0&hodd={{hodd}}&hmatch={{hmatch}}&hleague={{hleague}}";
-          hide_url += "&bookie={{bookie}}&show_hidden={{show_hidden}}&bid_matches={{bid_matches}}"
-          var delete_url = "{% url 'betting:delete_selected_odds' %}?odds=0";
+          var delete_url = "{% url 'betting:delete_transaction' 0 %}";
           if ( type === 'display' ) {
               var r = "";
-              if (row.league_grp == 1) {
-                  hide_url += "&type=2";
-                  delete_url += "&type=2";
-              } else if(row.match_grp == 1) {
-                  hide_url += "&type=1";
-                  delete_url += "&type=1";
-              }
               r = 
-                '<button type="button" class="delete-selected-odd btn btn-sm btn-outline-secondary" data-id="' + hide_url + '" title="Hide odds" id="delete-selected-odd">' +
-                '   <span class="fa fa-low-vision"></span>' +
-                '</button>' +
-                '<button type="button" class="delete-selected-odd btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Erase odds" id="delete-selected-odd">' +
+                '<button type="button" class="delete-transaction btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete transaction" id="delete-transaction">' +
                 '   <span class="fa fa-trash"></span>' +
                 '</button>'
               ;
               r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
               r = r.replace(new RegExp('=0', 'g'), '='+data);
-              return r;
-          }
-        return data;
-    };
-
-
-    var bidIcon = function ( data, type, row ) {
-          var delete_url = "{% url 'betting:deselect_odd' 0 %}";
-          var d = "'" + data + "'";
-          if ( type === 'display' ) {
-              var r = "";
-              if (row.match_grp == 1 && row.match_bid == 1 || 
-                  row.match_grp == 0 && row.league_grp == 0 && row.selected == "b") {
-                  r =
-                  '<button type="button" class="btn btn-sm btn-outline-secondary alert-danger" >' +
-                  '   <span class="fa fa-fire fa-sm "></span>' +
-                  '</button>';
-              }
               return r;
           }
         return data;
@@ -171,7 +141,7 @@
               ],
               'select': true,
               'columns': [
-                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'4em'},
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'2em'},
                   {'data': 'id', 'width':'2em'},
                   {'data': 'bookie.name'},
                   {'data': 'trans_type'},
@@ -181,22 +151,14 @@
               ],
 
               'drawCallback': function(settings, json) {
-                $(".update-handler").each(function () {
+
+
+                $(".delete-transaction").each(function () {
                     $(this).modalForm(
                       {formURL: $(this).data('id'),
                         modalID: "#modal",
                         modalContent: ".modal0-content",
-                        modalForm: "#formUpdateForecastHandler",
-                        submitBtn: "#submit-form-id"
-                      }
-                    );
-                  });
-                $(".delete-selected-odd").each(function () {
-                    $(this).modalForm(
-                      {formURL: $(this).data('id'),
-                        modalID: "#modal",
-                        modalContent: ".modal0-content",
-                        modalForm: "#formDeleteSelectedOdds",
+                        modalForm: "#formDeleteTransaction",
                         submitBtn: "#submit-form-id",
                         isDeleteForm: true
                       }

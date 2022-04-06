@@ -8,9 +8,9 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.db.models.query import RawQuerySet
-from django.db.models import sql, F, Q, Count, Max
+from django.db.models import sql, F, Q, Count, Max, Value as V
 from django.db.models.expressions import Window
-from django.db.models.functions import RowNumber
+from django.db.models.functions import RowNumber, Concat
 
 from rest_framework.generics import ListAPIView
 from bootstrap_modal_forms.generic import (BSModalCreateView,
@@ -22,8 +22,8 @@ from project.core.utils import get_date_from_string, SimpleRawQuerySet
 
 from project.core.models import Sport, League, Match, LoadSource, Team
 from ..forms import PickOddsForm, DeselectOddForm, BetForm, SelectedOddsForm, TransactionForm
-from ..models import Odd, ForecastSandbox, SelectedOdd, Bet, Transaction
-from ..serializers import SelectedOddsSerializer, MyBetSerializer, TransactionSerializer
+from ..models import Odd, ForecastSandbox, SelectedOdd, Bet, BetOdd, Transaction
+from ..serializers import SelectedOddsSerializer, MyBetSerializer, TransactionSerializer, BetOddSerializer
 
 
 ####################################################
@@ -242,124 +242,6 @@ class SelectedOddListAPI(ListAPIView):
         queryset = SimpleRawQuerySet(sql, params=params, model=SelectedOdd)
         return queryset
 
-
-####################################################
-#  Bet
-####################################################
-class MyBetView(generic.TemplateView):
-    template_name = "betting/my_bet_list.html"
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get the context
-        context = super(MyBetView, self).get_context_data(**kwargs)
-        context["bookies"] = LoadSource.objects.filter(is_betting=True).order_by("pk")
-
-        date_to = self.request.GET.get("date_to", None)
-        if date_to:
-            context["date_to"] = date_to
-        date_from = self.request.GET.get("date_from", None)
-        if not date_from:
-            date_from = (date.today() - timedelta(1)).strftime('%d.%m.%Y')
-        context["date_from"] = date_from
-        selected_bookie = self.request.GET.get("bookie", None)
-        if selected_bookie:
-            context["selected_bookie"] = int(selected_bookie)
-
-        return context    
-
-
-class MyBetAPI(ListAPIView):
-    serializer_class = MyBetSerializer
-    lookup_field = "pk"
-
-    def get_queryset(self, *args, **kwargs):
-        queryset = Bet.objects.all()
-
-        date_from = get_date_from_string(self.request.query_params.get("date_from", None))
-        if date_from:
-            queryset = queryset.filter(ins_time__gte=date_from)
-        date_to = get_date_from_string(self.request.query_params.get("date_to", None))
-        if date_to:
-            queryset = queryset.filter(ins_time__lte=date_to)
-        bookie = self.request.query_params.get("selected_bookie", None)
-        if bookie and int(bookie) > 0:
-            queryset = queryset.filter(bookie=bookie)
-
-        return queryset
-
-
-
-class CreateBetView(BSModalCreateView):
-    model = Bet
-    form_class = BetForm
-    template_name = 'betting/create_bet.html'
-    success_message = "Success: Bet was created."
-
-    def get_success_url(self):
-        return self.request.META.get("HTTP_REFERER")
-    def get_success_message(self):
-        return self.success_message
-
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get the context
-        context = super(CreateBetView, self).get_context_data(**kwargs)
-        odds_id = self.request.GET.get("odds", None)
-        if odds_id:
-            items = SelectedOdd.objects.filter(id__in=odds_id.split(",")).annotate(odd_name=F("odd__bet_type__name"),
-                                                                                   odd_value=F("odd__odd_value"),
-                                                                                   odd_param=F("odd__param"),
-                                                                                   odd_team=F("odd__team"),
-                                                                                   odd_period=F("odd__period"),
-                                                                                   odd_yes=F("odd__yes"),
-                                                                                   bookie_id=F("odd__bookie_id"),
-                                                                                   bookie_name=F("odd__bookie__name"),
-                                                                                   h_name=F("match__team_h__name"),
-                                                                                   a_name=F("match__team_a__name"),
-                                                                                   league_name=F("match__league__name"),
-                                                                                   ).values()
-            bookie_id = None
-            bookie_name = None
-            if len(items) > 0:
-                bookie_id = items[0]["bookie_id"]
-                bookie_name = items[0]["bookie_name"]
-            context["odds_id"] = odds_id
-            context["items"] = items
-            context["bookie_id"] = bookie_id
-            context["bookie_name"] = bookie_name
-
-
-        return context    
-
-    def get_success_url(self):
-        return self.request.META.get("HTTP_REFERER")
-
-    def form_valid(self, form):
-        if self.request.method == "POST" and not self.request.is_ajax():
-            try:
-                bookie_id = int(self.request.POST.get('bookie_id'))
-                bet_amt = Decimal(self.request.POST.get('bet_amt'))
-                ids = self.request.POST.getlist('id')
-                items = [{"odd_id":int(self.request.POST['odd_id-{}'.format(id)]),
-                          "odd_name":self.request.POST['odd_name-{}'.format(id)],
-                          "odd_value":Decimal(self.request.POST['odd_value-{}'.format(id)]),
-                          "predictor_id":int(self.request.POST['predictor_id-{}'.format(id)]),
-                          "result_value":Decimal(self.request.POST['result_value-{}'.format(id)]),
-                          "match_id":int(self.request.POST['match_id-{}'.format(id)]),
-                          "harvest_id":int(self.request.POST['harvest_id-{}'.format(id)]),
-                          "success_chance":Decimal(self.request.POST['success_chance-{}'.format(id)]),
-                          "lose_chance":Decimal(self.request.POST['lose_chance-{}'.format(id)]),
-                          }for id in ids]
-                bet = Bet.api_create(bookie_id, items, bet_amt)
-                messages.success(self.request, self.get_success_message())
-            except Exception as e:
-                messages.error(self.request, "Creating error :\n" + str(e))
-        return HttpResponseRedirect(self.get_success_url())
-
-
-####################################################
-#  SelectedOdd
-####################################################
 class SelectedOddsDeleteView(BSModalCreateView):
     model = SelectedOdd
     form_class = SelectedOddsForm
@@ -504,6 +386,195 @@ class SelectedOddsHideView(BSModalCreateView):
 
 
 ####################################################
+#  Bet
+####################################################
+class MyBetView(generic.TemplateView):
+    template_name = "betting/my_bet_list.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(MyBetView, self).get_context_data(**kwargs)
+        context["bookies"] = LoadSource.objects.filter(is_betting=True).order_by("pk")
+
+        date_to = self.request.GET.get("date_to", None)
+        if date_to:
+            context["date_to"] = date_to
+        date_from = self.request.GET.get("date_from", None)
+        if not date_from:
+            date_from = (date.today() - timedelta(1)).strftime('%d.%m.%Y')
+        context["date_from"] = date_from
+        selected_bookie = self.request.GET.get("bookie", None)
+        if selected_bookie:
+            context["selected_bookie"] = int(selected_bookie)
+
+        return context    
+
+
+class MyBetAPI(ListAPIView):
+    serializer_class = MyBetSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = Bet.objects.all()
+
+        date_from = get_date_from_string(self.request.query_params.get("date_from", None))
+        if date_from:
+            queryset = queryset.filter(ins_time__gte=date_from)
+        date_to = get_date_from_string(self.request.query_params.get("date_to", None))
+        if date_to:
+            queryset = queryset.filter(ins_time__lte=date_to)
+        bookie = self.request.query_params.get("selected_bookie", None)
+        if bookie and int(bookie) > 0:
+            queryset = queryset.filter(bookie=bookie)
+
+        return queryset
+
+class MyBetDetail(BSModalReadView):
+    model = Bet
+    template_name = 'betting/my_bet_detail.html'
+
+
+class CreateBetView(BSModalCreateView):
+    model = Bet
+    form_class = BetForm
+    template_name = 'betting/create_bet.html'
+    success_message = "Success: Bet was created."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(CreateBetView, self).get_context_data(**kwargs)
+        action_type = self.request.GET.get("type", None)
+        bet_id = self.request.GET.get("bet_id", None)
+        odds_id = self.request.GET.get("odds", None)
+        bookie_id = None
+        bookie_name = ""
+        items = None
+        bet_amt = 0
+        if action_type in("update","settle",):
+            bet = get_object_or_404(Bet, id=bet_id)
+            bet_amt = bet.bet_amt
+            items = BetOdd.objects.filter(bet_id=bet_id).annotate(odd_name=F("odd__bet_type__name"),
+                                                                   odd_param=F("odd__param"),
+                                                                   odd_team=F("odd__team"),
+                                                                   odd_period=F("odd__period"),
+                                                                   odd_yes=F("odd__yes"),
+                                                                   bookie_name=F("odd__bookie__name"),
+                                                                   h_name=F("match__team_h__name"),
+                                                                   a_name=F("match__team_a__name"),
+                                                                   league_name=F("match__league__name"),
+                                                                   ).values()
+            bookie_id = bet.bookie_id
+            bookie_name = bet.bookie.name
+        else:
+            action_type = "create"
+            items = SelectedOdd.objects.filter(id__in=odds_id.split(",")).annotate(odd_name=F("odd__bet_type__name"),
+                                                                                   odd_value=F("odd__odd_value"),
+                                                                                   odd_param=F("odd__param"),
+                                                                                   odd_team=F("odd__team"),
+                                                                                   odd_period=F("odd__period"),
+                                                                                   odd_yes=F("odd__yes"),
+                                                                                   bookie_id=F("odd__bookie_id"),
+                                                                                   bookie_name=F("odd__bookie__name"),
+                                                                                   h_name=F("match__team_h__name"),
+                                                                                   a_name=F("match__team_a__name"),
+                                                                                   league_name=F("match__league__name"),
+                                                                                   ).values()
+            bookie_id = None
+            bookie_name = None
+            if len(items) > 0:
+                bookie_id = items[0]["bookie_id"]
+                bookie_name = items[0]["bookie_name"]
+
+        context["action_type"] = action_type
+        context["odds_id"] = odds_id
+        context["bet_id"] = bet_id
+        context["items"] = items
+        context["bookie_id"] = bookie_id
+        context["bookie_name"] = bookie_name
+        context["bet_amt"] = bet_amt
+        return context    
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                bookie_id = int(self.request.POST.get('bookie_id'))
+                bet_amt = Decimal(self.request.POST.get('bet_amt'))
+                ids = self.request.POST.getlist('id')
+                action_type = self.request.POST.get('action_type')
+                bet_id = self.request.POST.get('bet_id')
+                bet = None
+                if bet_id and bet_id != "None":
+                    bet = get_object_or_404(Bet, id=bet_id)
+                items = [{
+                            "id": None if id == None else int(id),
+                            "odd_id":int(self.request.POST['odd_id-{}'.format(id)]),
+                            "odd_name":self.request.POST['odd_name-{}'.format(id)],
+                            "odd_value":Decimal(self.request.POST['odd_value-{}'.format(id)]),
+                            "predictor_id":int(self.request.POST['predictor_id-{}'.format(id)]),
+                            "result_value":None if self.request.POST['result_value-{}'.format(id)] == "None" else Decimal(self.request.POST['result_value-{}'.format(id)]),
+                            "match_id":int(self.request.POST['match_id-{}'.format(id)]),
+                            "harvest_id":int(self.request.POST['harvest_id-{}'.format(id)]),
+                            "success_chance":Decimal(self.request.POST['success_chance-{}'.format(id)]),
+                            "lose_chance":Decimal(self.request.POST['lose_chance-{}'.format(id)]),
+                          }for id in ids]
+                if action_type == "create":
+                    bet = Bet.api_create(bookie_id, items, bet_amt)
+                elif action_type == "update":
+                    bet.api_update_odds(items, bet_amt)
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Creating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+
+class BetOddAPI(ListAPIView):
+    serializer_class = BetOddSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self, *args, **kwargs):
+        id = self.kwargs.get("pk",0)
+        queryset = BetOdd.objects.filter(bet_id=id).annotate(match_name = Concat(F('match__team_h__name'), V(' - '), F('match__team_a__name')))
+        return queryset
+
+
+class MyBetDelete(BSModalUpdateView):
+    model = Bet
+    template_name = 'betting/my_bet_detail.html'
+    form_class = BetForm
+    success_message = "Success: Bet was deleted."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(MyBetDelete, self).get_context_data(**kwargs)
+        context["delete_action"] = 1
+        return context    
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                self.object.api_delete()
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+####################################################
 #  Transaction
 ####################################################
 class TransactionView(generic.TemplateView):
@@ -583,4 +654,25 @@ class TransactionCreateView(BSModalCreateView):
                 messages.success(self.request, self.get_success_message())
             except Exception as e:
                 messages.error(self.request, "Creating error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class TransactionDeleteView(BSModalUpdateView):
+    model = Transaction
+    form_class = TransactionForm
+    template_name = 'betting/delete_transaction.html'
+    success_message = "Success: Transaction was deleted."
+
+    def get_success_message(self):
+        return self.success_message
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                self.object.api_delete()
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Deleting error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())

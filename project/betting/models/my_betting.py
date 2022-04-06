@@ -495,10 +495,55 @@ class Bet(models.Model):
             raise e
 
 
+    def api_settle_odds(self, items, finished=False, win_amt=0):
+        try:
+            with transaction.atomic():
+                return self.settle_odds(items, finished, win_amt)
+        except Exception as e:
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Settle bet error"
+            load_source = LoadSource.objects.get(slug=LoadSource.SRC_UNKNOWN)
+            ErrorLog.objects.create(
+                                load_source = load_source,
+                                source_session = None,
+                                error_text = error_text,
+                                error_context = "",
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '',
+                                match_name = '',
+                                file_name = '',
+                                source_detail = None)
+            raise e
+
+
     def api_delete_odds(self, items):
         try:
             with transaction.atomic():
                 return self.delete_odds(items)
+        except Exception as e:
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Delete bet error"
+            load_source = LoadSource.objects.get(slug=LoadSource.SRC_UNKNOWN)
+            ErrorLog.objects.create(
+                                load_source = load_source,
+                                source_session = None,
+                                error_text = error_text,
+                                error_context = "",
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '',
+                                match_name = '',
+                                file_name = '',
+                                source_detail = None)
+            raise e
+
+    def api_delete(self):
+        try:
+            with transaction.atomic():
+                self.delete_object()
         except Exception as e:
             error_text = str(e)[:255]
             if not error_text:

@@ -86,9 +86,13 @@ urlpatterns = [
     url(r'^odds/bet/$', views.MyBetView.as_view(), name='my_bet_list'),
     url(r'^odds/bet/api/$', views.MyBetAPI.as_view(), name='my_bet_api'),
     url(r'^odds/bet/create/$', views.CreateBetView.as_view(), name='create_bet'),
+    url(r'^odds/bet/detail/(?P<pk>\d+)/$', views.MyBetDetail.as_view(), name='my_bet_detail'),
+    url(r'^odds/bet/odd/(?P<pk>\d+)/$', views.BetOddAPI.as_view(), name='bet_odd_api'),
+    url(r'^odds/bet/delete/(?P<pk>\d+)/$', views.MyBetDelete.as_view(), name='my_bet_delete'),
     #Transaction
     url(r'^odds/transaction/$', views.TransactionView.as_view(), name='transaction_list'),
     url(r'^odds/transaction/api/$', views.TransactionAPI.as_view(), name='transaction_api'),
     url(r'^odds/transaction/create/$', views.TransactionCreateView.as_view(), name='create_transaction'),
+    url(r'^odds/transaction/delete/(?P<pk>\d+)/$', views.TransactionDeleteView.as_view(), name='delete_transaction'),
     ####
 ]

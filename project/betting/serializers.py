@@ -208,10 +208,11 @@ class BetOddSerializer(serializers.ModelSerializer):
     settled_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
     finish_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
     match_date = serializers.DateField(format="%d.%m.%y")
+    match_name = serializers.CharField(max_length=255)
     class Meta:
         model = BetOdd
         fields = ("id", "match", "odd", "status", "result", "ins_time", "settled_time", "finish_time", "predictor", "match_date",
-                  "harvest", "success_chance", "lose_chance", "odd_value", "expect_value", "kelly", "result_value",
+                  "harvest", "success_chance", "lose_chance", "odd_value", "expect_value", "kelly", "result_value", "match_name",
                  )
         depth = 2
 
