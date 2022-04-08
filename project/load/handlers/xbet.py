@@ -67,6 +67,13 @@ class XBetHandler(CommonHandler):
         return hdir.path("1xbet") 
 
 
+    def get_1xbet_url(self, base_url, li, league_name):
+        slug = league_name.replace(",", " ").replace(".", " ").replace(";", " ").replace(":", " ")
+        slug = re.sub("\s{2,}", " ", slug)
+        slug = slug.replace(" ", "-").replace("&", "")
+        href = str(li) + "-" + slug
+        return urljoin(base_url, href)
+
     def process(self, debug_level=0, get_from_file=False, is_debug_path=True, start_date=None, main_file=None, number_of_days=2):
         ''' Process site
             Site https://1xstavka.ru/en/line/Football/
@@ -95,29 +102,61 @@ class XBetHandler(CommonHandler):
 
             soup = BeautifulSoup(html, 'lxml')
 
+
             self.start_detail("Football") 
-            football_tag  = soup.find('li', class_='sportMenuActive')
             load_date = None
-            for league_a in football_tag.select('ul.liga_menu > li > a'):
-                league_name = league_a.get_text("\n", strip=True).splitlines()[0]
 
-                if debug_level == 2 and league_name != "England. Premier League":
-                    continue
+            script_pattern = re.compile(r"SSR_LEFT_MENU = (\{.+?\});")   #({...]});
+            script = str(soup.find('script', string=re.compile("SSR_LEFT_MENU")).string)
+            data_json = script_pattern.search(script)
+            if data_json:
+                data_json = data_json[1]
+                data = json.loads(data_json)
+                line = data['line']
+                values = line['Value']
+                for value in values:
+                    if value["N"] == "Football":
+                        leagues = value.get("L",None)
+                        if leagues:
+                            for league in leagues:
+                                subleagues = league.get("SC", None)
+                                if subleagues:
+                                    for subleague in subleagues:
+                                        li = subleague["LI"]
+                                        league_name = subleague["L"]
+                                        league_href = self.get_1xbet_url(main_url, li, league_name)
+                                        if not (league_name.lower().startswith('enhanced') or 
+                                                league_name.lower().find('statistic') >= 0 or
+                                                league_name.lower().find('special bets') >= 0 or
+                                                len(league_name) > 45
+                                                ) :
+                                            print("!!! league_name:", league_name)
 
-                league_href = league_a['href']
-                if not league_href.startswith('http'): league_href = urljoin(self.base_url, league_href)
-                if not (league_name.lower().startswith('enhanced') or 
-                        league_name.lower().find('statistic') >= 0 or
-                        league_name.lower().find('special bets') >= 0 or
-                        len(league_name) > 45
-                        ) :
-                    print("!!! league_name:", league_name)
-                    if self.start_or_skip_league(league_name):
-                        league_load_date = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
-                        if not load_date or league_load_date and league_load_date < load_date:
-                            load_date = league_load_date
-                        if debug_level: break
-                        # break #!!!
+                                            if self.start_or_skip_league(league_name):
+                                                league_load_date = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
+                                                if not load_date or league_load_date and league_load_date < load_date:
+                                                    load_date = league_load_date
+                                                if debug_level: break
+                                                # break #!!!
+
+                                else:
+                                    li = league["LI"]
+                                    league_name = league["L"]
+                                    league_href = self.get_1xbet_url(main_url, li, league_name)
+                                    if not (league_name.lower().startswith('enhanced') or 
+                                            league_name.lower().find('statistic') >= 0 or
+                                            league_name.lower().find('special bets') >= 0 or
+                                            len(league_name) > 45
+                                            ) :
+                                        print("!!! league_name:", league_name)
+
+                                        if self.start_or_skip_league(league_name):
+                                            league_load_date = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
+                                            if not load_date or league_load_date and league_load_date < load_date:
+                                                load_date = league_load_date
+                                            if debug_level: break
+                                            # break #!!!
+
             
             self.finish_detail() 
             if load_date:
@@ -209,7 +248,7 @@ class XBetHandler(CommonHandler):
                     continue
                 if not self.start_or_skip_match(name_h, name_a, match_status=Match.SCHEDULED, match_date=match_date):
                     continue
-                # print('%s %s-%s' % (match_date, name_h.encode(), name_a.encode()))
+                print('%s %s-%s' % (match_date, name_h.encode(), name_a.encode()))
                 ##############################################################
                 #process main odds
                 ##############################################################
@@ -280,10 +319,11 @@ class XBetHandler(CommonHandler):
                 ##############################################################
                 #process additional statistics
                 ##############################################################
-                sub_game_id = sub_game_ids[match_id]
-                additional_stat_url = ('https://1xstavka.ru/en/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
-                                  % (league_id, sub_game_id))
-                self.process_add_stats(additional_stat_url, debug_level, get_from_file, is_debug_path)
+                sub_game_id = sub_game_ids.get(match_id, None)
+                if sub_game_id:
+                    additional_stat_url = ('https://1xstavka.ru/en/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
+                                      % (league_id, sub_game_id))
+                    self.process_add_stats(additional_stat_url, debug_level, get_from_file, is_debug_path)
 
                 self.finish_match()
                 if debug_level: break
