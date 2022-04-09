@@ -1,0 +1,18 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Restore Match xG  {% endblock %}
+{% block form_id %}formRestoreMatchXG{% endblock form_id %}
+{% block form_action %}{% url 'betting:forecast_match_xg_restore' forecast_set_id match_id  %}{% endblock form_action %}
+
+{% block modal-body %}
+
+
+<p> Do restore match xG ?</p>
+
+
+{% endblock %}
+
+    {% block modal-footer %}
+      <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+      <button type="submit" class="submit-btn btn btn-primary btn-sm" id="submit-form-restore-match-xg-id">Restore</button>
+    {% endblock modal-footer %}

@@ -47,13 +47,15 @@
       {% endif %}
 
 
-      <div class="table-responsive">
+      <div class="table-responsive small">
         <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
           <thead>
             <tr>
               <th></th>
+              <th>ID</th>
               <th>Name</th>
               <th>Rely lvl</th>
+              <th>Saldo</th>
               <th>Load date</th>
               <th>Err limit</th>
               <th>Loadable</th>
@@ -112,12 +114,19 @@
               // 'dom': 'Bfrtip',
               'lengthMenu': [ 25, 50, 75, 100 ],
               'ajax': "{% url 'load:source_list_api'  %}?format=datatables",
-              'order': [[ 2, 'asc' ]],
+              'order': [[ 3, 'asc' ]],
+              'columnDefs': [
+                {targets: 1, className: 'dt-body-right'},
+                {targets: 3, className: 'dt-body-right'},
+                {targets: 4, className: 'dt-body-right'},
+              ],
               // 'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'6em'},
+                  {'data': 'id', 'width':'2em'},
                   {'data': 'name'},
-                  {'data': 'reliability', 'width':'8em'},
+                  {'data': 'reliability', 'width':'4em'},
+                  {'data': 'saldo_amt', 'width':'8em'},
                   {'data': 'load_date', 'width':'12em'},
                   {'data': 'error_limit', 'width':'8em'},
                   {'data': 'is_loadable', 'width':'8em'},

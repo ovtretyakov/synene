@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Transactions{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Transactions</h1>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Create new transaction" id="create-transaction" 
+            onclick="create_transaction_dlg()">Create Transaction</button >
+          </div>
+        </div>
+
+
+      </div>
+
+
+
+    <!-- Filter -->
+    <div class="pb-3 mb-1" >
+        <form  method="GET" id="odd-filter-id">
+
+          <!-- row1 -->
+          <div class="form-row">
+                <!-- bookies -->
+                <div class="col-4">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" for="bookie">Bookie</span>
+                    </div>
+                    <select name="bookie" class="custom-select" id="bookie">
+                      <option {% if selected_bookie == 0 %}selected{% endif %} value="0"> All bookies </option>
+                      {% for source in bookies %}
+                        <option {% if selected_bookie == source.id %}selected{% endif %} value="{{ source.id }}"> {{ source.name }} </option>
+                      {% endfor %}                  
+                    </select>
+                  </div>
+                </div>
+                <!-- date_from -->
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="label_from">From</span>
+                    </div>
+                    <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}">
+                  </div>
+                </div>
+                <!-- date_to -->
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="label_to">To</span>
+                    </div>
+                    <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}">
+                  </div>
+                </div>
+            <div class="col-2">
+            <div class="input-group input-group-sm mb-3">
+              <button type="submit" class="btn btn-sm btn-outline-primary col-12">Set Filter</button>
+            </div>
+            </div>
+
+          </div>
+        </form>
+    </div>
+
+
+
+
+
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive small">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th></th>
+              <th>ID</th>
+              <th>Bookie</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Amout</th>
+              <th>Comment</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var delete_url = "{% url 'betting:delete_transaction' 0 %}";
+          if ( type === 'display' ) {
+              var r = "";
+              r = 
+                '<button type="button" class="delete-transaction btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete transaction" id="delete-transaction">' +
+                '   <span class="fa fa-trash"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+
+
+    $(document).ready(function () {
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'ajax': "{% url 'betting:transaction_api' %}?format=datatables" +
+                      "&selected_bookie={{selected_bookie}}" +
+                      "&date_from={{date_from}}" +
+                      "&date_to={{date_to}}",
+              'order': [[ 1, 'asc' ]],
+              'columnDefs': [
+                {targets: 1, className: 'dt-body-right'},
+                {targets: 5, className: 'dt-body-right'},
+              ],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'2em'},
+                  {'data': 'id', 'width':'2em'},
+                  {'data': 'bookie.name'},
+                  {'data': 'trans_type'},
+                  {'data': 'trans_date'},
+                  {'data': 'amount'},
+                  {'data': 'comment'},
+              ],
+
+              'drawCallback': function(settings, json) {
+
+
+                $(".delete-transaction").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formDeleteTransaction",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+              },
+
+
+      });
+
+
+    });
+
+
+    function create_transaction_dlg() 
+      {
+        var url = "{% url 'betting:create_transaction' %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formCreateTransaction",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+  </script>
+{% endblock %}
+
+
+

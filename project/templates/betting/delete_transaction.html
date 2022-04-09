@@ -1,0 +1,57 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}Delete Transaction{% endblock %}
+{% block form_id %}formDeleteTransaction{% endblock form_id %}
+
+
+{% block modal-body %}
+
+  <!-- Row1 -->
+  <div class="form-row">
+    <!-- bookie -->
+    <div class="form-group col-sm">
+      <label for="bookie-id" class="col-form-label">Bookie:</label>
+      <input type="text" class="form-control form-control-sm" id="bookie-name" name="bookie_name" value="{{object.bookie.name}}" readonly>
+      <input type="hidden" class="form-control form-control-sm" id="bookie-id" name="bookie" value="{{object.bookie_id}}" readonly>
+      <div class="text-danger">{{form.bookie.errors}}</div>
+    </div>
+    <!-- trans_type -->
+    <div class="form-group col-sm">
+      <label for="trans_type-id" class="col-form-label">Type:</label>
+      <input type="hidden" class="form-control form-control-sm" id="trans_type-id" name="trans_type" value="{{object.trans_type}}" readonly="True">
+      <input type="text" class="form-control form-control-sm" id="trans_type-id" name="trans_type_name" value="{{object.get_trans_type_display}}" readonly="True">
+      <div class="text-danger">{{form.trans_type.errors}}</div>
+    </div>
+  </div>
+
+  <!-- Row2 -->
+  <div class="form-row">
+    <!-- trans_date -->
+    <div class="form-group col-sm">
+      <label for="trans_date-id" class="col-form-label">Date:</label>
+      <input type="text" class="form-control form-control-sm" id="trans_date-id" name="trans_date" value="{{object.trans_date}}" readonly="True">
+      <div class="text-danger">{{form.trans_date.errors}}</div>
+    </div>
+    <!-- amount -->
+    <div class="form-group col-sm">
+      <label for="amount-id" class="col-form-label">Amount:</label>
+      <input type="text" class="form-control form-control-sm" id="amount-id" name="amount" value="{{object.amount}}" readonly="True">
+      <div class="text-danger">{{form.amount.errors}}</div>
+    </div>
+  </div>
+
+  <!-- Row3 -->
+  <div class="form-row">
+    <!-- comment -->
+    <div class="form-group col-sm">
+      <label for="comment-id" class="col-form-label">Comment:</label>
+      <textarea class="form-control form-control-sm" id="comment-id" name="comment" rows="6"  readonly="True">{{object.comment}}</textarea>
+      <div class="text-danger">{{form.comment.errors}}</div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+
+{% block button-action %}Delete{% endblock button-action %}

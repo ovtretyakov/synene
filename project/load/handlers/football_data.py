@@ -48,7 +48,7 @@ class FootballDataHandler(CommonHandler):
         try:
             source_session = self.start_load(is_debug=debug_level)
 
-            main_url = 'http://www.football-data.co.uk/data.php'
+            main_url = 'https://www.football-data.co.uk/data.php'
             html = self.get_html(self.main_file, main_url, get_from_file, is_debug_path)
             self.context = html
 

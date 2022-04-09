@@ -1,1 +1,60 @@
 {% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Home{% endblock %}
+
+
+
+{% block content %}
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Synene. Smart Betting System</h1>
+
+
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+
+
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Load all sources" id="load-all" 
+            onclick="process_all_dlg()">Process all forecasting tasks</button >
+          </div>
+        </div>
+      </div>
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+
+    </main>
+
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+
+
+    function process_all_dlg() 
+      {
+        
+        var url = "{% url 'betting:process_all' %}";
+        newForm("#modal",
+                ".modal0-content",
+                "#formProcessAll",
+                url,
+                ".invalid",
+                "#submit-form-process-all-id")
+      };
+
+
+    
+  </script>
+{% endblock %}

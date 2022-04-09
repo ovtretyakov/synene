@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Forecast Handlers{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Selected Odds</h1>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Create new bet" id="create-bet" 
+            onclick="create_bet_dlg()" disabled>Create Bet</button >
+          </div>
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Erase selected odds" id="deselect-odds" 
+            onclick="delete_selected_odds_dlg('')" disabled>Erase odds</button >
+          </div>
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Erase all" id="erase-all" 
+            onclick="delete_selected_odds_dlg('all')">Erase all</button >
+          </div>
+        </div>
+
+
+      </div>
+
+
+
+    <!-- Filter -->
+    <div class="pb-3 mb-1" >
+        <form  method="GET" id="odd-filter-id">
+
+          <input type="hidden" name="hmatch" value="{{hmatch}}">
+          <input type="hidden" name="hleague" value="{{hleague}}">
+          <input type="hidden" name="hodd" value="{{hodd}}">
+
+
+   
+          <!-- row1 -->
+          <div class="form-row">
+                <!-- bookies -->
+                <div class="col-4">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" for="bookie">Bookie</span>
+                    </div>
+                    <select name="bookie" class="custom-select" id="bookie">
+                      <option {% if selected_bookie == 0 %}selected{% endif %} value="0"> All bookies </option>
+                      {% for source in bookies %}
+                        <option {% if selected_bookie == source.id %}selected{% endif %} value="{{ source.id }}"> {{ source.name }} </option>
+                      {% endfor %}                  
+                    </select>
+                  </div>
+                </div>
+                <!-- Show hide objects -->
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" for="show_hidden">Show hidden objects</span>
+                    </div>
+                    <select name="show_hidden" class="custom-select" id="show_hidden">
+                      <option {% if show_hidden == "y" %}selected{% endif %} value="y">Yes</option>
+                      <option {% if show_hidden != "y" %}selected{% endif %} value="n">No</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Bid matches -->
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" for="bid_matches">Bid matches</span>
+                    </div>
+                    <select name="bid_matches" class="custom-select" id="bid_matches">
+                      <option {% if bid_matches != "s" %}selected{% endif %} value="h">Hide</option>
+                      <option {% if bid_matches == "s" %}selected{% endif %} value="s">Show</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-2">
+            <div class="input-group input-group-sm mb-3">
+              <button type="submit" class="btn btn-sm btn-outline-primary col-12">Set Filter</button>
+            </div>
+                </div>
+
+
+          </div>
+
+        </form>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div id="selected-info-id" class="alert alert-info col-sm">Selected: 0, Chance: , Expect:, Odd: </div>
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive small">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th></th>
+              <th></th>
+              <th>Name</th>
+              <th>Success</th>
+              <th>Expect</th>
+              <th>Kelly</th>
+              <th>Odd</th>
+              <th>Period</th>
+              <th>Param</th>
+              <th>Team</th>
+              <th>Yes</th>
+              <th>Bookie</th>
+              <th>Predictor</th>
+              <th>league_id</th>
+              <th>match_id</th>
+              <th>select_id</th>
+              <th>odd_id</th>
+              <th>league_grp</th>
+              <th>match_grp</th>
+              <th>match_bid</th>
+              <th>selected</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var hide_url = "{% url 'betting:hide_selected_odds' %}?odds=0&hodd={{hodd}}&hmatch={{hmatch}}&hleague={{hleague}}";
+          hide_url += "&bookie={{bookie}}&show_hidden={{show_hidden}}&bid_matches={{bid_matches}}"
+          var delete_url = "{% url 'betting:delete_selected_odds' %}?odds=0";
+          if ( type === 'display' ) {
+              var r = "";
+              if (row.league_grp == 1) {
+                  hide_url += "&type=2";
+                  delete_url += "&type=2";
+              } else if(row.match_grp == 1) {
+                  hide_url += "&type=1";
+                  delete_url += "&type=1";
+              }
+              r = 
+                '<button type="button" class="delete-selected-odd btn btn-sm btn-outline-secondary" data-id="' + hide_url + '" title="Hide odds" id="delete-selected-odd">' +
+                '   <span class="fa fa-low-vision"></span>' +
+                '</button>' +
+                '<button type="button" class="delete-selected-odd btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Erase odds" id="delete-selected-odd">' +
+                '   <span class="fa fa-trash"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+
+    var bidIcon = function ( data, type, row ) {
+          var delete_url = "{% url 'betting:deselect_odd' 0 %}";
+          var d = "'" + data + "'";
+          if ( type === 'display' ) {
+              var r = "";
+              if (row.match_grp == 1 && row.match_bid == 1 || 
+                  row.match_grp == 0 && row.league_grp == 0 && row.selected == "b") {
+                  r =
+                  '<button type="button" class="btn btn-sm btn-outline-secondary alert-danger" >' +
+                  '   <span class="fa fa-fire fa-sm "></span>' +
+                  '</button>';
+              }
+              return r;
+          }
+        return data;
+    };
+
+
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': false,
+              'ajax': "{% url 'betting:selected_odd_list_api' %}?format=datatables"+
+                      "&hodd={{hodd}}"+
+                      "&hmatch={{hmatch}}"+
+                      "&hleague={{hleague}}"+
+                      "&show_hidden={{show_hidden}}"+
+                      "&bid_matches={{bid_matches}}",
+              'scrollY':    '600px',
+              'scrollCollapse': true,
+              'paging':     false,
+              'ordering': false,
+              'searching': false,
+              'select': true,
+              'dom': 'Bfrtip',
+              'buttons': [
+                    {
+                        text: 'Erase All',
+                        action: function () {
+                            delete_selected_odds_dlg('all');
+                        }
+                    }
+              ],
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'4em'},
+                  {'data': 'id', 'render': bidIcon,   'orderable': false, 'width':'1em'},
+                  {'data': 'name'},
+                  {'data': 'success_chance'},
+                  {'data': 'result_value'},
+                  {'data': 'kelly'},
+                  {'data': 'odd_value'},
+                  {'data': 'period'},
+                  {'data': 'param'},
+                  {'data': 'team'},
+                  {'data': 'yes'},
+                  {'data': 'bookie_name'},
+                  {'data': 'predictor_name'},
+                  {'data': 'league_id', 'visible': false},
+                  {'data': 'match_id', 'visible': false},
+                  {'data': 'select_id', 'visible': false},
+                  {'data': 'odd_id', 'visible': false},
+                  {'data': 'league_grp', 'visible': false},
+                  {'data': 'match_grp', 'visible': false},
+                  {'data': 'match_bid', 'visible': false},
+                  {'data': 'selected', 'visible': false},
+
+              ],
+
+              'drawCallback': function(settings, json) {
+                $(".update-handler").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formUpdateForecastHandler",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+                $(".delete-selected-odd").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formDeleteSelectedOdds",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+              },
+
+
+              "rowCallback": function( row, data, index ) {
+                  if (data.league_grp == 1) {
+                    $(row).addClass('alert-link alert-primary');
+                  } else if (data.match_grp == 1) {
+                    $(row).addClass('text-info');
+                  }
+              }
+
+      });
+
+      table.on('select', function ( e, dt, type, indexes) {
+        check_selected();
+        });
+      table.on('deselect', function ( e, dt, type, indexes) {
+        check_selected();
+        });
+
+
+    });
+
+
+    function check_selected() {
+      var selected_cnt=0, chance=0.0, expect=0, odd_value=0;
+      var table = $('#main_table').DataTable();
+      var data = table.rows( { selected: true } ).data();
+      for (var i=0; i < data.length ;i++){
+        if (data[i]["league_grp"]==0 && data[i]["match_grp"]==0){
+          selected_cnt++;
+          if (chance==0){
+            chance = data[i]["success_chance"];
+          } else {
+            chance = Math.round(chance*data[i]["success_chance"]*1000)/1000;
+          }
+          if (expect==0){
+            expect = data[i]["result_value"];
+          } else {
+            expect = Math.round(expect*data[i]["result_value"]*1000)/1000;
+          }
+          if (odd_value==0){
+            odd_value = data[i]["odd_value"];
+          } else {
+            odd_value = Math.round(odd_value*data[i]["odd_value"]*1000)/1000;
+          }
+        }
+      }
+
+      var info = "Selected: " + selected_cnt.toString() + 
+                 ", Chance: " + chance.toString() + 
+                 ", Expect: " + expect.toString() + 
+                 ", Odd: " + odd_value.toString();
+      $('#selected-info-id').text(info);
+
+      if (selected_cnt == 0) {
+        $('#create-bet').prop('disabled', true);
+        $('#deselect-odds').prop('disabled', true);
+      } else {
+        $('#create-bet').prop('disabled', false);
+        $('#deselect-odds').prop('disabled', false);
+      }
+    } 
+
+
+    function get_selected_odds() 
+      {
+        var table = $('#main_table').DataTable();
+        var data = table.rows( { selected: true } ).data();
+        var idarray=[]; 
+        for (var i=0; i < data.length ;i++){
+          if (data[i]["league_grp"]==0 && data[i]["match_grp"]==0){
+            idarray.push(data[i]["id"]);
+          }
+        }
+        return idarray.toString();
+      };
+
+
+    function create_bet_dlg() 
+      {
+        var url = "{% url 'betting:create_bet' %}?odds=" + get_selected_odds();
+        newForm("#modal",
+                ".modal0-content",
+                "#formCreateBet",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+    function delete_selected_odds_dlg(sel) 
+      {
+        var odds = sel;
+        if (odds=="") odds = get_selected_odds();
+        var url = "{% url 'betting:delete_selected_odds' %}?odds=" + odds;
+        newForm("#modal",
+                ".modal0-content",
+                "#formDeleteSelectedOdds",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+    
+  </script>
+{% endblock %}
+
+
+

@@ -22,11 +22,14 @@
     
     {% endblock %}
 
+    {% block extra_head %}
+    {% endblock %}
+
   </head>
   <body>
 
   <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Synene</a>
+  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'home' %}">Synene</a>
 <!--   <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
   <ul class="navbar-nav px-3">
     <li class="nav-item text-nowrap">
@@ -115,13 +118,32 @@
 
           <!-- Betting -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'odd_list' %}active{% endif %}" 
+            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'odd_list,selected_odd_list,my_bet_list,transaction_list' %}active{% endif %}" 
               href="#" id="navbarLoad" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"
             >
             <span class="fa fa-bitcoin"></span>
             Betting
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarLoad">
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'selected_odd_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:selected_odd_list' %}">
+                <span class="fa fa-flash"></span>
+                Selected Odds
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'my_bet_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:my_bet_list' %}">
+                <span class="fa fa-fire"></span>
+                My Bets
+              </a>
+              <a class="dropdown-item {% if request.resolver_match.url_name == 'transaction_list' %} active{% endif %}" 
+                id="navbarSources"  href="{% url 'betting:transaction_list' %}">
+                <span class="fa fa-money"></span>
+                Transactions
+              </a>
+
+              <div class="dropdown-divider"></div>
+
+
               <a class="dropdown-item {% if request.resolver_match.url_name == 'odd_list' %} active{% endif %}" 
                 id="navbarSources"  href="{% url 'betting:odd_list' %}">
                 <span class="fa fa-clone"></span>
@@ -144,6 +166,9 @@
                 <span class="fa fa-area-chart"></span>
                 Distributions
               </a>
+
+              <div class="dropdown-divider"></div>
+            
               <a class="dropdown-item {% if request.resolver_match.url_name == 'harvest_handler_list' %} active{% endif %}" 
                 id="navbarSources"  href="{% url 'betting:harvest_handler_list' %}">
                 <span class="fa fa-navicon"></span>
@@ -154,6 +179,9 @@
                 <span class="fa fa-user-o"></span>
                 Harvestors
               </a>
+
+              <div class="dropdown-divider"></div>
+            
               <a class="dropdown-item {% if request.resolver_match.url_name == 'forecast_handler_list' %} active{% endif %}" 
                 id="navbarSources"  href="{% url 'betting:forecast_handler_list' %}">
                 <span class="fa fa-navicon"></span>
@@ -164,6 +192,9 @@
                 <span class="fa fa-cogs"></span>
                 Predictors
               </a>
+
+              <div class="dropdown-divider"></div>
+            
               <a class="dropdown-item {% if request.resolver_match.url_name == 'forecast_set_list' %} active{% endif %}" 
                 id="navbarSources"  href="{% url 'betting:forecast_set_list' %}">
                 <span class="fa fa-ellipsis-h"></span>
@@ -265,11 +296,17 @@
         </div>
       </div>
 
+      <div class="modal fade" tabindex="-1" role="dialog" id="modalxl">
+        <div class="modal-dialog modal-xl" role="document">
+          <div class="modalxl-content modal-content">
+          </div>
+        </div>
+      </div>
+
     {% endblock modal %}
 
 
     {% block javascript %}
-
 
 
       <script src="{% static 'js/project.js' %}"></script>

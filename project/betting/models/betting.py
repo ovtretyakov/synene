@@ -173,6 +173,11 @@ class Odd(Mergable, models.Model):
     PART_FAIL     = 'fp'
     FAIL          = 'f'
 
+    #Select
+    UNSELECTED     = 'u'
+    SELECTED      = 's'
+    BID           = 'b'
+
     YES_CHOICES = (
         ('Y', 'Yes'),
         ('N', 'No'),
@@ -194,7 +199,11 @@ class Odd(Mergable, models.Model):
         (PART_FAIL, 'Part fail'),
         (FAIL, 'Fail'),
     )
-
+    SELECT_CHOICES = (
+        (UNSELECTED, 'Unselected'),
+        (SELECTED, 'Selected'),
+        (BID, 'Bid'),
+    )
 
     match = models.ForeignKey(Match, on_delete=models.CASCADE, verbose_name='Match')
     bet_type = models.ForeignKey(BetType, on_delete=models.PROTECT, verbose_name='Bet type')
@@ -214,7 +223,7 @@ class Odd(Mergable, models.Model):
                                     verbose_name='Source', related_name='betting_odd_source_fk')
     odd_update = models.DateTimeField('Odd update', null=True, blank=True)
     result_update = models.DateTimeField('Result update', null=True, blank=True)
-
+    selected = models.CharField('Selected', max_length=5, choices=SELECT_CHOICES, null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -241,7 +250,14 @@ class Odd(Mergable, models.Model):
             #method is called from real class (not from class Odd)
             bet_type = BetType.objects.get(slug=cls.own_bet_type()) 
             try:
-                obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                obj = cls.objects.get(match_id=match.id,
+                                      bet_type_id=bet_type.id,
+                                      bookie_id=bookie.id,
+                                      value_type_id=value_type.id,
+                                      period=period,
+                                      yes=yes,
+                                      team=team,
+                                      param=param)
             except cls.DoesNotExist:
                 obj = None
         else:
@@ -252,12 +268,26 @@ class Odd(Mergable, models.Model):
             if not real_cls:
                 #cant find real class handler - create default class 
                 try:
-                    obj = cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                    obj = cls.objects.get(match_id=match.id,
+                                          bet_type_id=bet_type.id,
+                                          bookie_id=bookie.id,
+                                          value_type_id=value_type.id,
+                                          period=period,
+                                          yes=yes,
+                                          team=team,
+                                          param=param)
                 except cls.DoesNotExist:
                     obj = None
             else:
                 try:
-                    obj = real_cls.objects.get(match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,period=period,yes=yes,team=team,param=param)
+                    obj = real_cls.objects.get(match_id=match.id,
+                                               bet_type_id=bet_type.id,
+                                               bookie_id=bookie.id,
+                                               value_type_id=value_type.id,
+                                               period=period,
+                                               yes=yes,
+                                               team=team,
+                                               param=param)
                 except real_cls.DoesNotExist:
                     obj = None
         return obj
@@ -311,11 +341,11 @@ class Odd(Mergable, models.Model):
         try:
             if bookie:
                 odd = cls.objects.select_related('load_source').get(
-                                      match=match,bet_type=bet_type,bookie=bookie,value_type=value_type,
+                                      match_id=match.id,bet_type_id=bet_type.id,bookie_id=bookie.id,value_type_id=value_type.id,
                                       period=period,yes=yes,team=team,param=param)
             else:
                 odd = cls.objects.select_related('load_source').get(
-                                      match=match,bet_type=bet_type,bookie__isnull=True,value_type=value_type,
+                                      match_id=match.id,bet_type_id=bet_type.id,bookie__isnull=True,value_type_id=value_type.id,
                                       period=period,yes=yes,team=team,param=param)
         except Odd.DoesNotExist:
             odd = None
@@ -395,6 +425,17 @@ class Odd(Mergable, models.Model):
         if value < 0:
             raise ValueError('Invalid bet value: %s' % value)
         return value
+
+    @classmethod
+    def update_selected(cls, odd_id):
+        from .my_betting import SelectedOdd, BetOdd
+        selected = Odd.UNSELECTED
+        if BetOdd.objects.filter(odd_id=odd_id).exists():
+            selected = Odd.BID
+        elif SelectedOdd.objects.filter(odd_id=odd_id).exists():
+            selected = Odd.SELECTED
+        Odd.objects.filter(pk=odd_id).update(selected=selected)    
+
 
     def get_own_object(self):
         real_cls = globals().get(self.bet_type.handler)
@@ -503,6 +544,10 @@ class Odd(Mergable, models.Model):
                 self.status = Odd.FINISHED
                 self.result_update = timezone.now()
                 self.save()
+                if self.selected == Odd.BID:
+                    from .my_betting import BetOdd
+                    BetOdd.settle_by_odd(self)
+
 
     def get_result_of_periods(self, period1, period2):
         #first half

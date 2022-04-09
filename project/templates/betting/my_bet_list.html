@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}Forecast Handlers{% endblock %}
+
+{% block content %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">My Bets</h1>
+
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Create new bet" id="create-bet" 
+            onclick="create_bet_dlg()" disabled>Create Bet</button >
+          </div>
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Erase selected odds" id="deselect-odds" 
+            onclick="delete_selected_odds_dlg('')" disabled>Erase odds</button >
+          </div>
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Erase all" id="erase-all" 
+            onclick="delete_selected_odds_dlg('all')">Erase all</button >
+          </div>
+        </div>
+
+
+      </div>
+
+
+
+    <!-- Filter -->
+    <div class="pb-3 mb-1" >
+        <form  method="GET" id="odd-filter-id">
+
+          <input type="hidden" name="hmatch" value="{{hmatch}}">
+          <input type="hidden" name="hleague" value="{{hleague}}">
+          <input type="hidden" name="hodd" value="{{hodd}}">
+
+
+   
+          <!-- row1 -->
+          <div class="form-row">
+                <!-- bookies -->
+                <div class="col-4">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" for="bookie">Bookie</span>
+                    </div>
+                    <select name="bookie" class="custom-select" id="bookie">
+                      <option {% if selected_bookie == 0 %}selected{% endif %} value="0"> All bookies </option>
+                      {% for source in bookies %}
+                        <option {% if selected_bookie == source.id %}selected{% endif %} value="{{ source.id }}"> {{ source.name }} </option>
+                      {% endfor %}                  
+                    </select>
+                  </div>
+                </div>
+                <!-- date_from -->
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="label_from">From</span>
+                    </div>
+                    <input type="text" name="date_from" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_from" value="{{date_from}}">
+                  </div>
+                </div>
+                <!-- date_to -->
+                <div class="col-2">
+                  <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="label_to">To</span>
+                    </div>
+                    <input type="text" name="date_to" class="form-control" placeholder="DD.MM.YYYY" aria-describedby="label_to" value="{{date_to}}">
+                  </div>
+                </div>
+            <div class="col-2">
+            <div class="input-group input-group-sm mb-3">
+              <button type="submit" class="btn btn-sm btn-outline-primary col-12">Set Filter</button>
+            </div>
+                </div>
+
+
+          </div>
+
+        </form>
+    </div>
+
+
+
+
+
+
+
+      {% if messages %}
+          {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
+          {% endfor %}
+      {% endif %}
+
+
+      <div class="table-responsive small">
+        <table id="main_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Result</th>
+              <th>Type</th>
+              <th>Cnt</th>
+              <th>Date</th>
+              <th>Success</th>
+              <th>Odd</th>
+              <th>Expect</th>
+              <th>Kelly</th>
+              <th>Real</th>
+              <th>Amt</th>
+              <th>Win</th>
+              <th>Bookie</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </main>
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ block.super }} 
+  <script>
+    var editIcons = function ( data, type, row ) {
+          var detail_url = "{% url 'betting:my_bet_detail' 0 %}";
+          var update_url = "{% url 'betting:create_bet' %}?type=update&bet_id=0";
+          var settle_url = "{% url 'betting:create_bet' %}?type=settle&bet_id=0";
+          var delete_url = "{% url 'betting:my_bet_delete' 0 %}";
+          if ( type === 'display' ) {
+              var r = "";
+              r = 
+                '<button type="button" class="my-bet-detail btn btn-sm btn-outline-secondary" data-id="' + detail_url + '" title="View my bet" id="my-bet-detail">' +
+                '   <span class="fa fa-eye"></span>' +
+                '</button>' +
+                '<button type="button" class="my-bet-update btn btn-sm btn-outline-secondary" data-id="' + update_url + '" title="Update my bet" id="my-bet-update">' +
+                '   <span class="fa fa-pencil"></span>' +
+                '</button>' +
+                '<button type="button" class="my-bet-settle btn btn-sm btn-outline-secondary" data-id="' + settle_url + '" title=Settle bet" id="my-bet-settle">' +
+                '   <span class="fa fa-check"></span>' +
+                '</button>' +
+                '<button type="button" class="my-bet-delete btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete my bet" id="my-bet-delete">' +
+                '   <span class="fa fa-trash"></span>' +
+                '</button>'
+              ;
+              r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
+              r = r.replace(new RegExp('=0', 'g'), '='+data);
+              return r;
+          }
+        return data;
+    };
+
+
+    var bidIcon = function ( data, type, row ) {
+          var delete_url = "{% url 'betting:deselect_odd' 0 %}";
+          var d = "'" + data + "'";
+          if ( type === 'display' ) {
+              var r = "";
+              if (row.match_grp == 1 && row.match_bid == 1 || 
+                  row.match_grp == 0 && row.league_grp == 0 && row.selected == "b") {
+                  r =
+                  '<button type="button" class="btn btn-sm btn-outline-secondary alert-danger" >' +
+                  '   <span class="fa fa-fire fa-sm "></span>' +
+                  '</button>';
+              }
+              return r;
+          }
+        return data;
+    };
+
+
+
+    $(document).ready(function () {
+      // $("a.nav-link").removeClass("active");//this will remove the active class from  previously active menu item 
+      // $('#navbarOrders').addClass('active');      
+
+      var table = $('#main_table').DataTable({
+              'serverSide': true,
+              'ajax': "{% url 'betting:my_bet_api' %}?format=datatables" +
+                      "&selected_bookie={{selected_bookie}}" +
+                      "&date_from={{date_from}}" +
+                      "&date_to={{date_to}}",
+              'order': [[ 6, 'asc' ]],
+              'select': true,
+              'columns': [
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'9em'},
+                  {'data': 'name'},
+                  {'data': 'status'},
+                  {'data': 'result'},
+                  {'data': 'betting_type'},
+                  {'data': 'odd_cnt'},
+                  {'data': 'ins_time'},
+                  {'data': 'success_chance'},
+                  {'data': 'odd_value'},
+                  {'data': 'expect_value'},
+                  {'data': 'kelly'},
+                  {'data': 'result_value'},
+                  {'data': 'bet_amt'},
+                  {'data': 'win_amt'},
+                  {'data': 'bookie.name'},
+              ],
+
+              'drawCallback': function(settings, json) {
+
+
+                $(".my-bet-detail").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modalxl",
+                        modalContent: ".modalxl-content",
+                        modalForm: "#formMyBetDetail",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".my-bet-update").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formCreateBet",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".my-bet-settle").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formCreateBet",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".my-bet-delete").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modalxl",
+                        modalContent: ".modalxl-content",
+                        modalForm: "#formMyBetDetail",
+                        submitBtn: "#submit-form-id",
+                        isDeleteForm: true
+                      }
+                    );
+                  });
+              },
+
+
+      });
+
+
+    });
+
+
+    function create_bet_dlg() 
+      {
+        var url = "{% url 'betting:create_bet' %}?odds=" + get_selected_odds();
+        newForm("#modal",
+                ".modal0-content",
+                "#formCreateBet",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+    function delete_selected_odds_dlg(sel) 
+      {
+        var odds = sel;
+        if (odds=="") odds = get_selected_odds();
+        var url = "{% url 'betting:delete_selected_odds' %}?odds=" + odds;
+        newForm("#modal",
+                ".modal0-content",
+                "#formDeleteSelectedOdds",
+                url,
+                ".invalid",
+                "#submit-form-id")
+      };
+
+ 
+  </script>
+{% endblock %}
+
+
+

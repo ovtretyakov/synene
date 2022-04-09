@@ -34,7 +34,7 @@ USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
 USE_L10N = False
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
-USE_TZ = True
+USE_TZ = False
 
 DECIMAL_SEPARATOR='.'
 
@@ -84,6 +84,7 @@ LOCAL_APPS = [
     "project.betting.apps.BettingConfig",
     "project.load.apps.LoadConfig",
     "project.background.apps.BackgroundConfig",
+    "project.graphos",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

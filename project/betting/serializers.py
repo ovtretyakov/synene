@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
 from project.core.helpers import DisplayChoiceField
-from .models import (Odd, VOdd, 
+from project.core.models import Match
+from .models import (Odd, VOdd, BetType,
                      HarvestHandler, Harvest, HarvestConfig, HarvestGroup, 
-                     ForecastHandler, Predictor, ForecastSet,
-                     Distribution
+                     ForecastHandler, Predictor, ForecastSet, Forecast, ForecastSandbox,
+                     Distribution, Bet, BetOdd, Transaction
                      )
 
 
@@ -41,6 +42,11 @@ class OddSerializer(serializers.ModelSerializer):
                     "result_value", 
                     )
 
+
+class BetTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BetType
+        fields =    ("id", "slug", "name", "description", "handler",)
 
 
 class HarvestHandlerSerializer(serializers.ModelSerializer):
@@ -102,3 +108,121 @@ class DistributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Distribution
         fields = ("id", "slug", "name", "gathering_date", "start_date", "end_date", "interpolation", "step")
+
+
+class ForecastMatchesSerializer(serializers.Serializer):
+    match_id = serializers.IntegerField()
+    league_name = serializers.CharField(max_length=100)
+    name_h = serializers.CharField(max_length=100)
+    name_a = serializers.CharField(max_length=100)
+    match_score = serializers.CharField(max_length=20)
+    match_date = serializers.DateField(format="%d.%m.%Y")
+    odds = serializers.IntegerField()
+    odds_plus = serializers.IntegerField()
+    match_status = DisplayChoiceField(choices = Match.STATUS_CHOICES)
+    best_chance = serializers.DecimalField(max_digits=10, decimal_places=3)
+    best_result_value = serializers.DecimalField(max_digits=10, decimal_places=3)
+    best_kelly = serializers.DecimalField(max_digits=10, decimal_places=3)
+
+
+class ForecastSerializer(serializers.ModelSerializer):
+    odd_status = DisplayChoiceField(choices = Odd.RESULT_CHOICES)
+    growth = serializers.DecimalField(max_digits=10, decimal_places=3)
+    class Meta:
+        model = ForecastSandbox
+        fields = ("id", "predictor", "success_chance", "lose_chance", "result_value", "kelly", "odd", "odd_status", "growth", )
+        depth = 2
+
+
+class PreviousMatchesSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    result = serializers.CharField(max_length=5)
+    ha = serializers.CharField(max_length=5)
+    match_date = serializers.DateField(format="%d.%m.%Y")
+    score = serializers.CharField(max_length=20)
+    team_h_id = serializers.IntegerField()
+    team_a_id = serializers.IntegerField()
+    h_name = serializers.CharField(max_length=100)
+    a_name = serializers.CharField(max_length=100)
+    gx = serializers.CharField(max_length=20)
+    fore_gx = serializers.CharField(max_length=20)
+    fore_g = serializers.CharField(max_length=20)
+
+
+class SeasonChartSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    n = serializers.IntegerField()
+    team_name = serializers.CharField(max_length=100)
+    m = serializers.IntegerField()
+    w = serializers.IntegerField()
+    d = serializers.IntegerField()
+    l = serializers.IntegerField()
+    g = serializers.IntegerField()
+    ga = serializers.IntegerField()
+    pts = serializers.IntegerField()
+
+
+class SelectedOddsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    league_id = serializers.IntegerField()
+    match_id = serializers.IntegerField()
+    select_id = serializers.IntegerField()
+    odd_id = serializers.IntegerField()
+    league_grp = serializers.IntegerField()
+    match_grp = serializers.IntegerField()
+    match_bid = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+    success_chance = serializers.DecimalField(max_digits=10, decimal_places=3)
+    lose_chance = serializers.DecimalField(max_digits=10, decimal_places=3)
+    result_value = serializers.DecimalField(max_digits=10, decimal_places=3)
+    kelly = serializers.DecimalField(max_digits=10, decimal_places=3)
+    odd_value = serializers.DecimalField(max_digits=10, decimal_places=3)
+    period = serializers.IntegerField()
+    param = serializers.CharField(max_length=100)
+    team = serializers.CharField(max_length=10)
+    yes = serializers.CharField(max_length=10)
+    bookie_name = serializers.CharField(max_length=255)
+    predictor_name = serializers.CharField(max_length=255)
+    selected = serializers.CharField(max_length=10)
+
+
+class MyBetSerializer(serializers.ModelSerializer):
+    status = DisplayChoiceField(choices = Bet.STATUS_CHOICES)
+    result = DisplayChoiceField(choices = Bet.RESULT_CHOICES)
+    betting_type = DisplayChoiceField(choices = Bet.BETTING_TYPE_CHOICES)
+    ins_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    min_date = serializers.DateField(format="%d.%m.%y")
+    max_date = serializers.DateField(format="%d.%m.%y")
+    class Meta:
+        model = Bet
+        fields = ("id", "bookie", "name", "status", "result", "betting_type", "odd_cnt", "ins_time", "min_date", "max_date",
+                  "success_chance", "lose_chance", "odd_value", "expect_value", "kelly", "bet_amt", "result_value", "win_amt",
+                 )
+        depth = 1
+
+
+class BetOddSerializer(serializers.ModelSerializer):
+    status = DisplayChoiceField(choices = Bet.STATUS_CHOICES)
+    result = DisplayChoiceField(choices = Bet.RESULT_CHOICES)
+    ins_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    settled_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    finish_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    match_date = serializers.DateField(format="%d.%m.%y")
+    match_name = serializers.CharField(max_length=255)
+    class Meta:
+        model = BetOdd
+        fields = ("id", "match", "odd", "status", "result", "ins_time", "settled_time", "finish_time", "predictor", "match_date",
+                  "harvest", "success_chance", "lose_chance", "odd_value", "expect_value", "kelly", "result_value", "match_name",
+                 )
+        depth = 2
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    trans_type = DisplayChoiceField(choices = Transaction.TYPE_CHOICES)
+    ins_time = serializers.DateTimeField(format="%d.%m.%y %H:%M:%S")
+    trans_date = serializers.DateField(format="%d.%m.%y")
+    class Meta:
+        model = Transaction
+        fields = ("id", "bookie", "trans_type", "trans_date", "ins_time", "amount", "comment", )
+        depth = 1
+    

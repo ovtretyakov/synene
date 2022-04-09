@@ -8,7 +8,7 @@ from .models import ErrorLog, SourceDetail, SourceSession
 class LoadSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoreModels.LoadSource
-        fields = ("id", "name", "reliability", "load_date", "error_limit", "is_loadable", "is_betting", "error_text")
+        fields = ("id", "name", "reliability", "load_date", "error_limit", "is_loadable", "is_betting", "error_text", "saldo_amt", )
 
 
 class ErrorLogSerializer(serializers.ModelSerializer):

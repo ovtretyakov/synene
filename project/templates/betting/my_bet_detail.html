@@ -1,0 +1,266 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}
+      {% if delete_action %}
+        Deleting my bet
+      {% else %}
+        My bet details
+      {% endif %}
+{% endblock %}
+{% block form_id %}formMyBetDetail{% endblock form_id %}
+
+{% block modal-body %}
+
+  <input type="hidden" name="bet_id" class="form-control" value="{{object.id}}">
+
+  <!-- Row1 -->
+  <div class="form-row">
+      <!-- bookie -->
+      <div class="col-6">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_bookie">Bookie</span>
+          </div>
+          <input type="text" name="bookie" class="form-control" aria-describedby="label_bookie" value="{{object.bookie.name}}" disabled>
+        </div>
+      </div>
+      <!-- status -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_status">Status</span>
+          </div>
+          <input type="text" name="status" class="form-control" aria-describedby="label_status" value="{{object.get_status_display}}" disabled>
+        </div>
+      </div>
+      <!-- result -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_result">Result</span>
+          </div>
+          <input type="text" name="result" class="form-control" aria-describedby="label_result" value="{{object.get_result_display}}" disabled>
+        </div>
+      </div>
+  </div>
+
+
+  <!-- Row2 -->
+  <div class="form-row">
+      <!-- betting_type -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_betting_type">Type</span>
+          </div>
+          <input type="text" name="betting_type" class="form-control" aria-describedby="label_betting_type" value="{{object.get_betting_type_display}}" disabled>
+        </div>
+      </div>
+      <!-- odd_cnt -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_odd_cnt">Cnt</span>
+          </div>
+          <input type="text" name="odd_cnt" class="form-control" aria-describedby="label_odd_cnt" value="{{object.odd_cnt}}" disabled>
+        </div>
+      </div>
+      <!-- ins_time -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_ins_time">Created</span>
+          </div>
+          <input type="text" name="ins_time" class="form-control" aria-describedby="label_ins_time" value="{{object.ins_time}}" disabled>
+        </div>
+      </div>
+      <!-- finish_time -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_finish_time">Finished</span>
+          </div>
+          <input type="text" name="finish_time" class="form-control" aria-describedby="label_finish_time" value="{{object.finish_time}}" disabled>
+        </div>
+      </div>
+  </div>
+
+
+  <!-- Row3 -->
+  <div class="form-row">
+      <!-- success_chance -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_success_chance">Success</span>
+          </div>
+          <input type="text" name="success_chance" class="form-control" aria-describedby="label_success_chance" value="{{object.success_chance}}" disabled>
+        </div>
+      </div>
+      <!-- lose_chance -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_lose_chance">Lose</span>
+          </div>
+          <input type="text" name="lose_chance" class="form-control" aria-describedby="label_lose_chance" value="{{object.lose_chance}}" disabled>
+        </div>
+      </div>
+      <!-- expect_value -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_expect_value">Expect</span>
+          </div>
+          <input type="text" name="expect_value" class="form-control" aria-describedby="label_expect_value" value="{{object.expect_value}}" disabled>
+        </div>
+      </div>
+      <!-- kelly -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_kelly">Kelly</span>
+          </div>
+          <input type="text" name="kelly" class="form-control" aria-describedby="label_kelly" value="{{object.kelly}}" disabled>
+        </div>
+      </div>
+  </div>
+
+  <!-- Row4 -->
+  <div class="form-row">
+      <!-- odd_value -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_odd_value">Odd</span>
+          </div>
+          <input type="text" name="odd_value" class="form-control" aria-describedby="label_odd_value" value="{{object.odd_value}}" disabled>
+        </div>
+      </div>
+      <!-- result_value -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_result_value">Result</span>
+          </div>
+          <input type="text" name="result_value" class="form-control" aria-describedby="label_result_value" value="{{object.result_value}}" disabled>
+        </div>
+      </div>
+      <!-- bet_amt -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_bet_amt">Bet</span>
+          </div>
+          <input type="text" name="bet_amt" class="form-control" aria-describedby="label_bet_amt" value="{{object.bet_amt}}" disabled>
+        </div>
+      </div>
+      <!-- win_amt -->
+      <div class="col-3">
+        <div class="input-group input-group-sm mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="label_win_amt">Win</span>
+          </div>
+          <input type="text" name="win_amt" class="form-control" aria-describedby="label_win_amt" value="{{object.win_amt}}" disabled>
+        </div>
+      </div>
+  </div>
+
+
+
+
+      <div class="table-responsive small">
+        <table id="bet_odd_table" class="order-column table table-striped table-sm table-bordered" style="width:100%">
+          <thead>
+            <tr>
+            <tr>
+              <th width='10em'>League</th>
+              <th width='10em'>Match</th>
+              <th>Score</th>
+              <th>Result</th>
+              <th>Success</th>
+              <th>Expect</th>
+              <th>Kelly</th>
+              <th>Name</th>
+              <th>Odd</th>
+              <th>R.Odd</th>
+              <th>Period</th>
+              <th>Param</th>
+              <th>Team</th>
+              <th>Yes</th>
+            </tr>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+
+  <script>
+
+    $(document).ready(function () {
+
+      var table = $('#bet_odd_table').DataTable({
+              'serverSide': false,
+              'ajax': "{% url 'betting:bet_odd_api' object.id %}?format=datatables",
+              'colReorder': true,
+              'scrollY':    '300px',
+              'scrollCollapse': true,
+              'paging':     false,
+              'columns': [
+                  {'data': 'match.league.name'},
+                  {'data': 'match_name'},
+                  {'data': 'match.score'},
+                  {'data': 'result'},
+                  {'data': 'success_chance'},
+                  {'data': 'expect_value'},
+                  {'data': 'kelly'},
+                  {'data': 'odd.bet_type.name'},
+                  {'data': 'odd_value'},
+                  {'data': 'result_value'},
+                  {'data': 'odd.period'},
+                  {'data': 'odd.param'},
+                  {'data': 'odd.team'},
+                  {'data': 'odd.yes'},
+              ],
+
+
+              "rowCallback": function( row, data, index ) {
+                  if (data.result == "Fail") {
+                    $(row).addClass('text-danger');
+                  } else if (data.result == "Success" || data.result == "Part success") {
+                    $(row).addClass('text-success');
+                  } else if (data.result == "Return" || data.result == "Part fail") {
+                    $(row).addClass('text-primary');
+                  }
+              }
+
+
+      });
+
+
+    });
+
+  </script>
+
+
+
+
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+{% block modal-footer %}
+  <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{% block button-close %}Close{% endblock button-close %}</button>
+  {% if delete_action %}
+      <button type="button" class="submit-btn btn btn-primary btn-sm" id="submit-form-id">Delete</button>
+  {% endif %}
+{% endblock%}

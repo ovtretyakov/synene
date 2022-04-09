@@ -59,5 +59,40 @@ urlpatterns = [
     url(r'^odds/distribution/update/(?P<pk>\d+)/$', views.DistributionUpdateView.as_view(), name='update_distribution'),
     url(r'^odds/distribution/delete/(?P<pk>\d+)/$', views.DistributionDeleteView.as_view(), name='delete_distribution'),
     url(r'^odds/distribution/gather/(?P<pk>\d+)/$', views.DistributionGatheringView.as_view(), name='gather_distribution'),
+    #forecast matches
+    url(r'^odds/forecast/set/matches/(?P<forecast_set>\d+)/$', views.ForecastMatchesView.as_view(), name='forecast_match_list'),
+    url(r'^odds/forecast/set/matches/(?P<forecast_set>\d+)/api/$', views.ForecastMatchesAPI.as_view(), name='forecast_match_list_api'),
+    url(r'^odds/forecast/set/(?P<forecast_set>\d+)/(?P<pk>\d+)/$', views.ForecastMatchDetail.as_view(), name='forecast_match_detail'),
+    url(r'^odds/forecast/previous/matches/(?P<match>\d+)/(?P<team>[ah]+)/api/$', views.PreviousMatchesAPI.as_view(), name='previous_matches_api'),
+    url(r'^odds/season/chart/(?P<match>\d+)/api/$', views.SeasonChartAPI.as_view(), name='season_chart_api'),
+    url(r'^odds/forecast/match/update/(?P<forecast_set>\d+)/(?P<pk>\d+)/$', views.MatchXGUpdateView.as_view(), name='forecast_match_xg_update'),
+    url(r'^odds/forecast/match/restore/(?P<forecast_set>\d+)/(?P<pk>\d+)/$', views.MatchXGRestoreView.as_view(), name='forecast_match_xg_restore'),
+    #forecast
+    url(r'^odds/forecast/(?P<forecast_set>\d+)/(?P<match>\d+)/$', views.ForecastAPI.as_view(), name='forecast_odd_api'),
+    #bet type
+    url(r'^odds/bet_type/select/$', views.SelectBetTypeView.as_view(), name='select_bet_type'),
+    url(r'^odds/bet_type/api/$', views.BetTypeAPI.as_view(), name='bet_type_api'),
+    #process all
+    url(r'^odds/process/all/$', views.ProccessAllView.as_view(), name='process_all'),
+    #select all
+    url(r'^odds/pick/$', views.PickOddsView.as_view(), name='pick_odds'),
+    url(r'^odds/deselect/(?P<pk>\d+)/$', views.DeselectOddView.as_view(), name='deselect_odd'),
+    #selected odd
+    url(r'^odds/selected/$', views.SelectedOddsView.as_view(), name='selected_odd_list'),
+    url(r'^odds/selected/api/$', views.SelectedOddListAPI.as_view(), name='selected_odd_list_api'),
+    url(r'^odds/selected/delete/$', views.SelectedOddsDeleteView.as_view(), name='delete_selected_odds'),
+    url(r'^odds/selected/hide/$', views.SelectedOddsHideView.as_view(), name='hide_selected_odds'),
+    #Bet
+    url(r'^odds/bet/$', views.MyBetView.as_view(), name='my_bet_list'),
+    url(r'^odds/bet/api/$', views.MyBetAPI.as_view(), name='my_bet_api'),
+    url(r'^odds/bet/create/$', views.CreateBetView.as_view(), name='create_bet'),
+    url(r'^odds/bet/detail/(?P<pk>\d+)/$', views.MyBetDetail.as_view(), name='my_bet_detail'),
+    url(r'^odds/bet/odd/(?P<pk>\d+)/$', views.BetOddAPI.as_view(), name='bet_odd_api'),
+    url(r'^odds/bet/delete/(?P<pk>\d+)/$', views.MyBetDelete.as_view(), name='my_bet_delete'),
+    #Transaction
+    url(r'^odds/transaction/$', views.TransactionView.as_view(), name='transaction_list'),
+    url(r'^odds/transaction/api/$', views.TransactionAPI.as_view(), name='transaction_api'),
+    url(r'^odds/transaction/create/$', views.TransactionCreateView.as_view(), name='create_transaction'),
+    url(r'^odds/transaction/delete/(?P<pk>\d+)/$', views.TransactionDeleteView.as_view(), name='delete_transaction'),
     ####
 ]

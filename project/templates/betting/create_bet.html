@@ -1,0 +1,195 @@
+{% extends "base_modal_form.html" %}
+{% load widget_tweaks %}
+{% block title %}
+    {% if not bet_id %}
+        Create bet
+    {% elif action_type == "update" %}
+        Update bet
+    {% elif action_type == "settle" %}
+        Settle bet
+    {% else %}
+        Unknown
+    {% endif %}
+{% endblock %}
+{% block form_id %}formCreateBet{% endblock form_id %}
+
+
+{% block modal-body %}
+
+
+    {% if not bet_id %}
+        <div class="alert alert-info" role="alert">
+          <p class="lead">Are you sure to create bet?</p>
+        </div>
+    {% endif %}
+
+
+
+  <input type="text" name="action_type" value={{ action_type }} hidden>
+  <input type="text" name="bet_id" value={{ bet_id }} hidden>
+
+
+
+    <div class="card mb-2">
+      <div class="card-body">
+          <input type="text" name="bookie_id" value={{ bookie_id }} hidden>
+
+          <div class="form-row">
+
+              <div class="col-6">
+                    <h5 class="card-title">{{bookie_name}}</h5>
+              </div>
+    {% if action_type == "settle" %}
+              <!-- finished -->
+              <div class="col-3">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="finished">Finished</span>
+                  </div>
+                  <input type="checkbox" name="finished" class="form-control" aria-describedby="label_finished" value="1" checked>
+                </div>
+              </div>
+              <!-- Win_amt -->
+              <div class="col-3">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="win_amt">Win amt</span>
+                  </div>
+                  <input type="text" name="win_amt" class="form-control" aria-describedby="label_win_amt" value="{{win_amt}}">
+                </div>
+              </div>
+    {% else %}
+              <!-- bet_amt -->
+              <div class="col-4">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="bet_amt">Bet amt</span>
+                  </div>
+                  <input type="text" name="bet_amt" class="form-control" aria-describedby="label_bet_amt" value="{{bet_amt}}">
+                </div>
+              </div>
+    {% endif %}
+
+          </div>
+
+      </div>
+    </div>
+
+
+{% for item in items %}
+
+
+    <div class="card mb-2">
+      <div class="card-body">
+          <h5 class="card-title">{{item.h_name}} - {{item.a_name}}</h5>
+          <h6 class="card-title">{{item.league_name}}</h6>
+
+          <input type="text" name="id" value={{ item.id }} hidden>
+          <input type="text" name="odd_id-{{ item.id }}" value={{ item.odd_id }} hidden>
+          <input type="text" name="predictor_id-{{ item.id }}" value={{ item.predictor_id }} hidden>
+          <input type="text" name="match_id-{{ item.id }}" value={{ item.match_id }} hidden>
+          <input type="text" name="harvest_id-{{ item.id }}" value={{ item.harvest_id }} hidden>
+          <input type="text" name="success_chance-{{ item.id }}" value={{ item.success_chance }} hidden>
+          <input type="text" name="lose_chance-{{ item.id }}" value={{ item.lose_chance }} hidden>
+
+          <div class="form-row">
+
+              <!-- odd_name -->
+              <div class="col-3">
+                <div class="input-group input-group-sm mb-3">
+                  <input type="text" name="odd_name-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_name}}" readonly>
+                </div>
+              </div>
+
+              <!-- period -->
+              <div class="col-2">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="period-{{ item.id }}">Period</span>
+                  </div>
+                  <input type="text" name="period-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_period}}" readonly>
+                </div>
+              </div>
+
+              <!-- param -->
+              <div class="col-2">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="param-{{ item.id }}">Param</span>
+                  </div>
+                  <input type="text" name="param-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_param}}" readonly>
+                </div>
+              </div>
+
+              <!-- team -->
+              <div class="col-2">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="team-{{ item.id }}">Team</span>
+                  </div>
+                  <input type="text" name="team-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_team}}" readonly>
+                </div>
+              </div>
+
+              <!-- yes -->
+              <div class="col-1">
+                <div class="input-group input-group-sm mb-3">
+                  <input type="text" name="yes-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_yes}}" readonly>
+                </div>
+              </div>
+
+              <!-- odd_value -->
+              <div class="col-2">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="odd_value-{{ item.id }}">Odd</span>
+                  </div>
+                  <input type="text" name="odd_value-{{ item.id }}" class="form-control" aria-describedby="label_odd_name" value="{{item.odd_value}}"
+    {% if action_type == "settle" %}
+        readonly
+    {% endif %}
+                  >
+                </div>
+              </div>
+
+          </div>
+
+
+    {% if action_type == "settle" %}
+          <div class="form-row justify-content-end">
+              <!-- result_value -->
+              <div class="col-2">
+                <div class="input-group input-group-sm mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" for="result_value-{{ item.id }}">Real</span>
+                  </div>
+                  <input type="text" name="result_value-{{ item.id }}" class="form-control" aria-describedby="label_result_value" value="{{item.result_value}}">
+                </div>
+              </div>
+          </div>
+    {% else %}
+          <input type="text" name="result_value-{{ item.id }}" value={{ item.result_value }} hidden>
+    {% endif %}
+
+
+
+      </div>
+    </div>
+
+      {% endfor %}
+
+
+{% endblock %}
+
+
+{% block button-action %}
+    {% if not bet_id %}
+        Create bet
+    {% elif action_type == "update" %}
+        Update bet
+    {% elif action_type == "settle" %}
+        Settle bet
+    {% else %}
+        Unknown
+    {% endif %}
+{% endblock %}

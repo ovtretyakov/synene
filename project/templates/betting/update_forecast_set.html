@@ -22,33 +22,17 @@
 
   <!-- Row2 -->
   <div class="form-row">
-    <!-- keep_only_best -->
-    <div class="form-group col-sm">
-      {% render_field form.keep_only_best|add_label_class:"col-form-label"  %}
-      {% render_field form.keep_only_best|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.keep_only_best.label %}
-      <div class="text-danger">{{form.keep_only_best.errors}}</div>
-    </div>
-    <!-- only_finished -->
-    <div class="form-group col-sm">
-      {% render_field form.only_finished|add_label_class:"col-form-label"  %}
-      {% render_field form.only_finished|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.only_finished.label %}
-      <div class="text-danger">{{form.only_finished.errors}}</div>
-    </div>
-  </div>
-
-  <!-- Row2 -->
-  <div class="form-row">
     <!-- start_date -->
     <div class="form-group col-sm">
       {% render_field form.start_date|add_label_class:"col-form-label"  %}
       {% render_field form.start_date|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.start_date.label %}
       <div class="text-danger">{{form.start_date.errors}}</div>
     </div>
-    <!-- status -->
+    <!-- delete_old -->
     <div class="form-group col-sm">
-      {% render_field form.status|add_label_class:"col-form-label"  %}
-      {% render_field form.status|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.status.label %}
-      <div class="text-danger">{{form.status.errors}}</div>
+      {% render_field form.delete_old|add_label_class:"col-form-label"  %}
+      {% render_field form.delete_old|add_error_class:"is-invalid" class="form-control form-control-sm" placeholder=form.delete_old.label %}
+      <div class="text-danger">{{form.delete_old.errors}}</div>
     </div>
   </div>
 

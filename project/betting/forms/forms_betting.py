@@ -6,7 +6,8 @@ from django.template.defaultfilters import slugify
 
 from bootstrap_modal_forms.forms import BSModalForm
 
-from .models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
+from project.core.models import Match
+from ..models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, HarvestLeague,
                     ForecastHandler, Predictor, ForecastSet,
                     Distribution
                     )
@@ -194,10 +195,11 @@ class PredictorDeleteForm(BSModalForm):
 
 ######################################################################
 class ForecastSetForm(BSModalForm):
+    delete_old = forms.BooleanField(required=False)
 
     class Meta:
         model = ForecastSet
-        fields = ["slug", "name", "keep_only_best", "only_finished", "start_date", "status", ]
+        fields = ["slug", "name", "start_date", ]
 
     def clean_slug(self):
         data = slugify(self.cleaned_data["slug"])
@@ -248,3 +250,87 @@ class DistributionDeleteForm(BSModalForm):
         object_id = cleaned_data.get("object_id")
         if not object_id:
             raise ValidationError(_("No predictor to delete"))
+
+######################################################################
+class MatchXGForm(BSModalForm):
+
+    xG_h = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+    xA_h = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+    G_h  = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+    A_h  = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+    xG_a = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+    xA_a = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+    G_a  = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+    A_a  = forms.DecimalField(max_digits=10, decimal_places=3, localize=True)
+
+    class Meta:
+        model = Match
+        fields = []
+        
+    def clean_xG_h(self):
+        data = self.cleaned_data["xG_h"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_xA_h(self):
+        data = self.cleaned_data["xA_h"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_G_h(self):
+        data = self.cleaned_data["G_h"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_A_h(self):
+        data = self.cleaned_data["A_h"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_xG_a(self):
+        data = self.cleaned_data["xG_a"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_xA_a(self):
+        data = self.cleaned_data["xA_a"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_G_a(self):
+        data = self.cleaned_data["G_a"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+    def clean_A_a(self):
+        data = self.cleaned_data["A_a"]
+        if data is None or data < 0:
+            raise ValidationError(_("This field must be greater than 0"))
+        return data
+
+
+######################################################################
+class RestoreMatchXGForm(BSModalForm):
+
+    class Meta:
+        model = Match
+        fields = []
+
+
+######################################################################
+class ProcessAllForm(BSModalForm):
+
+    only_betting = forms.BooleanField(required=False)
+    process_date = forms.DateField(required=False)
+    forecast_set_name = forms.CharField(max_length=100)
+
+    class Meta:
+        model = Match
+        fields = []
+
+    def clean_forecast_set_name(self):
+        data = self.cleaned_data["forecast_set_name"]
+        if not ForecastSet.objects.filter(slug=data).exists():
+            raise ValidationError(_("Unknown forecast set"))
+        return data
+

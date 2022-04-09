@@ -34,6 +34,7 @@
             <tr>
             <tr>
               <th></th>
+              <th>ID</th>
               <th>Slug</th>
               <th>Name</th>
               <th>Date</th>
@@ -59,6 +60,7 @@
     var editIcons = function ( data, type, row ) {
           var upd_url = "{% url 'betting:update_forecast_set' 0 %}";
           var delete_url = "{% url 'betting:delete_forecast_set' 0 %}";
+          var match_url = "{% url 'betting:forecast_match_list' 0 %}";
           if ( type === 'display' ) {
               var r = 
                 '<button type="button" class="update-forecast-set btn btn-sm btn-outline-secondary" data-id="' + upd_url + '" title="Repeat forecasting" id="update-forecast-set">' +
@@ -66,7 +68,8 @@
                 '</button>' +
                 '<button type="button" class="delete-forecast-set btn btn-sm btn-outline-secondary" data-id="' + delete_url + '" title="Delete forecast set" id="delete-forecast-set">' +
                 '   <span class="fa fa-trash"></span>' +
-                '</button>'
+                '</button>' +
+                '<a class="btn btn-sm btn-outline-secondary" href="' + match_url + '"><span class="fa fa-exchange" title="Forecast matches"></span></a>'
               ;
               r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
               r = r.replace(new RegExp('=0', 'g'), '='+data);
@@ -83,10 +86,11 @@
               'serverSide': true,
               'lengthMenu': [ 25, 50, 75, 100 ],
               'ajax': "{% url 'betting:forecast_set_list_api'  %}?format=datatables",
-              'order': [[ 2, 'asc' ]],
+              'order': [[ 1, 'asc' ]],
               'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'5em'},
+                  {'data': 'id', 'width':'3em'},
                   {'data': 'slug'},
                   {'data': 'name'},
                   {'data': 'forecast_date'},
