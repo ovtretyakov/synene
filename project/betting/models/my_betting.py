@@ -870,7 +870,7 @@ class BetOdd(models.Model):
                 raise ValueError(f'Empty id for row "{i}"')
 
             bet_odd = BetOdd.objects.get(id=id, bet_id=bet.id)
-            if not finished and bet_odd.status != BetOdd.UNSETTLED or finished and bet_odd.status == BetOdd.FINISHED:
+            if not finished and not bet_odd.status in(BetOdd.UNSETTLED,BetOdd.SETTLED) or finished and bet_odd.status == BetOdd.FINISHED:
                 continue
             result_value = item.get("result_value")
             if bet_odd.status == BetOdd.UNSETTLED:
@@ -886,8 +886,8 @@ class BetOdd(models.Model):
                     result = BetOdd.PART_SUCCESS
                 else:
                     result = BetOdd.SUCCESS
-                bet_odd.result_value = result_value
                 bet_odd.result = result
+            bet_odd.result_value = result_value
             bet_odd.status = BetOdd.FINISHED if finished else BetOdd.SETTLED
             if not bet_odd.settled_time:
                 bet_odd.settled_time = timezone.now()

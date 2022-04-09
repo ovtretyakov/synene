@@ -105,6 +105,7 @@
             <tr>
               <th></th>
               <th>Name</th>
+              <th>Status</th>
               <th>Result</th>
               <th>Type</th>
               <th>Cnt</th>
@@ -189,11 +190,12 @@
                       "&selected_bookie={{selected_bookie}}" +
                       "&date_from={{date_from}}" +
                       "&date_to={{date_to}}",
-              'order': [[ 5, 'asc' ]],
+              'order': [[ 6, 'asc' ]],
               'select': true,
               'columns': [
                   {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'9em'},
                   {'data': 'name'},
+                  {'data': 'status'},
                   {'data': 'result'},
                   {'data': 'betting_type'},
                   {'data': 'odd_cnt'},

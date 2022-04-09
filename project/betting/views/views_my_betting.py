@@ -456,9 +456,14 @@ class CreateBetView(BSModalCreateView):
         bookie_name = ""
         items = None
         bet_amt = 0
+        win_amt = 0
         if action_type in("update","settle",):
             bet = get_object_or_404(Bet, id=bet_id)
             bet_amt = bet.bet_amt
+            bet_status = bet.status
+            win_amt = bet.win_amt
+            if bet_status == Bet.SETTLED:
+                win_amt = bet.bet_amt * bet.result_value
             items = BetOdd.objects.filter(bet_id=bet_id).annotate(odd_name=F("odd__bet_type__name"),
                                                                    odd_param=F("odd__param"),
                                                                    odd_team=F("odd__team"),
@@ -498,6 +503,7 @@ class CreateBetView(BSModalCreateView):
         context["bookie_id"] = bookie_id
         context["bookie_name"] = bookie_name
         context["bet_amt"] = bet_amt
+        context["win_amt"] = win_amt
         return context    
 
     def get_success_url(self):
@@ -507,7 +513,8 @@ class CreateBetView(BSModalCreateView):
         if self.request.method == "POST" and not self.request.is_ajax():
             try:
                 bookie_id = int(self.request.POST.get('bookie_id'))
-                bet_amt = Decimal(self.request.POST.get('bet_amt'))
+                bet_amt_str = self.request.POST.get('bet_amt')
+                bet_amt = None if bet_amt_str == None or bet_amt_str == "None" else Decimal(bet_amt_str)
                 ids = self.request.POST.getlist('id')
                 action_type = self.request.POST.get('action_type')
                 bet_id = self.request.POST.get('bet_id')
@@ -530,6 +537,10 @@ class CreateBetView(BSModalCreateView):
                     bet = Bet.api_create(bookie_id, items, bet_amt)
                 elif action_type == "update":
                     bet.api_update_odds(items, bet_amt)
+                elif action_type == "settle":
+                    finished = (self.request.POST.get("finished","0") == "1")
+                    win_amt = Decimal(self.request.POST.get('win_amt'))
+                    bet.api_settle_odds(items, finished, win_amt)
                 messages.success(self.request, self.get_success_message())
             except Exception as e:
                 messages.error(self.request, "Creating error :\n" + str(e))
