@@ -75,10 +75,10 @@ class TeamSkill(models.Model):
         raise NotImplementedError("Class " + self.__class__.__name__ + " should implement this")
 
     @classmethod
-    def turn_data(cls, data1, data2, new_data, smooth_interval):
+    def turn_data(cls, data1, data2, new_data, smooth_interval, delta_koef="2"):
         prev_data = data1 + data2
         new_data = math.log(new_data)
-        delta = (Decimal(new_data)-Decimal(prev_data))/Decimal("2")
+        delta = (Decimal(new_data)-Decimal(prev_data))/Decimal(delta_koef)
         alfa = Decimal("2")/(Decimal("1") + smooth_interval)
         new_data1 = alfa*(data1 + delta) + (Decimal("1")-alfa)*data1
         new_data2 = alfa*(data2 + delta) + (Decimal("1")-alfa)*data2
@@ -113,6 +113,123 @@ class TeamSkill(models.Model):
     def do_harvest(cls, harvest, harvest_group, match, config):
         handler_cls = cls.get_handler_class(harvest)
         return handler_cls._do_harvest(harvest, harvest_group, match, config)
+
+    @classmethod
+    def calculate_xg_mse(cls, harvest, start_date):
+        with connection.cursor() as cursor:
+            select_mse = """ 
+            SELECT COUNT(*) AS cnt,
+                   SQRT(AVG((xg_h - h)*(xg_h - h))) AS sma_h,
+                   SQRT(AVG((xg_a - a)*(xg_a - a))) AS sma_a
+              FROM 
+                (
+                  SELECT m.id AS match_id, sh.value::numeric AS xg_h, sa.value::numeric AS xg_a,
+                         (SELECT value1
+                              FROM
+                              (
+                                SELECT sh.value1, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_h_id AND sh.param = 'h' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) * 
+                         (SELECT value2
+                              FROM
+                              (
+                                SELECT sh.value2, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_a_id AND sh.param = 'a' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) AS h, 
+                        (SELECT value1
+                              FROM
+                              (
+                                SELECT sh.value1, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_a_id AND sh.param = 'a' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) * 
+                         (SELECT value2
+                              FROM
+                              (
+                                SELECT sh.value2, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_h_id AND sh.param = 'h' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) AS a       
+                    FROM synene.core_match m, 
+                         synene.core_matchstats sh, synene.core_matchstats sa
+                    WHERE m.status = 'F' AND m.match_date >= %s
+                      AND sh.match_id = m.id AND sh.stat_type = 'xg' AND sh.competitor = 'h' AND sh.period = 0
+                      AND sa.match_id = m.id AND sa.stat_type = 'xg' AND sa.competitor = 'a' AND sa.period = 0
+                ) d2
+              WHERE d2.h IS NOT NULL AND d2.a IS NOT NULL
+            """
+            cursor.execute(select_mse, [harvest.pk, harvest.pk, harvest.pk, harvest.pk, start_date, ])
+            row = cursor.fetchone()
+        cnt = row[0]
+        mse_h = row[1]
+        mse_a = row[2]
+        return cnt, mse_h, mse_a
+
+
+    @classmethod
+    def calculate_g_mse(cls, harvest, start_date):
+        with connection.cursor() as cursor:
+            select_mse = """ 
+            SELECT COUNT(*) AS cnt,
+                   SQRT(AVG((xg_h - h)*(xg_h - h))) AS sma_h,
+                   SQRT(AVG((xg_a - a)*(xg_a - a))) AS sma_a
+              FROM 
+                (
+                  SELECT m.id AS match_id, sh.value::numeric AS xg_h, sa.value::numeric AS xg_a,
+                         (SELECT value9
+                              FROM
+                              (
+                                SELECT sh.value9, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_h_id AND sh.param = 'h' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) * 
+                         (SELECT value10
+                              FROM
+                              (
+                                SELECT sh.value10, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_a_id AND sh.param = 'a' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) AS h, 
+                        (SELECT value9
+                              FROM
+                              (
+                                SELECT sh.value9, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_a_id AND sh.param = 'a' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) * 
+                         (SELECT value10
+                              FROM
+                              (
+                                SELECT sh.value10, row_number() OVER(ORDER BY event_date DESC) AS rn
+                                       FROM synene.betting_teamskill sh
+                                  WHERE sh.harvest_id = %s AND sh.team_id = m.team_h_id AND sh.param = 'h' AND sh.event_date < m.match_date
+                              )dd WHERE rn = 1  
+                         ) AS a       
+                    FROM synene.core_match m, 
+                         synene.core_matchstats sh, synene.core_matchstats sa
+                    WHERE m.status = 'F' AND m.match_date >= %s
+                      AND sh.match_id = m.id AND sh.stat_type = 'g' AND sh.competitor = 'h' AND sh.period = 0
+                      AND sa.match_id = m.id AND sa.stat_type = 'g' AND sa.competitor = 'a' AND sa.period = 0
+                ) d2
+              WHERE d2.h IS NOT NULL AND d2.a IS NOT NULL
+            """
+            cursor.execute(select_mse, [harvest.pk, harvest.pk, harvest.pk, harvest.pk, start_date, ])
+            row = cursor.fetchone()
+        cnt = row[0]
+        mse_h = row[1]
+        mse_a = row[2]
+        return cnt, mse_h, mse_a
+
+
 
     def erase(self, harvest=None, team=None, skill_date=None, match=None, param="0"):
         self.pk = None
@@ -250,6 +367,10 @@ class xGHandler(TeamSkill):
         deviation_smooth_interval = config.get("deviation-smooth-interval")
         zero_value = config.get("zero-value")
         deviation_zero_value = config.get("deviation-zero-value")
+        delta_koef_h = config.get("delta-koef-h", "2.0")
+        delta_koef_a = config.get("delta-koef-a", "2.0")
+        deviation_delta_koef_h = config.get("deviation-delta-koef-h", "2.0")
+        deviation_delta_koef_a = config.get("deviation-delta-koef-a", "2.0")
 
         if not smooth_interval:
             err_str = 'Missing config parameter "smooth-interval"'
@@ -294,12 +415,14 @@ class xGHandler(TeamSkill):
             xg_a = Decimal(zero_value)
 
         #xG
-        skill_h.lvalue1, skill_a.lvalue2 = cls.turn_data(skill_h.lvalue1, skill_a.lvalue2, xg_h, smooth_interval)
-        skill_a.lvalue1, skill_h.lvalue2 = cls.turn_data(skill_a.lvalue1, skill_h.lvalue2, xg_a, smooth_interval)
+        skill_h.lvalue1, skill_a.lvalue2 = cls.turn_data(skill_h.lvalue1, skill_a.lvalue2, xg_h, smooth_interval, delta_koef_h)
+        skill_a.lvalue1, skill_h.lvalue2 = cls.turn_data(skill_a.lvalue1, skill_h.lvalue2, xg_a, smooth_interval, delta_koef_a)
 
         #goal
-        skill_h.lvalue3, skill_a.lvalue4 = cls.turn_data(skill_h.lvalue3, skill_a.lvalue4, goal_h/xg_h, deviation_smooth_interval)
-        skill_a.lvalue3, skill_h.lvalue4 = cls.turn_data(skill_a.lvalue3, skill_h.lvalue4, goal_a/xg_a, deviation_smooth_interval)
+        skill_h.lvalue3, skill_a.lvalue4 = cls.turn_data(skill_h.lvalue3, skill_a.lvalue4, goal_h/xg_h, 
+                                                        deviation_smooth_interval, deviation_delta_koef_h)
+        skill_a.lvalue3, skill_h.lvalue4 = cls.turn_data(skill_a.lvalue3, skill_h.lvalue4, goal_a/xg_a, 
+                                                        deviation_smooth_interval, deviation_delta_koef_a)
      
         skill_h.value1 = math.exp(skill_h.lvalue1)
         skill_h.value2 = math.exp(skill_h.lvalue2)

@@ -222,100 +222,100 @@ class Distribution(models.Model):
                     to_value = to_value + half_step
                     value = value + half_step
 
-                print("distribution diff")
-                for r in ([-1.7, -3.0, -1.4], [-1.3, -1.6, -1.2],
-                          [-1.0, -1.3, -0.9], [-0.8, -0.9, -0.7],
-                          [-0.7, -0.8, -0.6], [-0.6, -0.7, -0.5],
-                          [-0.5, -0.6, -0.4], [-0.4, -0.5, -0.3],
-                          [-0.3, -0.4, -0.2], [-0.2, -0.3, -0.1],
-                          [-0.1, -0.2,  0.0], [ 0.0, -0.1,  0.1],
-                          [ 0.1,  0.0,  0.2], [ 0.2,  0.1,  0.3],
-                          [ 0.3,  0.2,  0.4], [ 0.4,  0.3,  0.5],
-                          [ 0.5,  0.4,  0.6], [ 0.6,  0.5,  0.7],
-                          [ 0.7,  0.6,  0.8], [ 0.8,  0.7,  0.9],
-                          [ 0.9,  0.8,  1.0], [ 1.0,  0.9,  1.1],
-                          [ 1.1,  1.0,  1.2], [ 1.2,  1.1,  1.3],
-                          [ 1.4,  1.2,  1.5], [ 1.6,  1.4,  1.8],
-                          [ 1.8,  1.6,  2.1], [ 2.0,  2.0,  3.5],
-                         ):
-                    value = r[0]
-                    from_value = r[1]
-                    to_value = r[2]
-                    self.prepare_distribution_cursor(cursor, from_value, to_value, team="diff", period=period)
-                    for row in cursor.fetchall():
-                        DistributionData.objects.create(
-                                                    ditribution = self,
-                                                    param = f"{period}diff",
-                                                    object_id = object_id,
-                                                    value = value,
-                                                    result_value = row[0],
-                                                    data = row[1]
-                                                    )
+                # print("distribution diff")
+                # for r in ([-1.7, -3.0, -1.4], [-1.3, -1.6, -1.2],
+                #           [-1.0, -1.3, -0.9], [-0.8, -0.9, -0.7],
+                #           [-0.7, -0.8, -0.6], [-0.6, -0.7, -0.5],
+                #           [-0.5, -0.6, -0.4], [-0.4, -0.5, -0.3],
+                #           [-0.3, -0.4, -0.2], [-0.2, -0.3, -0.1],
+                #           [-0.1, -0.2,  0.0], [ 0.0, -0.1,  0.1],
+                #           [ 0.1,  0.0,  0.2], [ 0.2,  0.1,  0.3],
+                #           [ 0.3,  0.2,  0.4], [ 0.4,  0.3,  0.5],
+                #           [ 0.5,  0.4,  0.6], [ 0.6,  0.5,  0.7],
+                #           [ 0.7,  0.6,  0.8], [ 0.8,  0.7,  0.9],
+                #           [ 0.9,  0.8,  1.0], [ 1.0,  0.9,  1.1],
+                #           [ 1.1,  1.0,  1.2], [ 1.2,  1.1,  1.3],
+                #           [ 1.4,  1.2,  1.5], [ 1.6,  1.4,  1.8],
+                #           [ 1.8,  1.6,  2.1], [ 2.0,  2.0,  3.5],
+                #          ):
+                #     value = r[0]
+                #     from_value = r[1]
+                #     to_value = r[2]
+                #     self.prepare_distribution_cursor(cursor, from_value, to_value, team="diff", period=period)
+                #     for row in cursor.fetchall():
+                #         DistributionData.objects.create(
+                #                                     ditribution = self,
+                #                                     param = f"{period}diff",
+                #                                     object_id = object_id,
+                #                                     value = value,
+                #                                     result_value = row[0],
+                #                                     data = row[1]
+                #                                     )
 
-                print("distribution diff team")
-                for r in ([-1.7, -1.5, -1.0], [-1.2, -1.5, -0.8],
-                          [-0.9, -1.0, -0.6], [-0.6, -0.8, -0.4],
-                          [-0.4, -0.6, -0.2], [-0.2, -0.4,  0.0],
-                          [ 0.0, -0.2,  0.2], [ 0.2,  0.0,  0.4],
-                          [ 0.4,  0.2,  0.6], [ 0.6,  0.4,  0.8],
-                          [ 0.8,  0.6,  1.0], [ 1.0,  0.8,  1.2],
-                          [ 1.3,  1.0,  1.5], [ 1.5,  1.2,  1.8],
-                          [ 1.8,  1.4,  2.1], [ 2.1,  1.7,  3.0],
-                         ):
-                    filter_value = r[0]
-                    filter_from = r[1]
-                    filter_to = r[2]
-                    filter_code = ""
+                # print("distribution diff team")
+                # for r in ([-1.7, -1.5, -1.0], [-1.2, -1.5, -0.8],
+                #           [-0.9, -1.0, -0.6], [-0.6, -0.8, -0.4],
+                #           [-0.4, -0.6, -0.2], [-0.2, -0.4,  0.0],
+                #           [ 0.0, -0.2,  0.2], [ 0.2,  0.0,  0.4],
+                #           [ 0.4,  0.2,  0.6], [ 0.6,  0.4,  0.8],
+                #           [ 0.8,  0.6,  1.0], [ 1.0,  0.8,  1.2],
+                #           [ 1.3,  1.0,  1.5], [ 1.5,  1.2,  1.8],
+                #           [ 1.8,  1.4,  2.1], [ 2.1,  1.7,  3.0],
+                #          ):
+                #     filter_value = r[0]
+                #     filter_from = r[1]
+                #     filter_to = r[2]
+                #     filter_code = ""
 
-                    team="h"
-                    from_value = 0 - half_step
-                    to_value = from_value + self.step
-                    value = 0
-                    print(f"distribution diff team h {filter_value}" )
-                    for i in range(1,200):
-                        self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, 
-                                                         filter_from=filter_from, filter_to=filter_to)
-                        exist_data = False
-                        for row in cursor.fetchall():
-                            exist_data = True
-                            DistributionData.objects.create(
-                                                        ditribution = self,
-                                                        param = f"{period}diff{team}",
-                                                        object_id = int(filter_value*10.0),
-                                                        value = value,
-                                                        result_value = row[0],
-                                                        data = row[1]
-                                                        )
-                        if i > 20 and not exist_data:
-                            break
-                        from_value = from_value + half_step
-                        to_value = to_value + half_step
-                        value = value + half_step
+                #     team="h"
+                #     from_value = 0 - half_step
+                #     to_value = from_value + self.step
+                #     value = 0
+                #     print(f"distribution diff team h {filter_value}" )
+                #     for i in range(1,200):
+                #         self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, 
+                #                                          filter_from=filter_from, filter_to=filter_to)
+                #         exist_data = False
+                #         for row in cursor.fetchall():
+                #             exist_data = True
+                #             DistributionData.objects.create(
+                #                                         ditribution = self,
+                #                                         param = f"{period}diff{team}",
+                #                                         object_id = int(filter_value*10.0),
+                #                                         value = value,
+                #                                         result_value = row[0],
+                #                                         data = row[1]
+                #                                         )
+                #         if i > 20 and not exist_data:
+                #             break
+                #         from_value = from_value + half_step
+                #         to_value = to_value + half_step
+                #         value = value + half_step
 
-                    team="a"
-                    from_value = 0 - half_step
-                    to_value = from_value + self.step
-                    value = 0
-                    print(f"distribution diff team a {filter_value}" )
-                    for i in range(1,200):
-                        self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, 
-                                                         filter_from=filter_from, filter_to=filter_to)
-                        exist_data = False
-                        for row in cursor.fetchall():
-                            exist_data = True
-                            DistributionData.objects.create(
-                                                        ditribution = self,
-                                                        param = f"{period}diff{team}",
-                                                        object_id = int(filter_value*10.0),
-                                                        value = value,
-                                                        result_value = row[0],
-                                                        data = row[1]
-                                                        )
-                        if i > 20 and not exist_data:
-                            break
-                        from_value = from_value + half_step
-                        to_value = to_value + half_step
-                        value = value + half_step
+                #     team="a"
+                #     from_value = 0 - half_step
+                #     to_value = from_value + self.step
+                #     value = 0
+                #     print(f"distribution diff team a {filter_value}" )
+                #     for i in range(1,200):
+                #         self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, 
+                #                                          filter_from=filter_from, filter_to=filter_to)
+                #         exist_data = False
+                #         for row in cursor.fetchall():
+                #             exist_data = True
+                #             DistributionData.objects.create(
+                #                                         ditribution = self,
+                #                                         param = f"{period}diff{team}",
+                #                                         object_id = int(filter_value*10.0),
+                #                                         value = value,
+                #                                         result_value = row[0],
+                #                                         data = row[1]
+                #                                         )
+                #         if i > 20 and not exist_data:
+                #             break
+                #         from_value = from_value + half_step
+                #         to_value = to_value + half_step
+                #         value = value + half_step
 
         print("finish")
 
@@ -337,6 +337,8 @@ class DistributionData(models.Model):
 
     def __str__(self):
         return f'{self.ditribution}:{self.param}:{self.object_id}:{self.value}:{self.result_value}:{self.data}'
+
+
 
 
 
@@ -506,3 +508,176 @@ class xGGatheringHStd0(Distribution):
                                from_value, to_value,
                                ]
                              )
+
+
+
+###################################################################
+class xGGatheringCopy(Distribution):
+    class Meta:
+        proxy = True
+
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
+        from .forecast import Harvest
+
+        harvest = Harvest.get_xg_harvest(period, prefix="xg-copy")
+        harvest_pk = harvest.pk
+
+        team_str = "h_v1*a_v2"
+        g_value_field = "s1_value"
+        if team == "a":
+            team_str = "a_v1*h_v2"
+            g_value_field = "s2_value"
+        elif team == "diff":
+            team_str = "(h_v1*a_v2 - a_v1*h_v2)"
+            g_value_field = "s1_value - s2_value"
+
+
+        value_filter = ""
+        if team == "a" and value_h != None:
+            value_filter = f" AND s1_value = {value_h} "
+        elif filter_from != None and filter_to != None:
+            value_filter = f" AND (h_v1*a_v2 - a_v1*h_v2) >= {filter_from} AND (h_v1*a_v2 - a_v1*h_v2) < {filter_to} "
+
+
+        sql_select = f""" 
+                    SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
+                      FROM 
+                        (
+                          SELECT {g_value_field} AS g_value,
+                                 COUNT(*) OVER() + 0.0 AS all_cnt
+                            FROM
+                              (
+                              SELECT d2.*, 
+                                     sa.value1 AS a_v1, sa.value2 AS a_v2, sa.value9 AS a_v9, sa.value10 AS a_v10,
+                                     row_number() OVER(PARTITION BY d2.match_id ORDER BY sa.event_date DESC, sa.match_id DESC)  AS rn_a
+                                FROM
+                                  (
+                                  SELECT *
+                                    FROM
+                                      (
+                                      SELECT m.id AS match_id, m.match_date, m.team_h_id, m.team_a_id, 
+                                             TO_NUMBER(s1.value,'99999999.9999') AS s1_value,
+                                             TO_NUMBER(s2.value,'99999999.9999') AS s2_value,
+                                             gh.value AS xgh, ga.value AS xga,
+                                             sh.value1 AS h_v1, sh.value2 AS h_v2, sh.value9 AS h_v9, sh.value10 AS h_v10,
+                                             row_number() OVER(PARTITION BY m.id ORDER BY sh.event_date DESC, sh.match_id DESC)  AS rn_h
+                                        FROM core_match m
+                                             JOIN core_matchstats s1 
+                                               ON(s1.stat_type = 'g' AND s1.period = {period} AND s1.match_id = m.id AND s1.competitor = 'h' )
+                                             JOIN core_matchstats s2 
+                                               ON(s2.stat_type = 'g' AND s2.period = {period} AND s2.match_id = m.id AND s2.competitor = 'a')
+                                             JOIN core_matchstats gh
+                                               ON(gh.stat_type = 'xg' AND gh.period = {period} AND gh.match_id = m.id AND gh.competitor = 'h')
+                                             JOIN core_matchstats ga 
+                                               ON(ga.stat_type = 'xg' AND ga.period = {period} AND ga.match_id = m.id AND ga.competitor = 'a')
+                                             JOIN betting_teamskill sh
+                                               ON(sh.harvest_id = {harvest_pk} AND sh.team_id = m.team_h_id AND sh.param = 'h' AND 
+                                                  sh.event_date < m.match_date AND sh.match_cnt > 3)
+                                        WHERE  m.status = 'F'
+                                          AND m.match_date BETWEEN %s AND %s
+                                      ) d
+                                    WHERE rn_h = 1
+                                  ) d2
+                                 JOIN betting_teamskill sa
+                                   ON(sa.harvest_id = {harvest_pk} AND sa.team_id = d2.team_a_id AND sa.param = 'a' AND 
+                                      sa.event_date < d2.match_date AND sa.match_cnt > 3)
+                                WHERE rn_h = 1
+                              ) d3
+                            WHERE rn_a = 1
+                              AND {team_str} >= %s AND {team_str} < %s
+                              {value_filter}
+                        ) d4
+                      GROUP BY g_value
+        """
+        cursor.execute(sql_select, 
+                              [self.start_date, self.end_date,
+                               from_value, to_value,
+                               ]
+                             )
+
+
+###################################################################
+class xGGatheringHStd0Copy(Distribution):
+    class Meta:
+        proxy = True
+
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
+        from .forecast import Harvest
+
+        harvest = Harvest.get_xg_harvest(period, prefix="xg-copy")
+        harvest_pk = harvest.pk
+
+        team_str = "h_v9*a_v10"
+        g_value_field = "s1_value"
+        if team == "a":
+            team_str = "a_v9*h_v10"
+            g_value_field = "s2_value"
+        elif team == "diff":
+            team_str = "(h_v9*a_v10 - a_v9*h_v10)"
+            g_value_field = "s1_value - s2_value"
+
+        value_filter = ""
+        if team == "a" and value_h != None:
+            value_filter = f" AND s1_value = {value_h} "
+        elif filter_from != None and filter_to != None:
+            value_filter = f" AND (h_v9*a_v10 - a_v9*h_v10) >= {filter_from} AND (h_v9*a_v10 - a_v9*h_v10) < {filter_to} "
+
+        sql_select = f""" 
+                    SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
+                      FROM 
+                        (
+                          SELECT {g_value_field} AS g_value,
+                                 COUNT(*) OVER() + 0.0 AS all_cnt
+                            FROM
+                              (
+                              SELECT d2.*, 
+                                     sa.value1 AS a_v1, sa.value2 AS a_v2, sa.value9 AS a_v9, sa.value10 AS a_v10,
+                                     row_number() OVER(PARTITION BY d2.match_id ORDER BY sa.event_date DESC, sa.match_id DESC)  AS rn_a
+                                FROM
+                                  (
+                                  SELECT *
+                                    FROM
+                                      (
+                                      SELECT m.id AS match_id, m.match_date, m.team_h_id, m.team_a_id, 
+                                             TO_NUMBER(s1.value,'99999999.9999') AS s1_value,
+                                             TO_NUMBER(s2.value,'99999999.9999') AS s2_value,
+                                             gh.value AS xgh, ga.value AS xga,
+                                             sh.value1 AS h_v1, sh.value2 AS h_v2, sh.value9 AS h_v9, sh.value10 AS h_v10,
+                                             row_number() OVER(PARTITION BY m.id ORDER BY sh.event_date DESC, sh.match_id DESC)  AS rn_h
+                                        FROM core_match m
+                                             JOIN core_matchstats s1 
+                                               ON(s1.stat_type = 'g' AND s1.period = {period} AND s1.match_id = m.id AND s1.competitor = 'h' )
+                                             JOIN core_matchstats s2 
+                                               ON(s2.stat_type = 'g' AND s2.period = {period} AND s2.match_id = m.id AND s2.competitor = 'a')
+                                             JOIN core_matchstats gh
+                                               ON(gh.stat_type = 'xg' AND gh.period = {period} AND gh.match_id = m.id AND gh.competitor = 'h')
+                                             JOIN core_matchstats ga 
+                                               ON(ga.stat_type = 'xg' AND ga.period = {period} AND ga.match_id = m.id AND ga.competitor = 'a')
+                                             JOIN betting_teamskill sh
+                                               ON(sh.harvest_id = {harvest_pk} AND sh.team_id = m.team_h_id AND sh.param = 'h' AND 
+                                                  sh.event_date < m.match_date AND sh.match_cnt > 3)
+                                        WHERE  m.status = 'F'
+                                          AND m.match_date BETWEEN %s AND %s
+                                      ) d
+                                    WHERE rn_h = 1
+                                  ) d2
+                                 JOIN betting_teamskill sa
+                                   ON(sa.harvest_id = {harvest_pk} AND sa.team_id = d2.team_a_id AND sa.param = 'a' AND 
+                                      sa.event_date < d2.match_date AND sa.match_cnt > 3)
+                                WHERE rn_h = 1
+                              ) d3
+                            WHERE rn_a = 1
+                              AND {team_str} >= %s AND {team_str} < %s
+                              {value_filter}
+                        ) d4
+                      GROUP BY g_value
+        """
+        cursor.execute(sql_select, 
+                              [self.start_date, self.end_date,
+                               from_value, to_value,
+                               ]
+                             )
+
+
+
+

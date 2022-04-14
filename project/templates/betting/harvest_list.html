@@ -61,6 +61,8 @@
           var upd_url = "{% url 'betting:update_harvest' 0 %}";
           var delete_url = "{% url 'betting:delete_harvest' 0 %}";
           var harvest_url = "{% url 'betting:do_harvest_harvest' 0 %}";
+          var copy_url = "{% url 'betting:copy_harvest' 0 %}";
+          var adjust_url = "{% url 'betting:adjust_harvest' 0 %}";
           if ( type === 'display' ) {
               var r = 
                 '<a class="btn btn-sm btn-outline-secondary" href="' + upd_url + '"><span class="fa fa-pencil" title="Update harvestor"></span></a>' +
@@ -69,6 +71,12 @@
                 '</button>' +
                 '<button type="button" class="harvest-harvestor btn btn-sm btn-outline-secondary" data-id="' + harvest_url + '" title="Do harvest" id="harvest-harvestor">' +
                 '   <span class="fa fa-cog"></span>' +
+                '</button>' +
+                '<button type="button" class="copy-harvestor btn btn-sm btn-outline-secondary" data-id="' + copy_url + '" title="Copy harvest" id="copy-harvestor">' +
+                '   <span class="fa fa-copy"></span>' +
+                '</button>' + 
+                '<button type="button" class="adjust-harvestor btn btn-sm btn-outline-secondary" data-id="' + adjust_url + '" title="Adjust harvestor parameters" id="adjust-harvestor">' +
+                '   <span class="fa fa-adjust"></span>' +
                 '</button>'
               ;
               r = r.replace(new RegExp('/0/', 'g'), '/'+data+'/');
@@ -95,7 +103,7 @@
                 }
               ],
               'columns': [
-                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'5em'},
+                  {'data': 'id', 'render': editIcons, 'orderable': false, 'width':'9em'},
                   {'data': 'slug', 'width':'12em'},
                   {'data': 'name'},
                   {'data': 'harvest_handler.name', 'width':'8em'},
@@ -136,8 +144,29 @@
                         modalID: "#modal",
                         modalContent: ".modal0-content",
                         modalForm: "#formDoHarvestHarvest",
-                        submitBtn: "#submit-form-id",
-                        isDeleteForm: true
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".copy-harvestor").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formCopyHarvest",
+                        submitBtn: "#submit-form-id"
+                      }
+                    );
+                  });
+
+                $(".adjust-harvestor").each(function () {
+                    $(this).modalForm(
+                      {formURL: $(this).data('id'),
+                        modalID: "#modal",
+                        modalContent: ".modal0-content",
+                        modalForm: "#formAdjustHarvest",
+                        submitBtn: "#submit-form-id"
                       }
                     );
                   });

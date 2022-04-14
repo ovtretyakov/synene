@@ -77,6 +77,21 @@ class HarvestDoHarvestAllForm(BSModalForm):
         fields = []
 
 
+class HarvestCopyForm(BSModalForm):
+    class Meta:
+        model = Harvest
+        fields = ["slug", "name", ]
+    def save(self):
+        None
+
+class HarvestEmptyForm(BSModalForm):
+    class Meta:
+        model = Harvest
+        fields = []
+    def save(self):
+        None
+
+
 ######################################################################
 class HarvestConfigForm(BSModalForm):
 

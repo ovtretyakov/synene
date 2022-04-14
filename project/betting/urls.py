@@ -21,6 +21,8 @@ urlpatterns = [
     url(r'^odds/harvest/delete/(?P<pk>\d+)/$', views.HarvestDeleteView.as_view(), name='delete_harvest'),
     url(r'^odds/harvest/harvest/(?P<pk>\d+)/$', views.HarvestDoHarvestView.as_view(), name='do_harvest_harvest'),
     url(r'^odds/harvest/harvest/$', views.HarvestDoHarvestAllView.as_view(), name='do_harvest_harvest_all'),
+    url(r'^odds/harvest/copy/(?P<pk>\d+)/$', views.HarvestCopyView.as_view(), name='copy_harvest'),
+    url(r'^odds/harvest/adjust/(?P<pk>\d+)/$', views.HarvestAdjustView.as_view(), name='adjust_harvest'),
     #harvest config
     url(r'^odds/harvest/config/(?P<harvest>\d+)/api/$', views.HarvestConfigAPI.as_view(), name='harvest_config_api'),
     url(r'^odds/harvest/config/(?P<harvest>\d+)/create/$', views.HarvestConfigCreateView.as_view(), name='create_harvest_config'),

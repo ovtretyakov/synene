@@ -30,7 +30,7 @@ from ..models import (HarvestHandler, Harvest, HarvestConfig, HarvestGroup, Harv
                      Forecast, TeamSkill, ForecastSandbox, TeamSkillSandbox,
                      Odd, ValueType, BetType)
 from ..forms import (HarvestHandlerForm, HarvestHandlerDeleteForm,
-                     HarvestForm, HarvestDeleteForm, HarvestDoHarvestForm, HarvestDoHarvestAllForm,
+                     HarvestForm, HarvestDeleteForm, HarvestDoHarvestForm, HarvestDoHarvestAllForm, HarvestCopyForm, HarvestEmptyForm,
                      HarvestConfigForm, HarvestConfigDeleteForm,
                      HarvestGroupForm, HarvestGroupDeleteForm, HarvestGroupDoHarvestForm,
                      HarvestLeagueForm, HarvestLeagueDeleteForm,
@@ -69,6 +69,12 @@ def harvestor_do(harvest_pk, harvest_date_str):
 def harvestor_do_all(harvest_date_str):
     harvest_date = get_date_from_string(harvest_date_str)
     Harvest.api_do_harvest_all(harvest_date)
+
+@background
+def harvestor_adjust(harvest_pk):
+    harvestor = Harvest.objects.get(pk=harvest_pk)
+    harvestor.adjust_params()
+
 
 
 ####################################################
@@ -260,6 +266,51 @@ class HarvestDoHarvestAllView(BSModalCreateView):
             except Exception as e:
                 messages.error(self.request, "Harvesting error :\n" + str(e))
         return HttpResponseRedirect(self.get_success_url())
+
+
+class HarvestCopyView(BSModalUpdateView):
+    model = Harvest
+    template_name = "betting/copy_harvest.html"
+    form_class = HarvestCopyForm
+    success_message = "Harvest is copied"
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                cleaned_data = form.cleaned_data
+                slug = cleaned_data["slug"]
+                name = cleaned_data["name"]
+                harvest = get_object_or_404(Harvest, id=self.object.id)
+                harvest.api_copy(slug, name)
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Copying error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class HarvestAdjustView(BSModalUpdateView):
+    model = Harvest
+    template_name = "betting/adjust_harvest.html"
+    form_class = HarvestEmptyForm
+    success_message = "Quied"
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+    def get_success_message(self):
+        return self.success_message
+
+    def form_valid(self, form):
+        if self.request.method == "POST" and not self.request.is_ajax():
+            try:
+                harvestor_adjust(self.object.pk)
+                messages.success(self.request, self.get_success_message())
+            except Exception as e:
+                messages.error(self.request, "Queueing error :\n" + str(e))
+        return HttpResponseRedirect(self.get_success_url())
+
 
 ####################################################
 #  Harvest Config
@@ -1002,7 +1053,7 @@ class ForecastMatchDetail(BSModalReadView):
             context["odd_order_init"] = [[ 4,'desc' ], [2,'desc']]
 
         harvest_id = 0
-        harvest = Harvest.get_xg_harvest()
+        # harvest = Harvest.get_xg_harvest()
         if harvest:
             harvest_id = harvest.pk
 
