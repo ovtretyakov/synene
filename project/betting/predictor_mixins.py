@@ -90,31 +90,31 @@ class FixedDistributionForecastingEx(object):
                     fdata.append([value_h,value_a,probability_h*probability_a])
         forecast_data["simple"] = fdata
 
-        #diff
-        fdata = []
-        distribution = self.get_distribution_data(distribution_slug, delta, param="0diff")
-        if distribution:
-            for val in distribution.keys():
-                if val < 0:
-                    fdata.append([0,-1*val,distribution[val]])
-                else:
-                    fdata.append([val,0,distribution[val]])
-            forecast_data["diff"] = fdata
+        # #diff
+        # fdata = []
+        # distribution = self.get_distribution_data(distribution_slug, delta, param="0diff")
+        # if distribution:
+        #     for val in distribution.keys():
+        #         if val < 0:
+        #             fdata.append([0,-1*val,distribution[val]])
+        #         else:
+        #             fdata.append([val,0,distribution[val]])
+        #     forecast_data["diff"] = fdata
 
 
-        #diff_team
-        distribution_h = self.get_distribution_data(distribution_slug, win_value, param="0diffh", object_id=delta_int)
-        distribution_a = self.get_distribution_data(distribution_slug, lose_value, param="0diffa", object_id=delta_int)
+        # #diff_team
+        # distribution_h = self.get_distribution_data(distribution_slug, win_value, param="0diffh", object_id=delta_int)
+        # distribution_a = self.get_distribution_data(distribution_slug, lose_value, param="0diffa", object_id=delta_int)
 
-        if distribution_h and distribution_a:
-            fdata = []
-            if max_value != None:
-                for value_h in range(min_value,max_value):
-                    probability_h = Decimal(distribution_h.get(value_h,0))
-                    for value_a in range(min_value,max_value):
-                        distrib = distribution_a
-                        probability_a = Decimal(distribution_a.get(value_a,0))
-                        fdata.append([value_h,value_a,probability_h*probability_a])
-            forecast_data["diff_team"] = fdata
+        # if distribution_h and distribution_a:
+        #     fdata = []
+        #     if max_value != None:
+        #         for value_h in range(min_value,max_value):
+        #             probability_h = Decimal(distribution_h.get(value_h,0))
+        #             for value_a in range(min_value,max_value):
+        #                 distrib = distribution_a
+        #                 probability_a = Decimal(distribution_a.get(value_a,0))
+        #                 fdata.append([value_h,value_a,probability_h*probability_a])
+        #     forecast_data["diff_team"] = fdata
 
         return forecast_data

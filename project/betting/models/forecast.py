@@ -57,8 +57,8 @@ class Harvest(models.Model):
             harvest.api_do_harvest(start_date)
 
     @classmethod
-    def get_xg_harvest(cls, period=0):
-        slug = "xg-" + str(period)
+    def get_xg_harvest(cls, period=0, prefix="xg"):
+        slug = prefix + "-" + str(period)
         harvest = Harvest.objects.filter(slug=slug).first()
         return harvest
 
@@ -72,6 +72,119 @@ class Harvest(models.Model):
             self.do_harvest(start_date)
 
 
+    def api_copy(self, slug, name):
+        try:
+            with transaction.atomic():
+                harvest = Harvest.objects.create(
+                                            slug=slug,
+                                            name=name,
+                                            comment=self.comment,
+                                            sport=self.sport,
+                                            harvest_handler=self.harvest_handler,
+                                            value_type=self.value_type,
+                                            period=self.period,
+                                            status=self.INACTIVE
+                                         )
+                for harvest_config in HarvestConfig.objects.filter(harvest_id = self.id):
+                    HarvestConfig.objects.create(harvest=harvest, code = harvest_config.code, value=harvest_config.value)
+                for harvest_group in HarvestGroup.objects.filter(harvest_id = self.id):
+                    harvest_group_slug = slug + harvest_group.slug[len(self.slug):]
+                    new_harvest_group = HarvestGroup.objects.create(
+                                            slug=harvest_group_slug,
+                                            name=harvest_group.name,
+                                            harvest=harvest,
+                                            country=harvest_group.country,
+                                            status=harvest_group.status,
+                                            harvest_date=harvest_group.harvest_date,
+                                            last_update=harvest_group.last_update
+                                            )
+                    for harvest_league in HarvestLeague.objects.filter(harvest_group_id=harvest_group.id):
+                        HarvestLeague.objects.create(harvest_group=new_harvest_group, league=harvest_league.league)
+
+
+        except Exception as e:
+            error_text = str(e)[:255]
+            if not error_text:
+                error_text = "Copy harvest Error"
+            load_source = LoadSource.objects.get(slug=LoadSource.SRC_UNKNOWN)
+            ErrorLog.objects.create(
+                                load_source = load_source,
+                                source_session = None,
+                                error_text = error_text,
+                                error_context = "",
+                                error_traceback = traceback.format_exc(),
+                                error_time = timezone.now(),
+                                league_name = '',
+                                match_name = '',
+                                file_name = '',
+                                source_detail = None)
+            raise e
+
+    def adjust_params(self):
+        from .harvest import TeamSkill
+        print("Start adjusting")
+        start_date = date(2015, 1, 1)
+
+        # smooth-interval
+        # harvest_config = HarvestConfig.objects.get(harvest=self, code="smooth-interval")
+        # start_interval = 7.0
+        # step = 1.0
+        # for x in range(10):
+        #     smooth_interval = start_interval + x*step
+        #     harvest_config.value = str(smooth_interval)
+        #     harvest_config.save()
+        #     self.do_harvest(date(2014, 8, 1))
+        #     cnt, mse_h, mse_a = TeamSkill.calculate_xg_mse(self, start_date)
+        #     print(smooth_interval, cnt, mse_h, mse_a)
+
+        # delta-koef
+        # harvest_config = HarvestConfig.objects.get(harvest=self, code="delta-koef-h")
+        # start_interval = 2.6
+        # step = 0.2
+        # for x in range(10):
+        #     delta_koef = start_interval + x*step
+        #     harvest_config.value = str(delta_koef)
+        #     harvest_config.save()
+        #     self.do_harvest(date(2014, 8, 1))
+        #     cnt, mse_h, mse_a = TeamSkill.calculate_xg_mse(self, start_date)
+        #     print(delta_koef, cnt, mse_h, mse_a)
+
+
+        # deviation-smooth-interval
+        # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-smooth-interval")
+        # start_interval = 6.0
+        # step = 1.0
+        # for x in range(10):
+        #     smooth_interval = start_interval + x*step
+        #     harvest_config.value = str(smooth_interval)
+        #     harvest_config.save()
+        #     self.do_harvest(date(2014, 8, 1))
+        #     cnt, mse_h, mse_a = TeamSkill.calculate_g_mse(self, start_date)
+        #     print(smooth_interval, cnt, mse_h, mse_a)
+
+        # deviation-zero-value
+        # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-zero-value")
+        # start_interval = 0.55
+        # step = 0.05
+        # for x in range(10):
+        #     zero_value = start_interval + x*step
+        #     harvest_config.value = str(zero_value)
+        #     harvest_config.save()
+        #     self.do_harvest(date(2014, 8, 1))
+        #     cnt, mse_h, mse_a = TeamSkill.calculate_g_mse(self, start_date)
+        #     print(zero_value, cnt, mse_h, mse_a)
+
+        # deviation-delta-koef
+        # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-delta-koef-a")
+        # start_interval = 2.6
+        # step = 0.2
+        # for x in range(10):
+        #     zero_value = start_interval + x*step
+        #     harvest_config.value = str(zero_value)
+        #     harvest_config.save()
+        #     self.do_harvest(date(2014, 8, 1))
+        #     cnt, mse_h, mse_a = TeamSkill.calculate_g_mse(self, start_date)
+        #     print(zero_value, cnt, mse_h, mse_a)
 
 
 class HarvestConfig(models.Model):
@@ -129,14 +242,19 @@ class HarvestGroup(models.Model):
         harvest_config = {row.code:Decimal(row.value) for row in HarvestConfig.objects.filter(harvest = self.harvest)}
         harvest_date = None
         print("Harvest group", self, start_date)
+        last_date = None
+        cnt = 0
         for match in (Match.objects.filter(season__league__harvestleague__harvest_group = self, 
                                            match_date__gte = start_date,
                                            status=Match.FINISHED)
                                    .order_by("match_date","pk")
                      ):
-            print("Harvest match", match, match.match_date)
+            # print("Harvest match", match, match.match_date)
+            cnt += 1
+            last_date = match.match_date
             harvest_date = match.match_date
             TeamSkill.do_harvest(harvest=self.harvest, harvest_group = self, match=match, config=harvest_config)
+        print("Cnt", cnt, "Last date", last_date)
         if harvest_date:
             self.harvest_date = harvest_date
             self.save()
@@ -827,10 +945,10 @@ class PredictorOrigDistrXG(Mixins.OriginalDataExtraction, Mixins.FixedDistributi
     class Meta:
         proxy = True
     def get_distribution_slug(self):
-        return "xg-distr"
+        return "xg-distr-copy"
 
 class PredictorStdDistrXG(Mixins.StandartExtraction, Mixins.FixedDistributionForecastingEx, Predictor):
     class Meta:
         proxy = True
     def get_distribution_slug(self):
-        return "xg-ext-distr"
+        return "xg-ext-distr-copy"
