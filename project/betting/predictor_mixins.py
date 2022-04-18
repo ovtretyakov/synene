@@ -49,20 +49,25 @@ class FixedDistributionForecasting(object):
         min_value, max_value = self.get_value_limit()
 
         distribution_slug = self.get_distribution_slug()
-        distribution_h = self.get_distribution_data(distribution_slug, win_value, param="0h")
-        distribution_a = self.get_distribution_data(distribution_slug, lose_value, param="0a")
 
-        forecast_data = []
-        if max_value != None:
-            for value_h in range(min_value,max_value):
-                probability_h = Decimal(distribution_h.get(value_h,0))
-                for value_a in range(min_value,max_value):
-                    param = f"0a{value_h}"
-                    # distrib = self.get_distribution_data(distribution_slug, lose_value, param=param)
-                    # if not distrib:
-                    distrib = distribution_a
-                    probability_a = Decimal(distrib.get(value_a,0))
-                    forecast_data.append([value_h,value_a,probability_h*probability_a])
+        forecast_data = {}
+        for period in [0,1,2,]:
+
+            distribution_h = self.get_distribution_data(distribution_slug, win_value, param=f"{period}h")
+            distribution_a = self.get_distribution_data(distribution_slug, lose_value, param=f"{period}a")
+
+            fdata = []
+            if max_value != None:
+                for value_h in range(min_value,max_value):
+                    probability_h = Decimal(distribution_h.get(value_h,0))
+                    for value_a in range(min_value,max_value):
+                        # param = f"0a{value_h}"
+                        # distrib = self.get_distribution_data(distribution_slug, lose_value, param=param)
+                        # if not distrib:
+                        distrib = distribution_a
+                        probability_a = Decimal(distrib.get(value_a,0))
+                        fdata.append([value_h,value_a,probability_h*probability_a])
+            forecast_data[period] = fdata
         return forecast_data
 
 

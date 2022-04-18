@@ -167,7 +167,7 @@ class Distribution(models.Model):
         half_step = self.step/2
         DistributionData.objects.filter(ditribution=self).delete()
 
-        for period in range(0,1):
+        for period in [0,1,2,]:
             print(f"period {period}")
 
             with connection.cursor() as cursor:

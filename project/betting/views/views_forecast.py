@@ -915,7 +915,13 @@ class ForecastMatchDetail(BSModalReadView):
             context["forecast_set_id"] = forecast_set_id
         context["match_id"] = self.object.pk
 
-        harvest = Harvest.get_xg_harvest(0)
+        stat_period = self.request.GET.get("stat_period", None)
+        if stat_period == None:
+            stat_period = 0
+        context["stat_period"] = stat_period
+
+
+        harvest = Harvest.get_xg_harvest(stat_period)
         forecast_set.preapre_sandbox(match=self.object, harvest=harvest)
         xG_h0_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
                                                    harvest_id=harvest.id, 
@@ -931,8 +937,8 @@ class ForecastMatchDetail(BSModalReadView):
         # xG_a0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_a, skill_date=self.object.match_date, param="a")
 
 
-        context["xG_h"] = self.object.get_stat("xg", "h", 0)
-        context["xG_a"] = self.object.get_stat("xg", "a", 0)
+        context["xG_h"] = self.object.get_stat("xg", "h", stat_period)
+        context["xG_a"] = self.object.get_stat("xg", "a", stat_period)
         if xG_h0_skill and xG_a0_skill:
             context["fxG_h"] = round(xG_h0_skill.value1*xG_a0_skill.value2,3)
             context["fxG_a"] = round(xG_a0_skill.value1*xG_h0_skill.value2,3)
