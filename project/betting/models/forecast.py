@@ -127,7 +127,7 @@ class Harvest(models.Model):
 
         # smooth-interval
         # harvest_config = HarvestConfig.objects.get(harvest=self, code="smooth-interval")
-        # start_interval = 7.0
+        # start_interval = 10.0
         # step = 1.0
         # for x in range(10):
         #     smooth_interval = start_interval + x*step
@@ -138,21 +138,21 @@ class Harvest(models.Model):
         #     print(smooth_interval, cnt, mse_h, mse_a)
 
         # delta-koef
-        # harvest_config = HarvestConfig.objects.get(harvest=self, code="delta-koef-h")
-        # start_interval = 2.6
-        # step = 0.2
-        # for x in range(10):
-        #     delta_koef = start_interval + x*step
-        #     harvest_config.value = str(delta_koef)
-        #     harvest_config.save()
-        #     self.do_harvest(date(2014, 8, 1))
-        #     cnt, mse_h, mse_a = TeamSkill.calculate_xg_mse(self, start_date)
-        #     print(delta_koef, cnt, mse_h, mse_a)
+        harvest_config = HarvestConfig.objects.get(harvest=self, code="delta-koef-a")
+        start_interval = 3.6
+        step = 0.2
+        for x in range(10):
+            delta_koef = start_interval + x*step
+            harvest_config.value = str(delta_koef)
+            harvest_config.save()
+            self.do_harvest(date(2014, 8, 1))
+            cnt, mse_h, mse_a = TeamSkill.calculate_xg_mse(self, start_date)
+            print(round(delta_koef,1), cnt, mse_h, mse_a)
 
 
         # deviation-smooth-interval
         # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-smooth-interval")
-        # start_interval = 6.0
+        # start_interval = 9.0
         # step = 1.0
         # for x in range(10):
         #     smooth_interval = start_interval + x*step
@@ -164,7 +164,7 @@ class Harvest(models.Model):
 
         # deviation-zero-value
         # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-zero-value")
-        # start_interval = 0.55
+        # start_interval = 0.1
         # step = 0.05
         # for x in range(10):
         #     zero_value = start_interval + x*step
@@ -176,7 +176,7 @@ class Harvest(models.Model):
 
         # deviation-delta-koef
         # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-delta-koef-a")
-        # start_interval = 2.6
+        # start_interval = 4.2
         # step = 0.2
         # for x in range(10):
         #     zero_value = start_interval + x*step
@@ -241,7 +241,7 @@ class HarvestGroup(models.Model):
         #harvesting
         harvest_config = {row.code:Decimal(row.value) for row in HarvestConfig.objects.filter(harvest = self.harvest)}
         harvest_date = None
-        print("Harvest group", self, start_date)
+        # print("Harvest group", self, start_date)
         last_date = None
         cnt = 0
         for match in (Match.objects.filter(season__league__harvestleague__harvest_group = self, 
@@ -254,7 +254,7 @@ class HarvestGroup(models.Model):
             last_date = match.match_date
             harvest_date = match.match_date
             TeamSkill.do_harvest(harvest=self.harvest, harvest_group = self, match=match, config=harvest_config)
-        print("Cnt", cnt, "Last date", last_date)
+        # print("Cnt", cnt, "Last date", last_date)
         if harvest_date:
             self.harvest_date = harvest_date
             self.save()
