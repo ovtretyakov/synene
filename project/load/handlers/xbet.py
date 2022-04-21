@@ -114,6 +114,7 @@ class XBetHandler(CommonHandler):
                 data = json.loads(data_json)
                 line = data['line']
                 values = line['Value']
+                match_cnt = 0
                 for value in values:
                     if value["N"] == "Football":
                         leagues = value.get("L",None)
@@ -133,11 +134,15 @@ class XBetHandler(CommonHandler):
                                             print("!!! league_name:", league_name)
 
                                             if self.start_or_skip_league(league_name):
-                                                league_load_date = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
+                                                league_load_date, match_cnt = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
                                                 if not load_date or league_load_date and league_load_date < load_date:
                                                     load_date = league_load_date
-                                                if debug_level: break
+                                                # if debug_level: break
                                                 # break #!!!
+                                        # !!!
+                                        # if match_cnt > 0:
+                                        #     print("break1")
+                                        #     break
 
                                 else:
                                     li = league["LI"]
@@ -151,12 +156,15 @@ class XBetHandler(CommonHandler):
                                         print("!!! league_name:", league_name)
 
                                         if self.start_or_skip_league(league_name):
-                                            league_load_date = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
+                                            league_load_date, match_cnt = self.process_league(league_href, debug_level, get_from_file, is_debug_path, start_date, number_of_days)
                                             if not load_date or league_load_date and league_load_date < load_date:
                                                 load_date = league_load_date
-                                            if debug_level: break
+                                            # if debug_level: break
                                             # break #!!!
-
+                                # !!!
+                                # if match_cnt > 0:
+                                #     print("break2")
+                                #     break
             
             self.finish_detail() 
             if load_date:
@@ -192,7 +200,7 @@ class XBetHandler(CommonHandler):
         li_active = soup.select_one('li.sportMenuActive')
         if not li_active:
             # print('!!! Skip league ' + self.league_name.encode())
-            return None
+            return None, 0
 
         for active_game in li_active.select('a > span.gname'):
             a_parent  = active_game.parent
@@ -206,6 +214,7 @@ class XBetHandler(CommonHandler):
         max_match_date = date.today() + timedelta(number_of_days)
 
         load_date = None
+        match_cnt = 0
         for league_tag in soup.select('div.SSR'):
 
             league_name_tag = league_tag.select_one('div.c-events__name')
@@ -249,6 +258,7 @@ class XBetHandler(CommonHandler):
                 if not self.start_or_skip_match(name_h, name_a, match_status=Match.SCHEDULED, match_date=match_date):
                     continue
                 print('%s %s-%s' % (match_date, name_h.encode(), name_a.encode()))
+                match_cnt += 1
                 ##############################################################
                 #process main odds
                 ##############################################################
@@ -315,25 +325,101 @@ class XBetHandler(CommonHandler):
                 else: event_cnt = 1500
                 additional_url = ('https://1xstavka.ru/en/LineFeed/GetGameZip?id=%s&lng=en&cfview=0&isSubGames=true&GroupEvents=true&allEventsGroupSubGames=true&countevents=%s'
                                   % (match_id, event_cnt))
-                self.process_add_odds(additional_url, debug_level, get_from_file, is_debug_path)
+                self.process_add_odds(additional_url, debug_level, get_from_file, is_debug_path, league_id=league_id)
                 ##############################################################
-                #process additional statistics
+                # process additional statistics
+                # periods, corners, ...
                 ##############################################################
-                sub_game_id = sub_game_ids.get(match_id, None)
-                if sub_game_id:
-                    additional_stat_url = ('https://1xstavka.ru/en/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
-                                      % (league_id, sub_game_id))
-                    self.process_add_stats(additional_stat_url, debug_level, get_from_file, is_debug_path)
+                league_id = int(league_id)
+                match_id = int(match_id)
+                script_pattern = re.compile(r"SSR_LEFT_MENU = (\{.+?\});")   #({...]});
+                script = str(soup.find('script', string=re.compile("SSR_LEFT_MENU")).string)
+                data_json = script_pattern.search(script)
+                if data_json:
+                    groups = None
+                    data_json = data_json[1]
+                    data = json.loads(data_json)
+                    line = data['line']
+                    values = line['Value']
+                    for value in values:
+                        sport = value.get("N", None)
+                        if sport != "Football":
+                            continue
+                        leagues = value.get("L", None)
+                        for league in leagues:
+                            league_li = league.get("LI", None)
+                            if league_li == league_id:
+                                # found league
+                                matches = league.get("G", None)
+                                if matches:
+                                    for match in matches:
+                                        match_ci = match.get("CI", None)
+                                        if match_ci == match_id:
+                                            groups = match.get("SG", None)
+                                            break
+                                break
+                            sleagues = league.get("SC", None)
+                            if sleagues:
+                                for sleague in sleagues:
+                                    sleague_li = sleague.get("LI", None)
+                                    if sleague_li == league_id:
+                                        # found league
+                                        matches = sleague.get("G", None)
+                                        if matches:
+                                            for match in matches:
+                                                match_ci = match.get("CI", None)
+                                                if match_ci == match_id:
+                                                    groups = match.get("SG", None)
+                                                    break
+                                        break
+                            if groups:
+                                break
+                        break
+                    if groups:
+                        # found groups
+                        self.process_add_group_stats(groups, debug_level, get_from_file, is_debug_path)
+
+
+
+                # sub_game_id = sub_game_ids.get(match_id, None)
+                # if sub_game_id:
+                #     additional_stat_url = ('https://1xstavka.ru/en/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
+                #                       % (league_id, sub_game_id))
+                #     self.process_add_stats(additional_stat_url, debug_level, get_from_file, is_debug_path)
 
                 self.finish_match()
                 if debug_level: break
-                # break #!!!
-        return load_date
+            #     break #!!!
+            # if match_cnt > 0:
+            #     break #!!!
+
+        return load_date, match_cnt
 
 #allSport > ul > li.sportMenuActive > ul > li.active.open > ul > li:nth-child(1) > a
 
 
-    def process_add_odds(self, add_url, debug_level, get_from_file, is_debug_path, file_suffix='', global_params={}):
+    def process_group_odds(self, groups, global_params={}):
+
+        # if type(groups) == type([]): groups = groups[0]
+        # groups  = groups['GE']
+        for group in groups:
+            row_handler = None
+            group_num = group['G']
+            odd_name  = 'G='+str(group_num)
+            # group_handler = ODDS.get('G='+str(group_num), None)
+            group_handler = self.get_config('G='+str(group_num))
+            if group_handler: 
+                row_handler = group_handler.bookie_handler
+                if row_handler:
+                    for row in group['E']:
+                        for row_inner in row:
+                            method = getattr(self, row_handler)
+                            method(odd_name, row_inner, global_params)
+                            # globals()[row_handler](self, odd_name, row_inner, global_params)
+
+
+
+    def process_add_odds(self, add_url, debug_level, get_from_file, is_debug_path, file_suffix='', global_params={}, league_id=None):
 
         file_name = "1xbet_add"
         if debug_level != 2:
@@ -347,25 +433,19 @@ class XBetHandler(CommonHandler):
 
         json_data = json.loads(row_data)
         if json_data['Success']:
-            groups = json_data['Value']['GE']
-            # if type(groups) == type([]): groups = groups[0]
-            # groups  = groups['GE']
-            for group in groups:
-                row_handler = None
-                group_num = group['G']
-                odd_name  = 'G='+str(group_num)
-                # group_handler = ODDS.get('G='+str(group_num), None)
-                group_handler = self.get_config('G='+str(group_num))
-                if group_handler: 
-                    row_handler = group_handler.bookie_handler
-                    if row_handler:
-                        for row in group['E']:
-                            for row_inner in row:
-                                method = getattr(self, row_handler)
-                                method(odd_name, row_inner, global_params)
-                                # globals()[row_handler](self, odd_name, row_inner, global_params)
+            Value = json_data['Value']
+            # Main
+            groups = Value['GE']
+            self.process_group_odds(groups, global_params)
 
-
+            # parts = Value.get("SG", None)
+            # if parts and league_id:
+            #     for part in parts:
+            #         sub_game_id = part.get('CI', None)
+            #         if sub_game_id:
+            #             additional_stat_url = ('https://1xstavka.ru/en/LineFeed/Get1x2_VZip?sports=1&champs=%s&count=50&lng=en&tf=2200000&tz=3&mode=4&subGames=%s&country=1&getEmpty=true'
+            #                               % (league_id, sub_game_id))
+            #             self.process_add_stats(additional_stat_url, debug_level, get_from_file, is_debug_path)
 
 
     def process_add_stats(self, url, debug_level, get_from_file, is_debug_path):
@@ -379,6 +459,12 @@ class XBetHandler(CommonHandler):
         json_data = json.loads(row_data)
         groups  = json_data['Value'][0]
         groups  = groups.get('SG',None)
+
+        self.process_add_group_stats(groups, debug_level, get_from_file, is_debug_path)
+
+
+    def process_add_group_stats(self, groups, debug_level, get_from_file, is_debug_path):
+
         if not groups:
             return
         for group in groups:
@@ -422,6 +508,8 @@ class XBetHandler(CommonHandler):
                            )
                 # print('!!!', full_name, add_url)
                 self.process_add_odds(add_url, debug_level, get_from_file, is_debug_path, file_suffix=full_name, global_params=global_params)
+
+
 
 
 

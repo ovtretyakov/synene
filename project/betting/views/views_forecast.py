@@ -915,15 +915,48 @@ class ForecastMatchDetail(BSModalReadView):
             context["forecast_set_id"] = forecast_set_id
         context["match_id"] = self.object.pk
 
-        harvest = Harvest.get_xg_harvest(0)
-        forecast_set.preapre_sandbox(match=self.object, harvest=harvest)
+        stat_period = self.request.GET.get("stat_period", None)
+        if stat_period == None:
+            stat_period = 0
+        context["stat_period"] = stat_period
+
+
+        harvest = Harvest.get_xg_harvest(stat_period)
+        harvest0 = Harvest.get_xg_harvest(0)
+        harvest1 = Harvest.get_xg_harvest(1)
+        harvest2 = Harvest.get_xg_harvest(2)
+        forecast_set.preapre_sandbox(match=self.object, harvest=harvest0)
+        forecast_set.preapre_sandbox(match=self.object, harvest=harvest1)
+        forecast_set.preapre_sandbox(match=self.object, harvest=harvest2)
         xG_h0_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
-                                                   harvest_id=harvest.id, 
+                                                   harvest_id=harvest0.id, 
                                                    team_id=self.object.team_h_id, 
                                                    event_date=self.object.match_date, 
                                                    param="h")
         xG_a0_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
-                                                   harvest_id=harvest.id, 
+                                                   harvest_id=harvest0.id, 
+                                                   team_id=self.object.team_a_id, 
+                                                   event_date=self.object.match_date, 
+                                                   param="a")
+        print("!!!! xG_h1_skill", forecast_set_id, harvest1.id, self.object.team_h_id, self.object.match_date, "h")
+        xG_h1_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                                   harvest_id=harvest1.id, 
+                                                   team_id=self.object.team_h_id, 
+                                                   event_date=self.object.match_date, 
+                                                   param="h")
+        print("OK")
+        xG_a1_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                                   harvest_id=harvest1.id, 
+                                                   team_id=self.object.team_a_id, 
+                                                   event_date=self.object.match_date, 
+                                                   param="a")
+        xG_h2_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                                   harvest_id=harvest2.id, 
+                                                   team_id=self.object.team_h_id, 
+                                                   event_date=self.object.match_date, 
+                                                   param="h")
+        xG_a2_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
+                                                   harvest_id=harvest2.id, 
                                                    team_id=self.object.team_a_id, 
                                                    event_date=self.object.match_date, 
                                                    param="a")
@@ -931,17 +964,42 @@ class ForecastMatchDetail(BSModalReadView):
         # xG_a0_skill = TeamSkill.get_team_skill(harvest=harvest, team=self.object.team_a, skill_date=self.object.match_date, param="a")
 
 
-        context["xG_h"] = self.object.get_stat("xg", "h", 0)
-        context["xG_a"] = self.object.get_stat("xg", "a", 0)
+        context["xG_h0"] = self.object.get_stat("xg", "h", 0)
+        context["xG_a0"] = self.object.get_stat("xg", "a", 0)
+        context["xG_h1"] = self.object.get_stat("xg", "h", 1)
+        context["xG_a1"] = self.object.get_stat("xg", "a", 1)
+        context["xG_h2"] = self.object.get_stat("xg", "h", 2)
+        context["xG_a2"] = self.object.get_stat("xg", "a", 2)
         if xG_h0_skill and xG_a0_skill:
-            context["fxG_h"] = round(xG_h0_skill.value1*xG_a0_skill.value2,3)
-            context["fxG_a"] = round(xG_a0_skill.value1*xG_h0_skill.value2,3)
-            context["fG_h"]  = round(xG_h0_skill.value9*xG_a0_skill.value10,3)
-            context["fG_a"]  = round(xG_a0_skill.value9*xG_h0_skill.value10,3)
-            context["fxG_h_ch"] = "*" if (xG_h0_skill.changed1 or xG_a0_skill.changed2) else ""
-            context["fxG_a_ch"] = "*" if (xG_a0_skill.changed1 or xG_h0_skill.changed2) else ""
-            context["fG_h_ch"]  = "*" if (xG_h0_skill.changed9 or xG_a0_skill.changed10) else ""
-            context["fG_a_ch"]  = "*" if (xG_a0_skill.changed9 or xG_h0_skill.changed10) else ""
+            # 0
+            context["fxG_h0"] = round(xG_h0_skill.value1*xG_a0_skill.value2,3)
+            context["fxG_a0"] = round(xG_a0_skill.value1*xG_h0_skill.value2,3)
+            context["fG_h0"]  = round(xG_h0_skill.value9*xG_a0_skill.value10,3)
+            context["fG_a0"]  = round(xG_a0_skill.value9*xG_h0_skill.value10,3)
+            context["fxG_h0_ch"] = "*" if (xG_h0_skill.changed1 or xG_a0_skill.changed2) else ""
+            context["fxG_a0_ch"] = "*" if (xG_a0_skill.changed1 or xG_h0_skill.changed2) else ""
+            context["fG_h0_ch"]  = "*" if (xG_h0_skill.changed9 or xG_a0_skill.changed10) else ""
+            context["fG_a0_ch"]  = "*" if (xG_a0_skill.changed9 or xG_h0_skill.changed10) else ""
+            # 1
+            context["fxG_h1"] = round(xG_h1_skill.value1*xG_a1_skill.value2,3)
+            context["fxG_a1"] = round(xG_a1_skill.value1*xG_h1_skill.value2,3)
+            context["fG_h1"]  = round(xG_h1_skill.value9*xG_a1_skill.value10,3)
+            context["fG_a1"]  = round(xG_a1_skill.value9*xG_h1_skill.value10,3)
+            context["fxG_h1_ch"] = "*" if (xG_h1_skill.changed1 or xG_a1_skill.changed2) else ""
+            context["fxG_a1_ch"] = "*" if (xG_a1_skill.changed1 or xG_h1_skill.changed2) else ""
+            context["fG_h1_ch"]  = "*" if (xG_h1_skill.changed9 or xG_a1_skill.changed10) else ""
+            context["fG_a1_ch"]  = "*" if (xG_a1_skill.changed9 or xG_h1_skill.changed10) else ""
+            # 2
+            context["fxG_h2"] = round(xG_h2_skill.value1*xG_a2_skill.value2,3)
+            context["fxG_a2"] = round(xG_a2_skill.value1*xG_h2_skill.value2,3)
+            context["fG_h2"]  = round(xG_h2_skill.value9*xG_a2_skill.value10,3)
+            context["fG_a2"]  = round(xG_a2_skill.value9*xG_h2_skill.value10,3)
+            context["fxG_h2_ch"] = "*" if (xG_h2_skill.changed1 or xG_a2_skill.changed2) else ""
+            context["fxG_a2_ch"] = "*" if (xG_a2_skill.changed1 or xG_h2_skill.changed2) else ""
+            context["fG_h2_ch"]  = "*" if (xG_h2_skill.changed9 or xG_a2_skill.changed10) else ""
+            context["fG_a2_ch"]  = "*" if (xG_a2_skill.changed9 or xG_h2_skill.changed10) else ""
+
+
 
 
             context["xG_h_skill"] = round(xG_h0_skill.value1,3)
@@ -1059,46 +1117,100 @@ class ForecastMatchDetail(BSModalReadView):
 
         sql = """
                 SELECT *
-                  FROM 
+                  FROM
                     (
-                    SELECT s.*,
-                           row_number() OVER(ORDER BY event_date DESC) AS rn
-                      FROM betting_teamskill s
-                      WHERE harvest_id = %s AND team_id = %s AND event_date < %s AND param = %s
-                    ) d
-                  WHERE rn <= 10
+                    SELECT event_date,
+                           SUM(CASE WHEN harvest_id=h0 THEN value1 ELSE 0 END) AS h0_value1,
+                           SUM(CASE WHEN harvest_id=h0 THEN value2 ELSE 0 END) AS h0_value2,
+                           SUM(CASE WHEN harvest_id=h0 THEN value9 ELSE 0 END) AS h0_value9,
+                           SUM(CASE WHEN harvest_id=h0 THEN value10 ELSE 0 END) AS h0_value10,
+                           SUM(CASE WHEN harvest_id=h1 THEN value1 ELSE 0 END) AS h1_value1,
+                           SUM(CASE WHEN harvest_id=h1 THEN value2 ELSE 0 END) AS h1_value2,
+                           SUM(CASE WHEN harvest_id=h1 THEN value9 ELSE 0 END) AS h1_value9,
+                           SUM(CASE WHEN harvest_id=h1 THEN value10 ELSE 0 END) AS h1_value10,
+                           SUM(CASE WHEN harvest_id=h2 THEN value1 ELSE 0 END) AS h2_value1,
+                           SUM(CASE WHEN harvest_id=h2 THEN value2 ELSE 0 END) AS h2_value2,
+                           SUM(CASE WHEN harvest_id=h2 THEN value9 ELSE 0 END) AS h2_value9,
+                           SUM(CASE WHEN harvest_id=h2 THEN value10 ELSE 0 END) AS h2_value10,
+                           ROW_NUMBER() OVER(ORDER BY event_date DESC) AS id
+                      FROM 
+                        (
+                        SELECT s.*,
+                               %s AS h0, %s AS h1, %s AS h2
+                          FROM betting_teamskill s
+                          WHERE harvest_id IN(%s,%s,%s) AND team_id = %s AND event_date < %s AND param = %s
+                        ) d
+                      GROUP BY event_date
+                     ) d2
+                  WHERE d2.id <= 20
                   ORDER BY event_date
               """
-        fields = ["event_date", "value1", "value2", "value9", "value10"]
-        headers = ["Date", "xG", "xA", "G", "A"]
-        options={'title': "xG skills",
-                 'colors': ['green', 'red', 'green', 'red'],
-                 'series': { 2: {'lineDashStyle':[4, 4]}, 3: {'lineDashStyle':[4, 4]}},
-                 'chartArea':{'left':30,'width':'80%',}
+        fields_xg = ["event_date", "h0_value1", "h1_value1", "h2_value1", "h0_value2", "h1_value2", "h2_value2"]
+        fields_g = ["event_date", "h0_value9", "h1_value9", "h2_value9", "h0_value10", "h1_value10", "h2_value10"]
+        headers = ["Date", "Match", "Period 1", "Period 2", "Match", "Period 1", "Period 2"]
+        options_xg={'title': "xG skills",
+                 'colors': ['blue', 'blue', 'blue', 'red', 'red', 'red'],
+                 'series': { 1: {'lineDashStyle':[6, 6]}, 2: {'lineDashStyle':[2, 2]}, 4: {'lineDashStyle':[6, 6]}, 5: {'lineDashStyle':[2, 2]}},
+                 'chartArea':{'left':30,'width':'75%',}
+                 }
+        options_g={'title': "G skills",
+                 'colors': ['blue', 'blue', 'blue', 'red', 'red', 'red'],
+                 'series': { 1: {'lineDashStyle':[6, 6]}, 2: {'lineDashStyle':[2, 2]}, 4: {'lineDashStyle':[6, 6]}, 5: {'lineDashStyle':[2, 2]}},
+                 'chartArea':{'left':30,'width':'75%',}
                  }
         chart_width = 650
-        h_chart = gchart.LineChart(ModelDataSource(queryset=
+        xg_h_chart = gchart.LineChart(ModelDataSource(queryset=
                                                      TeamSkill.objects.raw(sql, 
-                                                                           [harvest_id, self.object.team_h.pk, self.object.match_date, 'h']
+                                                                           [harvest0.id, harvest1.id, harvest2.id,
+                                                                            harvest0.id, harvest1.id, harvest2.id, 
+                                                                            self.object.team_h.pk, self.object.match_date, 'h']
                                                                            ), 
-                                                   fields=fields,
+                                                   fields=fields_xg,
                                                    headers=headers,
                                                    ),
-                                   options=options
+                                   options=options_xg
                                    )
-        h_chart.width = chart_width
-        a_chart = gchart.LineChart(ModelDataSource(queryset=
+        xg_h_chart.width = chart_width
+        g_h_chart = gchart.LineChart(ModelDataSource(queryset=
                                                      TeamSkill.objects.raw(sql, 
-                                                                           [harvest_id, self.object.team_a.pk, self.object.match_date, 'a']
+                                                                           [harvest0.id, harvest1.id, harvest2.id,
+                                                                            harvest0.id, harvest1.id, harvest2.id, 
+                                                                            self.object.team_h.pk, self.object.match_date, 'h']
                                                                            ), 
-                                                   fields=fields,
+                                                   fields=fields_g,
                                                    headers=headers,
                                                    ),
-                                   options=options
+                                   options=options_g
                                    )
-        a_chart.width = chart_width
-        context["h_chart"] = h_chart
-        context["a_chart"] = a_chart
+        g_h_chart.width = chart_width
+        xg_a_chart = gchart.LineChart(ModelDataSource(queryset=
+                                                     TeamSkill.objects.raw(sql, 
+                                                                           [harvest0.id, harvest1.id, harvest2.id,
+                                                                            harvest0.id, harvest1.id, harvest2.id, 
+                                                                            self.object.team_a.pk, self.object.match_date, 'a']
+                                                                           ), 
+                                                   fields=fields_xg,
+                                                   headers=headers,
+                                                   ),
+                                   options=options_xg
+                                   )
+        xg_a_chart.width = chart_width
+        g_a_chart = gchart.LineChart(ModelDataSource(queryset=
+                                                     TeamSkill.objects.raw(sql, 
+                                                                           [harvest0.id, harvest1.id, harvest2.id,
+                                                                            harvest0.id, harvest1.id, harvest2.id, 
+                                                                            self.object.team_a.pk, self.object.match_date, 'a']
+                                                                           ), 
+                                                   fields=fields_g,
+                                                   headers=headers,
+                                                   ),
+                                   options=options_g
+                                   )
+        g_a_chart.width = chart_width
+        context["xg_h_chart"] = xg_h_chart
+        context["g_h_chart"] = g_h_chart
+        context["xg_a_chart"] = xg_a_chart
+        context["g_a_chart"] = g_a_chart
 
         return context    
 

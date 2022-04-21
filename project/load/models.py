@@ -45,7 +45,7 @@ class CommonHandler(MatchDetail, LoadSource):
         is_error = True
         for i in range(1,5):
             try:
-                time.sleep(1)
+                time.sleep(0.2)
                 r = requests.get(url)
                 break
             except requests.exceptions.RequestException as e:

@@ -617,7 +617,9 @@ class Bet(models.Model):
         self.save()
 
     def _do_finish(self, win_amt):
-        win_transaction = Transaction.add(bookie_id=self.bookie_id, trans_type=Transaction.TYPE_WIN, amount=win_amt)
+        win_transaction = None
+        if win_amt != 0:
+            win_transaction = Transaction.add(bookie_id=self.bookie_id, trans_type=Transaction.TYPE_WIN, amount=win_amt)
         self.status = Bet.FINISHED
         self.win_time = timezone.now()
         self.win_amt = win_amt

@@ -127,7 +127,7 @@ class Harvest(models.Model):
 
         # smooth-interval
         # harvest_config = HarvestConfig.objects.get(harvest=self, code="smooth-interval")
-        # start_interval = 7.0
+        # start_interval = 10.0
         # step = 1.0
         # for x in range(10):
         #     smooth_interval = start_interval + x*step
@@ -137,9 +137,9 @@ class Harvest(models.Model):
         #     cnt, mse_h, mse_a = TeamSkill.calculate_xg_mse(self, start_date)
         #     print(smooth_interval, cnt, mse_h, mse_a)
 
-        # delta-koef
-        # harvest_config = HarvestConfig.objects.get(harvest=self, code="delta-koef-h")
-        # start_interval = 2.6
+        # # delta-koef
+        # harvest_config = HarvestConfig.objects.get(harvest=self, code="delta-koef-a")
+        # start_interval = 3.6
         # step = 0.2
         # for x in range(10):
         #     delta_koef = start_interval + x*step
@@ -147,12 +147,12 @@ class Harvest(models.Model):
         #     harvest_config.save()
         #     self.do_harvest(date(2014, 8, 1))
         #     cnt, mse_h, mse_a = TeamSkill.calculate_xg_mse(self, start_date)
-        #     print(delta_koef, cnt, mse_h, mse_a)
+        #     print(round(delta_koef,1), cnt, mse_h, mse_a)
 
 
         # deviation-smooth-interval
         # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-smooth-interval")
-        # start_interval = 6.0
+        # start_interval = 15.0
         # step = 1.0
         # for x in range(10):
         #     smooth_interval = start_interval + x*step
@@ -164,8 +164,8 @@ class Harvest(models.Model):
 
         # deviation-zero-value
         # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-zero-value")
-        # start_interval = 0.55
-        # step = 0.05
+        # start_interval = 0.24
+        # step = 0.02
         # for x in range(10):
         #     zero_value = start_interval + x*step
         #     harvest_config.value = str(zero_value)
@@ -175,8 +175,8 @@ class Harvest(models.Model):
         #     print(zero_value, cnt, mse_h, mse_a)
 
         # deviation-delta-koef
-        # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-delta-koef-a")
-        # start_interval = 2.6
+        # harvest_config = HarvestConfig.objects.get(harvest=self, code="deviation-delta-koef-h")
+        # start_interval = 4.6
         # step = 0.2
         # for x in range(10):
         #     zero_value = start_interval + x*step
@@ -356,147 +356,159 @@ class Predictor(models.Model):
         distribution_data = Distribution.get_distribution_data(slug, value, param, object_id)
         return distribution_data
 
-    def forecasting(self, forecast_set, match_id=None, sandbox = False):
+    def forecasting(self, forecast_set, match_id=None, sandbox = False, period=None):
         from .harvest import TeamSkill
         start_date = forecast_set.start_date
         if not start_date:
             start_date = date(2015, 1, 1)
 
-        self.period = self.harvest.period
-        self.value_type_slug = self.harvest.value_type.slug
-        self.value_type = self.harvest.value_type
+        pattern = self.harvest.slug[:-1]
+        print("!!! pattern", pattern)
+        queryset = Harvest.objects.filter(slug__startswith=pattern, status=Harvest.ACTIVE)
+        if period != None:
+            queryset = queryset.filter(period=period)
+        for harvest in queryset:
 
-        only_finished = forecast_set.only_finished
-        keep_only_best = forecast_set.keep_only_best
-        print(3, self.harvest)
-        for harvest_league in HarvestLeague.objects.filter(harvest_group__harvest=self.harvest, harvest_group__status=HarvestGroup.ACTIVE):
-            print(harvest_league)
-            queryset = Match.objects.filter(season__league = harvest_league.league, 
-                                            match_date__gte = start_date)
-            if only_finished:
-                queryset = queryset.exclude(status=Match.FINISHED)
-            if match_id:
-                queryset = queryset.filter(pk=match_id)
-            queryset = queryset.order_by("match_date","pk")
+            self.period = harvest.period
+            self.value_type_slug = harvest.value_type.slug
+            self.value_type = harvest.value_type
 
-            for match in queryset:
-                print(match, match.match_date)
-                if sandbox:
-                    self.skill_h = TeamSkillSandbox.objects.get(forecast_set_id=forecast_set.id,
-                                                                harvest_id=self.harvest_id, 
-                                                                team_id=match.team_h_id, 
-                                                                event_date=match.match_date, 
-                                                                param="h")
-                    self.skill_a = TeamSkillSandbox.objects.get(forecast_set_id=forecast_set.id,
-                                                                harvest_id=self.harvest_id, 
-                                                                team_id=match.team_a_id, 
-                                                                event_date=match.match_date, 
-                                                                param="a")
-                else:    
-                    if match.status == Match.FINISHED:
-                        if Forecast.objects.filter(forecast_set_id=forecast_set.id,
-                                                   match_id=match.id,
-                                                   predictor_id=self.id,
-                                                   ).exists():
-                            if not Forecast.objects.filter(forecast_set_id=forecast_set.id,
-                                                           match_id=match.id,
-                                                           predictor_id=self.id,
-                                                           status=Forecast.UNSETTLED
-                                                       ).exists():
-                                continue
-                    self.skill_h = TeamSkill.get_team_skill(self.harvest, match.team_h, match.match_date, match, param="h")
-                    self.skill_a = TeamSkill.get_team_skill(self.harvest, match.team_a, match.match_date, match, param="a")
+            only_finished = forecast_set.only_finished
+            keep_only_best = forecast_set.keep_only_best
+            print("!!!", harvest, self.period)
+            for harvest_league in HarvestLeague.objects.filter(harvest_group__harvest=harvest, harvest_group__status=HarvestGroup.ACTIVE):
+                print(harvest_league)
+                queryset = Match.objects.filter(season__league = harvest_league.league, 
+                                                match_date__gte = start_date)
+                if only_finished:
+                    queryset = queryset.exclude(status=Match.FINISHED)
+                if match_id:
+                    queryset = queryset.filter(pk=match_id)
+                queryset = queryset.order_by("match_date","pk")
 
-
-                if not self.skill_h or not self.skill_a or self.skill_h.match_cnt <= 3 or self.skill_a.match_cnt <= 3:
-                    continue
-
-                self.extract_skills()
-                forecast_data = self.get_forecast_data()
-
-                # print("dl", sum([d[2] for d in forecast_data if d[0] <= d[1]]))
-                # print("wl", sum([d[2] for d in forecast_data if d[0] != d[1]]))
-                forecast_ins = []
-                forecast_upd = []
-                for odd in Odd.objects.filter(match=match, value_type=self.value_type, period=self.period):
-                    forecast_old = None
-                    ins = False
-                    upd = False
+                for match in queryset:
+                    print(match, match.match_date, self.period)
                     if sandbox:
-                        forecast_old = ForecastSandbox.objects.filter(forecast_set_id=forecast_set.id,
-                                                                      match_id=match.id,
-                                                                      odd_id=odd.id,
-                                                                      predictor_id=self.id).first()
-                        if forecast_old:
-                            continue
-                        ins = True
-                    else:
-                        forecast_old = Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                        self.skill_h = TeamSkillSandbox.objects.get(forecast_set_id=forecast_set.id,
+                                                                    harvest_id=harvest.id, 
+                                                                    team_id=match.team_h_id, 
+                                                                    event_date=match.match_date, 
+                                                                    param="h")
+                        self.skill_a = TeamSkillSandbox.objects.get(forecast_set_id=forecast_set.id,
+                                                                    harvest_id=harvest.id, 
+                                                                    team_id=match.team_a_id, 
+                                                                    event_date=match.match_date, 
+                                                                    param="a")
+                    else:    
+                        if match.status == Match.FINISHED:
+                            if Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                                                       match_id=match.id,
+                                                       predictor_id=self.id,
+                                                       ).exists():
+                                if not Forecast.objects.filter(forecast_set_id=forecast_set.id,
                                                                match_id=match.id,
-                                                               odd_id=odd.id,
-                                                               predictor_id=self.id).first()
-                        if forecast_old:
-                            upd = True
-                            # print("forecast_old.status",forecast_old.status)
-                            if forecast_old.status == Forecast.SETTLED:
-                                continue
-                        else:
-                            ins = True
+                                                               predictor_id=self.id,
+                                                               status=Forecast.UNSETTLED
+                                                           ).exists():
+                                    continue
+                        self.skill_h = TeamSkill.get_team_skill(harvest, match.team_h, match.match_date, match, param="h")
+                        self.skill_a = TeamSkill.get_team_skill(harvest, match.team_a, match.match_date, match, param="a")
 
-                    real_odd = odd.get_own_object()
-                    success_chance, lose_chance, result_value = real_odd.forecasting(forecast_data)
-                    if success_chance != None:
-                        kelly = 0
-                        if result_value > 1.001:
-                            kelly = (result_value - Decimal(1.0)) / (odd.odd_value - Decimal(1.0))
+
+                    if not self.skill_h or not self.skill_a or self.skill_h.match_cnt <= 3 or self.skill_a.match_cnt <= 3:
+                        print("    Skip match")
+                        continue
+
+                    self.extract_skills()
+                    forecast_data = self.get_forecast_data()
+
+                    # print("dl", sum([d[2] for d in forecast_data if d[0] <= d[1]]))
+                    # print("wl", sum([d[2] for d in forecast_data if d[0] != d[1]]))
+                    forecast_ins = []
+                    forecast_upd = []
+                    i = 0
+                    for odd in Odd.objects.filter(match=match, value_type=self.value_type, period=self.period):
+                        i += 1
+                        forecast_old = None
+                        ins = False
+                        upd = False
                         if sandbox:
-                            forecast_ins.append(ForecastSandbox(
+                            forecast_old = ForecastSandbox.objects.filter(forecast_set_id=forecast_set.id,
+                                                                          match_id=match.id,
+                                                                          odd_id=odd.id,
+                                                                          predictor_id=self.id).first()
+                            if forecast_old:
+                                continue
+                            ins = True
+                        else:
+                            forecast_old = Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                                                                   match_id=match.id,
+                                                                   odd_id=odd.id,
+                                                                   predictor_id=self.id).first()
+                            if forecast_old:
+                                upd = True
+                                # print("forecast_old.status",forecast_old.status)
+                                if forecast_old.status == Forecast.SETTLED:
+                                    continue
+                            else:
+                                ins = True
+
+                        real_odd = odd.get_own_object()
+                        success_chance, lose_chance, result_value = real_odd.forecasting(forecast_data)
+                        if success_chance != None:
+                            kelly = 0
+                            if result_value > 1.001:
+                                kelly = (result_value - Decimal(1.0)) / (odd.odd_value - Decimal(1.0))
+                            if sandbox:
+                                forecast_ins.append(ForecastSandbox(
+                                                                    forecast_set_id=forecast_set.id,
+                                                                    match_id=match.id,
+                                                                    odd_id=odd.id,
+                                                                    predictor_id=self.id,
+                                                                    match_date=match.match_date,
+                                                                    harvest_id=harvest.id,
+                                                                    success_chance=success_chance,
+                                                                    lose_chance=lose_chance,
+                                                                    result_value=result_value,
+                                                                    kelly=kelly)
+                                                )
+                            else:
+                                if ins:
+                                    forecast_ins.append(Forecast(
                                                                 forecast_set_id=forecast_set.id,
                                                                 match_id=match.id,
                                                                 odd_id=odd.id,
                                                                 predictor_id=self.id,
                                                                 match_date=match.match_date,
-                                                                harvest_id=self.harvest_id,
+                                                                harvest_id=harvest.id,
                                                                 success_chance=success_chance,
                                                                 lose_chance=lose_chance,
                                                                 result_value=result_value,
-                                                                kelly=kelly)
-                                            )
+                                                                kelly=kelly,
+                                                                status=Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED
+                                                                )
+                                                    )
+                                elif upd:
+                                    forecast_old.success_chance=success_chance
+                                    forecast_old.lose_chance=lose_chance
+                                    forecast_old.result_value=result_value
+                                    forecast_old.kelly=kelly
+                                    forecast_old.status=Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED
+                                    forecast_upd.append(forecast_old)
+
+                    print("    Result", len(forecast_ins), len(forecast_upd))
+                    if forecast_ins:
+                        if sandbox:
+                            ForecastSandbox.objects.bulk_create(forecast_ins)
                         else:
-                            if ins:
-                                forecast_ins.append(Forecast(
-                                                            forecast_set_id=forecast_set.id,
-                                                            match_id=match.id,
-                                                            odd_id=odd.id,
-                                                            predictor_id=self.id,
-                                                            match_date=match.match_date,
-                                                            harvest_id=self.harvest_id,
-                                                            success_chance=success_chance,
-                                                            lose_chance=lose_chance,
-                                                            result_value=result_value,
-                                                            kelly=kelly,
-                                                            status=Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED
-                                                            )
-                                                )
-                            elif upd:
-                                forecast_old.success_chance=success_chance
-                                forecast_old.lose_chance=lose_chance
-                                forecast_old.result_value=result_value
-                                forecast_old.kelly=kelly
-                                forecast_old.status=Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED
-                                forecast_upd.append(forecast_old)
+                            Forecast.objects.bulk_create(forecast_ins)
+                    if forecast_upd:
+                        if sandbox:
+                            ForecastSandbox.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
+                        else:
+                            Forecast.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
 
 
-                if forecast_ins:
-                    if sandbox:
-                        ForecastSandbox.objects.bulk_create(forecast_ins)
-                    else:
-                        Forecast.objects.bulk_create(forecast_ins)
-                if forecast_upd:
-                    if sandbox:
-                        ForecastSandbox.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
-                    else:
-                        Forecast.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
 
     def forecasting_odd(self, odd):
         from .harvest import TeamSkill
@@ -622,7 +634,7 @@ class ForecastSet(models.Model):
             raise e
 
 
-    def api_update_match_xG(self, harvest, match, xG_h, xA_h, G_h, A_h, xG_a, xA_a, G_a, A_a):
+    def api_update_match_xG(self, harvest, match, xG_h, xA_h, G_h, A_h, xG_a, xA_a, G_a, A_a, period=0):
         from .harvest import TeamSkill
         try:
             with transaction.atomic():
@@ -652,7 +664,7 @@ class ForecastSet(models.Model):
                                         changed10= (not (A_a==round(tsa.value10,3))),
                                        )
                          )
-                self.forecast_match(match)
+                self.forecast_match(match, period=period)
 
         except Exception as e:
             error_text = str(e)[:255]
@@ -772,7 +784,7 @@ class ForecastSet(models.Model):
     def forecasting(self, delete_old=False):
         start_time = datetime.now()
 
-        for m in TeamSkillSandbox.objects.filter(forecast_set=self).order_by("match_id").distinct("match_id"): 
+        for m in ForecastSandbox.objects.filter(forecast_set=self).order_by("match_id").distinct("match_id"): 
             mid = m.match_id
             if not TeamSkillSandbox.objects.filter(Q(forecast_set=self) & Q(match_id=mid) &
                                                    (Q(changed1=True) | Q(changed2=True) | Q(changed3=True) | Q(changed4=True) | Q(changed5=True) |
@@ -799,11 +811,11 @@ class ForecastSet(models.Model):
         self.status = ForecastSet.SUCCESS
         self.save()
 
-    def forecast_match(self, match):
+    def forecast_match(self, match, period=None):
         ForecastSandbox.objects.filter(forecast_set=self, match=match).delete()
         for predictor in Predictor.objects.filter(status=Predictor.ACTIVE).order_by("priority", "pk"):
             real_predictor = predictor.get_real_predictor()
-            real_predictor.forecasting(self, match_id=match.id, sandbox=True)
+            real_predictor.forecasting(self, match_id=match.id, sandbox=True, period=period)
 
 
 
@@ -941,13 +953,13 @@ class PredictorStdDistribH_XG_0(Mixins.StandartExtraction, Mixins.FixedDistribut
     def get_distribution_slug(self):
         return "xg-ext-distr"
 
-class PredictorOrigDistrXG(Mixins.OriginalDataExtraction, Mixins.FixedDistributionForecastingEx, Predictor):
+class PredictorOrigDistrXG(Mixins.OriginalDataExtraction, Mixins.FixedDistributionForecasting, Predictor):
     class Meta:
         proxy = True
     def get_distribution_slug(self):
         return "xg-distr-copy"
 
-class PredictorStdDistrXG(Mixins.StandartExtraction, Mixins.FixedDistributionForecastingEx, Predictor):
+class PredictorStdDistrXG(Mixins.StandartExtraction, Mixins.FixedDistributionForecasting, Predictor):
     class Meta:
         proxy = True
     def get_distribution_slug(self):

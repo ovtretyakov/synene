@@ -667,9 +667,10 @@ class Odd(Mergable, models.Model):
         result_value = float(0.0)
         fdata = None
         if forecast_data.__class__.__name__ == "dict":
-            fdata = forecast_data.get(forecast_type, None)
-            if not fdata and forecast_type != "simple":
-                fdata = forecast_data.get("simple", None)
+            fdata = forecast_data.get(self.period, None)
+            # fdata = forecast_data.get(forecast_type, None)
+            # if not fdata and forecast_type != "simple":
+            #     fdata = forecast_data.get("simple", None)
         else:
             fdata = forecast_data
 

@@ -159,12 +159,12 @@ class TeamSkill(models.Model):
                     FROM synene.core_match m, 
                          synene.core_matchstats sh, synene.core_matchstats sa
                     WHERE m.status = 'F' AND m.match_date >= %s
-                      AND sh.match_id = m.id AND sh.stat_type = 'xg' AND sh.competitor = 'h' AND sh.period = 0
-                      AND sa.match_id = m.id AND sa.stat_type = 'xg' AND sa.competitor = 'a' AND sa.period = 0
+                      AND sh.match_id = m.id AND sh.stat_type = 'xg' AND sh.competitor = 'h' AND sh.period = %s
+                      AND sa.match_id = m.id AND sa.stat_type = 'xg' AND sa.competitor = 'a' AND sa.period = %s
                 ) d2
               WHERE d2.h IS NOT NULL AND d2.a IS NOT NULL
             """
-            cursor.execute(select_mse, [harvest.pk, harvest.pk, harvest.pk, harvest.pk, start_date, ])
+            cursor.execute(select_mse, [harvest.pk, harvest.pk, harvest.pk, harvest.pk, start_date, harvest.period, harvest.period, ])
             row = cursor.fetchone()
         cnt = row[0]
         mse_h = row[1]
@@ -217,12 +217,12 @@ class TeamSkill(models.Model):
                     FROM synene.core_match m, 
                          synene.core_matchstats sh, synene.core_matchstats sa
                     WHERE m.status = 'F' AND m.match_date >= %s
-                      AND sh.match_id = m.id AND sh.stat_type = 'g' AND sh.competitor = 'h' AND sh.period = 0
-                      AND sa.match_id = m.id AND sa.stat_type = 'g' AND sa.competitor = 'a' AND sa.period = 0
+                      AND sh.match_id = m.id AND sh.stat_type = 'g' AND sh.competitor = 'h' AND sh.period = %s
+                      AND sa.match_id = m.id AND sa.stat_type = 'g' AND sa.competitor = 'a' AND sa.period = %s
                 ) d2
               WHERE d2.h IS NOT NULL AND d2.a IS NOT NULL
             """
-            cursor.execute(select_mse, [harvest.pk, harvest.pk, harvest.pk, harvest.pk, start_date, ])
+            cursor.execute(select_mse, [harvest.pk, harvest.pk, harvest.pk, harvest.pk, start_date, harvest.period, harvest.period, ])
             row = cursor.fetchone()
         cnt = row[0]
         mse_h = row[1]

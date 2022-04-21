@@ -51,7 +51,7 @@
 
 
         <!--                                                   Match                                    -->
-        <div class="col-sm-6 mb-3">
+        <div class="col-sm mb-3">
           <div class="card">
             <div class="card-body">
 
@@ -91,7 +91,7 @@
                   <!-- Fore G -->
                   <div class="input-group input-group-sm mb-3 col-sm-6">
                     <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore G Home-Away</span></div>
-                    <input type="text" class="form-control text-right" value="{{fG_h}}{{fG_h_ch}} - {{fG_a}}{{fG_a_ch}}" readonly>
+                    <input type="text" class="form-control text-right" value="{{fG_h0}}{{fG_h0_ch}} - {{fG_a0}}{{fG_a0_ch}} / {{fG_h1}}{{fG_h1_ch}} - {{fG_a1}}{{fG_a1_ch}} / {{fG_h2}}{{fG_h2_ch}} - {{fG_a2}}{{fG_a2_ch}}" readonly>
                   </div>
                 </div>
 
@@ -102,12 +102,12 @@
                     <div class="input-group-prepend">
                       <span class="input-group-text " id="label-match-date">xG Home-Away</span>
                     </div>
-                    <input type="text" class="form-control text-right" value="{{xG_h}} - {{xG_a}}" readonly>
+                    <input type="text" class="form-control text-right" value="{{xG_h0}} - {{xG_a0}} / {{xG_h1}} - {{xG_a1}} / {{xG_h2}} - {{xG_a2}}" readonly>
                   </div>
                   <!-- Fore xG -->
                   <div class="input-group input-group-sm mb-3 col-sm-6">
                     <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore xG Home-Away</span></div>
-                    <input type="text" class="form-control text-right" value="{{fxG_h}}{{fxG_h_ch}} - {{fxG_a}}{{fxG_a_ch}}" readonly>
+                    <input type="text" class="form-control text-right" value="{{fxG_h0}}{{fxG_h0_ch}} - {{fxG_a0}}{{fxG_a0_ch}} / {{fxG_h1}}{{fxG_h1_ch}} - {{fxG_a1}}{{fxG_a1_ch}} / {{fxG_h2}}{{fxG_h2_ch}} - {{fxG_a2}}{{fxG_a2_ch}}" readonly>
                   </div>
                 </div>
 
@@ -116,116 +116,6 @@
           </div>
         </div>
 
-
-        <!--                                                   Home                                     -->
-        <div class="col-sm-3">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{object.team_h.name}}</h5>
-
-                <!-- Row1 -->
-                <div class="form-row">
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text " id="label-match-date">Fore xG</span>
-                    </div>
-                    <input type="text" class="form-control text-right" value="{{xG_h_skill}}{{xG_h_skill_ch}}" readonly>
-                  </div>
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore xA</span></div>
-                    <input type="text" class="form-control text-right" value="{{xA_h_skill}}{{xA_h_skill_ch}}" readonly>
-                  </div>
-                </div>
-
-                <!-- Row2 -->
-                <div class="form-row">
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text " id="label-match-date">Fore kG</span>
-                    </div>
-                    <input type="text" class="form-control text-right" value="{{kG_h_skill}}" readonly>
-                  </div>
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore kA</span></div>
-                    <input type="text" class="form-control text-right" value="{{kA_h_skill}}" readonly>
-                  </div>
-                </div>
-
-                <!-- Row3 -->
-                <div class="form-row">
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text " id="label-match-date">Fore G</span>
-                    </div>
-                    <input type="text" class="form-control text-right" value="{{G_h_skill}}{{G_h_skill_ch}}" readonly>
-                  </div>
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore A</span></div>
-                    <input type="text" class="form-control text-right" value="{{A_h_skill}}{{A_h_skill_ch}}" readonly>
-                  </div>
-                </div>
-
-            </div>
-          </div>
-        </div>
-
-
-
-        <!--                                                   Away                                    -->
-        <div class="col-sm-3">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{object.team_a.name}}</h5>
-
-
-                <!-- Row1 -->
-                <div class="form-row">
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text " id="label-match-date">Fore xG</span>
-                    </div>
-                    <input type="text" class="form-control text-right" value="{{xG_a_skill}}{{xG_a_skill_ch}}" readonly>
-                  </div>
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore xA</span></div>
-                    <input type="text" class="form-control text-right" value="{{xA_a_skill}}{{xA_a_skill_ch}}" readonly>
-                  </div>
-                </div>
-
-                <!-- Row2 -->
-                <div class="form-row">
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text " id="label-match-date">Fore kG</span>
-                    </div>
-                    <input type="text" class="form-control text-right" value="{{kG_a_skill}}" readonly>
-                  </div>
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore kA</span></div>
-                    <input type="text" class="form-control text-right" value="{{kA_a_skill}}" readonly>
-                  </div>
-                </div>
-
-                <!-- Row3 -->
-                <div class="form-row">
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text " id="label-match-date">Fore G</span>
-                    </div>
-                    <input type="text" class="form-control text-right" value="{{G_a_skill}}{{G_a_skill_ch}}" readonly>
-                  </div>
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
-                    <div class="input-group-prepend"><span class="input-group-text " id="label-score">Fore A</span></div>
-                    <input type="text" class="form-control text-right" value="{{A_a_skill}}{{A_a_skill_ch}}" readonly>
-                  </div>
-                </div>
-
-
-            </div>
-          </div>
-        </div>
-
-      </div>
 
 
 
@@ -250,6 +140,22 @@
               <!-- Filter -->
               <div class="pb-3 mb-1 " >
                   <form  method="GET" id="odd-filter-id">
+
+                    <!-- row1 -->
+                    <div class="form-row">
+                      <!-- stat period -->
+                      <div class="col-2">
+                        <div class="input-group input-group-sm mb-3">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text" for="stat_period">Stat Period</span>
+                          </div>
+                          <input type="text" name="stat_period" class="form-control" aria-describedby="label_stat_period" value="{{stat_period}}">
+                        </div>
+                      </div>
+                    </div>
+
+
+
 
                     <!-- row1 -->
                     <div class="form-row">
@@ -574,7 +480,7 @@
 
               </div>
 
-              {{ h_chart.as_html }}
+              {{ xg_h_chart.as_html }}
             </div>
           </div>
         </div>
@@ -597,7 +503,35 @@
 
               </div>
 
-              {{ a_chart.as_html }}
+              {{ xg_a_chart.as_html }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+
+      <div class="row">
+
+
+        <!--                                              Home                                   -->
+        <div class="col-sm-6 mb-2">
+          <div class="card">
+            <div class="card-body">
+
+              {{ g_h_chart.as_html }}
+            </div>
+          </div>
+        </div>
+
+
+        <!--                                              Away                                   -->
+        <div class="col-sm-6 mb-2">
+          <div class="card">
+            <div class="card-body">
+
+              {{ g_a_chart.as_html }}
             </div>
           </div>
         </div>

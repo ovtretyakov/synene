@@ -260,6 +260,17 @@
               },
 
 
+              "rowCallback": function( row, data, index ) {
+                  if (data.status == "Finished") {
+                    if (data.result == "Fail" || data.result == "Part fail") {
+                      $(row).addClass('text-danger');
+                    } else if (data.result == "Success" || data.result == "Part success" || data.result == "Return") {
+                      $(row).addClass('text-success');
+                    }
+                  }
+              }
+
+
       });
 
 
