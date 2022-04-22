@@ -242,6 +242,7 @@ class OnlyYes(object):
 ###################################################################
 class WDLResult(object):
     def get_result(self, **kwargs):
+        odd_value = kwargs.get("odd_value", None)
         value_h = kwargs.get("value_h", None)
         value_a = kwargs.get("value_a", None)
         if value_h == None or value_a == None:
@@ -257,7 +258,7 @@ class WDLResult(object):
         elif self.param == 'wl': win = (value_h != value_a)
         else: 
             raise ValueError('Invalid odd param (expected: w,d,l,wd,dl,wl): %s' % self.param)
-        return self.calc_result_with_field_yes(win)
+        return self.calc_result_with_field_yes(win, odd_value=odd_value)
 
 
 

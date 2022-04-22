@@ -320,7 +320,7 @@ class MyBettingTest(TestCase):
 
 
         trans2 = Transaction.add(bookie_id=self.load_source.id, 
-                                 trans_type=Transaction.TYPE_BID, 
+                                 trans_type=Transaction.TYPE_CORRECT, 
                                  amount=20, comment="Test 20", 
                                  trans_date=date(2022, 1, 2)
                                  )
@@ -438,6 +438,8 @@ class MyBettingTest(TestCase):
 
         bookie = FootballSource.objects.get(id=self.load_source.id)
         self.assertEquals(bookie.saldo_amt, -100)
+        self.assertEquals(bookie.unsettled_amt, 100)
+        self.assertEquals(bookie.unsettled_cnt, 1)
 
 
     #######################################################################
@@ -476,6 +478,8 @@ class MyBettingTest(TestCase):
 
         bookie.refresh_from_db()
         self.assertEquals(bookie.saldo_amt, -100)
+        self.assertEquals(bookie.unsettled_amt, 100)
+        self.assertEquals(bookie.unsettled_cnt, 1)
 
         #delete
         items = BetOdd.objects.filter(bookie=self.load_source, match=self.match2).values()
@@ -490,7 +494,10 @@ class MyBettingTest(TestCase):
         items = Forecast.objects.filter(forecast_set=self.forecast_set, odd_id__in=[self.odd1,self.odd2,]).values()
         for item in items:
             odd = Odd.objects.get(pk=item["odd_id"])
-            item["odd_value"] = odd.odd_value
+            if odd.id == self.odd1.id:
+                item["odd_value"] = 3
+            else:
+                item["odd_value"] = odd.odd_value
         bet = Bet.create(self.load_source.id, items, bet_amt=100)
         self.assertEquals(bet.betting_type, "e")
         self.assertEquals(bet.odd_cnt, 2)
@@ -506,7 +513,7 @@ class MyBettingTest(TestCase):
 
         bet_odd1 = BetOdd.objects.get(bet_id=bet.id, odd_id = self.odd1.id)
         self.assertEquals(bet_odd1.status, BetOdd.SETTLED)
-        self.assertEquals(bet_odd1.result_value, Decimal("2"))
+        self.assertEquals(bet_odd1.result_value, Decimal("3"))
         self.assertIsNotNone(bet_odd1.settled_time)
         self.assertEquals(bet_odd1.result, BetOdd.SUCCESS)
 
@@ -515,7 +522,7 @@ class MyBettingTest(TestCase):
         bet.settle_odds(items)
         self.assertEquals(bet.status, Bet.SETTLED)
         self.assertEquals(bet.result, Bet.PART_SUCCESS)
-        self.assertEquals(bet.result_value, Decimal("2"))
+        self.assertEquals(bet.result_value, Decimal("3"))
         self.assertIsNotNone(bet.settled_time)
 
 
@@ -537,6 +544,8 @@ class MyBettingTest(TestCase):
         self.assertEquals(bet.status, Bet.BID)
         bookie = FootballSource.objects.get(id=self.load_source.id)
         self.assertEquals(bookie.saldo_amt, Decimal("-1000"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("1000"))
+        self.assertEquals(bookie.unsettled_cnt, 1)
 
         #finish - error
         with self.assertRaisesRegex(ValueError, 'Not finished odd'):
@@ -559,11 +568,15 @@ class MyBettingTest(TestCase):
         bet.settle_odds(items=[], finished=True, win_amt = 2000)
         bookie.refresh_from_db()
         self.assertEquals(bookie.saldo_amt, Decimal("1000"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("0"))
+        self.assertEquals(bookie.unsettled_cnt, 0)
 
         #delete
         bet.delete_object()
         bookie.refresh_from_db()
         self.assertEquals(bookie.saldo_amt, Decimal("0"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("0"))
+        self.assertEquals(bookie.unsettled_cnt, 0)
 
         odd1 = Odd.objects.get(pk=self.odd1.id)
         self.assertEquals(odd1.selected, Odd.UNSELECTED)
@@ -591,6 +604,24 @@ class MyBettingTest(TestCase):
         self.assertEquals(bet.status, Bet.BID)
         bookie = FootballSource.objects.get(id=self.load_source.id)
         self.assertEquals(bookie.saldo_amt, Decimal("-1000"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("1000"))
+        self.assertEquals(bookie.unsettled_cnt, 1)
+
+
+        # create 2
+        items2 = Forecast.objects.filter(forecast_set=self.forecast_set, odd_id__in=[self.odd3,self.odd4,]).values()
+        for item in items2:
+            odd = Odd.objects.get(pk=item["odd_id"])
+            item["odd_value"] = odd.odd_value
+        bet2 = Bet.create(self.load_source.id, items2, bet_amt=2000)
+        self.assertEquals(bet2.betting_type, "e")
+        self.assertEquals(bet2.odd_cnt, 2)
+        self.assertEquals(bet2.status, Bet.BID)
+        bookie.refresh_from_db()
+        self.assertEquals(bookie.saldo_amt, Decimal("-3000"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("3000"))
+        self.assertEquals(bookie.unsettled_cnt, 2)
+
 
         #settle
         items = Forecast.objects.filter(forecast_set=self.forecast_set, odd_id=self.odd1).order_by("id").values()
@@ -602,7 +633,7 @@ class MyBettingTest(TestCase):
 
         #finish
         bookie.refresh_from_db()
-        self.assertEquals(bookie.saldo_amt, Decimal("-1000"))
+        self.assertEquals(bookie.saldo_amt, Decimal("-3000"))
         items = Forecast.objects.filter(forecast_set=self.forecast_set, odd_id__in=[self.odd1,self.odd2,]).order_by("id").values()
         i = 0
         for item in items:
@@ -615,9 +646,20 @@ class MyBettingTest(TestCase):
         self.assertEquals(bet.status, Bet.FINISHED)
         self.assertEquals(bet.result_value, Decimal("6"))
         bookie.refresh_from_db()
-        self.assertEquals(bookie.saldo_amt, Decimal("1000"))
+        self.assertEquals(bookie.saldo_amt, Decimal("-1000"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("2000"))
+        self.assertEquals(bookie.unsettled_cnt, 1)
 
         #delete
         bet.delete_object()
         bookie.refresh_from_db()
+        self.assertEquals(bookie.saldo_amt, Decimal("-2000"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("2000"))
+        self.assertEquals(bookie.unsettled_cnt, 1)
+
+        #delete 2
+        bet2.delete_object()
+        bookie.refresh_from_db()
         self.assertEquals(bookie.saldo_amt, Decimal("0"))
+        self.assertEquals(bookie.unsettled_amt, Decimal("0"))
+        self.assertEquals(bookie.unsettled_cnt, 0)
