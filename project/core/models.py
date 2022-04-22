@@ -269,6 +269,8 @@ class LoadSource(models.Model):
     error_limit = models.IntegerField('Error limit', default=10)
     load_days = models.IntegerField('Load days', default=10)
     saldo_amt  = models.DecimalField('Saldo', max_digits=10, decimal_places=2, default=0)
+    unsettled_amt  = models.DecimalField('Unsettled amt', max_digits=10, decimal_places=2, default=0)
+    unsettled_cnt = models.IntegerField('Unsettled cnt', default=0)
 
     class Meta:
         constraints = [

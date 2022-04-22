@@ -226,6 +226,8 @@ class Saldo(models.Model):
     saldo_amt  = models.DecimalField('Saldo', max_digits=10, decimal_places=2)
     in_amt  = models.DecimalField('In', max_digits=10, decimal_places=2)
     out_amt  = models.DecimalField('Out', max_digits=10, decimal_places=2)
+    unsettled_amt  = models.DecimalField('Unsettled amt', max_digits=10, decimal_places=2, default=0)
+    unsettled_cnt = models.IntegerField('Unsettled cnt', default=0)
 
     class Meta:
         constraints = [
@@ -237,19 +239,24 @@ class Saldo(models.Model):
 
 
     @classmethod
-    def add_transaction(cls, bookie_id, trans_date, trans_amt):
+    def add_transaction(cls, bookie_id, trans_date, trans_amt, unsettled_amt=0):
         in_amt = trans_amt if trans_amt > 0 else 0
         out_amt = -1*trans_amt if trans_amt < 0 else 0
-        cls._update_saldo(bookie_id, trans_date, trans_amt, in_amt, out_amt)
+        cls._update_saldo(bookie_id, trans_date, trans_amt, in_amt, out_amt, unsettled_amt=unsettled_amt)
 
     @classmethod
-    def del_transaction(cls, bookie_id, trans_date, trans_amt):
+    def del_transaction(cls, bookie_id, trans_date, trans_amt, unsettled_amt=0):
         in_amt = -1*trans_amt if trans_amt > 0 else 0
         out_amt = trans_amt if trans_amt < 0 else 0
-        cls._update_saldo(bookie_id, trans_date, -1*trans_amt, in_amt, out_amt)
+        cls._update_saldo(bookie_id, trans_date, -1*trans_amt, in_amt, out_amt, unsettled_amt=unsettled_amt)
 
     @classmethod
-    def _update_saldo(cls, bookie_id, saldo_date, amount, in_amt, out_amt):
+    def _update_saldo(cls, bookie_id, saldo_date, amount, in_amt, out_amt, unsettled_amt=0):
+        unsettled_cnt = 0
+        if unsettled_amt > 0:
+            unsettled_cnt = 1
+        elif unsettled_amt < 0:
+            unsettled_cnt = -1
         saldo = Saldo.objects.filter(bookie_id=bookie_id, saldo_date__lte=saldo_date).order_by("-saldo_date").first()
         if not saldo:
             saldo = Saldo(
@@ -258,6 +265,8 @@ class Saldo(models.Model):
                             saldo_amt=0,
                             in_amt=0,
                             out_amt=0,
+                            unsettled_amt=0,
+                            unsettled_cnt=0,
                          )
         if saldo.saldo_date != saldo_date:
             saldo.saldo_date = saldo_date
@@ -267,11 +276,19 @@ class Saldo(models.Model):
         saldo.saldo_amt += amount
         saldo.in_amt += in_amt
         saldo.out_amt += out_amt
+        saldo.unsettled_amt += unsettled_amt
+        saldo.unsettled_cnt += unsettled_cnt
         saldo.save()
 
-        Saldo.objects.filter(bookie_id=bookie_id, saldo_date__gt=saldo_date).update(saldo_amt=F("saldo_amt")+amount)
+        Saldo.objects.filter(bookie_id=bookie_id, saldo_date__gt=saldo_date).update(saldo_amt=F("saldo_amt")+amount,
+                                                                                    unsettled_amt=F("unsettled_amt")+unsettled_amt,
+                                                                                    unsettled_cnt=F("unsettled_cnt")+unsettled_cnt,
+                                                                                   )
         current_saldo = Saldo.objects.filter(bookie_id=bookie_id).order_by("-saldo_date").first()
-        LoadSource.objects.filter(pk=bookie_id).update(saldo_amt=current_saldo.saldo_amt)
+        LoadSource.objects.filter(pk=bookie_id).update(saldo_amt=current_saldo.saldo_amt,
+                                                       unsettled_amt=current_saldo.unsettled_amt,
+                                                       unsettled_cnt=current_saldo.unsettled_cnt,
+                                                       )
 
 
 ###################################################################
@@ -356,24 +373,35 @@ class Transaction(models.Model):
 
 
     @classmethod
-    def add(cls, bookie_id, trans_type, amount, comment="", trans_date=date.today()):
-        transaction = Transaction.objects.create(
-                                                bookie_id=bookie_id,
-                                                trans_type=trans_type,
-                                                trans_date=trans_date,
-                                                ins_time=datetime.now(),
-                                                amount=amount,
-                                                comment=comment
-                                               )
-        Saldo.add_transaction(bookie_id, trans_date, amount)
+    def add(cls, bookie_id, trans_type, amount, comment="", trans_date=date.today(), bet_amt=0):
+        unsettled_amt = 0
+        if trans_type == Transaction.TYPE_BID:
+            unsettled_amt = amount
+            amount = -1*amount
+        if trans_type == Transaction.TYPE_WIN:
+            unsettled_amt = -1*bet_amt
+
+        if amount != 0:
+            transaction = Transaction.objects.create(
+                                                    bookie_id=bookie_id,
+                                                    trans_type=trans_type,
+                                                    trans_date=trans_date,
+                                                    ins_time=datetime.now(),
+                                                    amount=amount,
+                                                    comment=comment
+                                                   )
+        Saldo.add_transaction(bookie_id, trans_date, amount, unsettled_amt=unsettled_amt)
         return transaction
 
-    def delete_object(self):
+    def delete_object(self, finished=False):
         bookie_id = self.bookie_id
         trans_date = self.trans_date
         amount = self.amount
+        unsettled_amt = 0
+        if (not finished) and self.trans_type == Transaction.TYPE_BID:
+            unsettled_amt = self.amount
         self.delete()
-        Saldo.del_transaction(bookie_id, trans_date, amount)
+        Saldo.del_transaction(bookie_id, trans_date, amount, unsettled_amt=unsettled_amt)
 
 ###################################################################
 class Bet(models.Model):
@@ -598,7 +626,7 @@ class Bet(models.Model):
         if self.win_transaction:
             self.win_transaction.delete_object()
         if self.bet_transaction:
-            self.bet_transaction.delete_object()
+            self.bet_transaction.delete_object(finished = self.win_transaction)
         self.delete()
 
     def settle_odds(self, items, finished=False, win_amt=0):
@@ -609,7 +637,7 @@ class Bet(models.Model):
             self._do_finish(win_amt)
 
     def _do_bet(self, bet_amt):
-        bet_transaction = Transaction.add(bookie_id=self.bookie_id, trans_type=Transaction.TYPE_BID, amount=-1*bet_amt)
+        bet_transaction = Transaction.add(bookie_id=self.bookie_id, trans_type=Transaction.TYPE_BID, amount=bet_amt)
         self.status = Bet.BID
         self.bid_time = timezone.now()
         self.bet_amt = bet_amt
@@ -618,8 +646,7 @@ class Bet(models.Model):
 
     def _do_finish(self, win_amt):
         win_transaction = None
-        if win_amt != 0:
-            win_transaction = Transaction.add(bookie_id=self.bookie_id, trans_type=Transaction.TYPE_WIN, amount=win_amt)
+        win_transaction = Transaction.add(bookie_id=self.bookie_id, trans_type=Transaction.TYPE_WIN, amount=win_amt, bet_amt=self.bet_amt)
         self.status = Bet.FINISHED
         self.win_time = timezone.now()
         self.win_amt = win_amt
@@ -908,8 +935,7 @@ class BetOdd(models.Model):
         for bet_odd in BetOdd.objects.filter(odd_id=odd.id, status=BetOdd.UNSETTLED):
             bet = Bet.objects.get(pk=bet_odd.bet_id)
             bet_odd.status = BetOdd.SETTLED
-            bet_odd.result_value = odd.result_value
-            bet_odd.result = odd.result
+            bet_odd.result, bet_odd.result_value = odd.get_result(odd_value=bet_odd.odd_value)
             bet_odd.settled_time = timezone.now()
             bet_odd.save()
             bet._update()        
