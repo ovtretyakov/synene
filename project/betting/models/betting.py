@@ -715,6 +715,34 @@ class Odd(Mergable, models.Model):
         return success_chance, lose_chance, result_value
 
 
+    def periods_forecasting(self, forecast_data, period1, period2):
+        success_chance = float(0.0)
+        lose_chance = float(0.0)
+        result_value = float(0.0)
+        fdata1 = forecast_data.get(period1, None)
+        fdata2 = forecast_data.get(period2, None)
+
+        if fdata1 and fdata2:   
+            for data1 in fdata1:
+                for data2 in fdata2:
+                    result, value = self.get_result(value_h1=data1[0],value_a1=data1[1],value_h2=data2[0],value_a2=data2[1])
+                    v = float(value)
+                    d = float(data1[2]) * float(data2[2])
+                    result_value += (v*d)
+                    if value >= 1:
+                        success_chance += d 
+                    else: 
+                        lose_chance += d
+            result_value = Decimal(result_value)
+        else:
+            success_chance = None
+            lose_chance = None
+            result_value = None
+
+        return success_chance, lose_chance, result_value
+
+
+
 ###################################################################
 class VOdd(models.Model):
 
@@ -795,14 +823,17 @@ class OddResultHalf1Full(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixi
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.RESULT_HALF1_FULL)
-    def get_result(self, odd_value=None):
-        value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=0)
+    def get_result(self, value_h1=None, value_a1=None, value_h2=None, value_a2=None, odd_value=None):
+        if value_h1 == None or value_a1 == None or value_h2 == None or value_a2 == None:
+            value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=0)
         if value_h1 == None or value_a1 == None or value_h2 == None or value_a2 == None: win = None
         else:
             params = self.param.split('/')
             win = (get_match_result(value_h1, value_a1)==params[0] and 
                    get_match_result(value_h2, value_a2)==params[1])
         return self.calc_result_with_field_yes(win, odd_value=odd_value)
+    def forecasting(self, forecast_data):
+        return self.periods_forecasting(forecast_data, period1=1, period2=0)
 ###################################################################
 class OddResultHalf1Half2(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMixins.Double1X2Param, Odd):
     class Meta:
@@ -810,14 +841,17 @@ class OddResultHalf1Half2(OddMixins.Only0Period, OddMixins.OnlyEmptyTeam, OddMix
     @staticmethod
     def own_bet_type():
         return BetType.get(BetType.RESULT_HALF1_HALF2)
-    def get_result(self, odd_value=None):
-        value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=2)
+    def get_result(self, value_h1=None, value_a1=None, value_h2=None, value_a2=None, odd_value=None):
+        if value_h1 == None or value_a1 == None or value_h2 == None or value_a2 == None:
+            value_h1, value_a1, value_h2, value_a2 = self.get_result_of_periods(period1=1,period2=2)
         if value_h1 == None or value_a1 == None or value_h2 == None or value_a2 == None: win = None
         else:
             params = self.param.split('/')
             win = (get_match_result(value_h1, value_a1)==params[0] and 
                    get_match_result(value_h2, value_a2)==params[1])
         return self.calc_result_with_field_yes(win, odd_value=odd_value)
+    # def forecasting(self, forecast_data):
+    #     return self.periods_forecasting(forecast_data, period1=1, period2=2)
 ###################################################################
 class OddWinBoth(OddMixins.Only0Period, OddMixins.HomeAwayOrEmptyTeam, OddMixins.EmptyParam, Odd):
     class Meta:

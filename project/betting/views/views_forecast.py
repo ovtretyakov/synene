@@ -1000,30 +1000,6 @@ class ForecastMatchDetail(BSModalReadView):
             context["fG_a2_ch"]  = "*" if (xG_a2_skill.changed9 or xG_h2_skill.changed10) else ""
 
 
-
-
-            context["xG_h_skill"] = round(xG_h0_skill.value1,3)
-            context["xA_h_skill"] = round(xG_h0_skill.value2,3)
-            context["kG_h_skill"] = round(xG_h0_skill.value3,3)
-            context["kA_h_skill"] = round(xG_h0_skill.value4,3)
-            context["G_h_skill"]  = round(xG_h0_skill.value9,3)
-            context["A_h_skill"]  = round(xG_h0_skill.value10,3)
-            context["xG_h_skill_ch"] = "*" if (xG_h0_skill.changed1) else ""
-            context["xA_h_skill_ch"] = "*" if (xG_h0_skill.changed2) else ""
-            context["G_h_skill_ch"]  = "*" if (xG_h0_skill.changed9) else ""
-            context["A_h_skill_ch"]  = "*" if (xG_h0_skill.changed10) else ""
-
-            context["xG_a_skill"] = round(xG_a0_skill.value1,3)
-            context["xA_a_skill"] = round(xG_a0_skill.value2,3)
-            context["kG_a_skill"] = round(xG_a0_skill.value3,3)
-            context["kA_a_skill"] = round(xG_a0_skill.value4,3)
-            context["G_a_skill"]  = round(xG_a0_skill.value9,3)
-            context["A_a_skill"]  = round(xG_a0_skill.value10,3)
-            context["xG_a_skill_ch"] = "*" if (xG_a0_skill.changed1) else ""
-            context["xA_a_skill_ch"] = "*" if (xG_a0_skill.changed2) else ""
-            context["G_a_skill_ch"]  = "*" if (xG_a0_skill.changed9) else ""
-            context["A_a_skill_ch"]  = "*" if (xG_a0_skill.changed10) else ""
-
         # odd filter
         context["bookies"] = Forecast.objects.filter(forecast_set=forecast_set_id,
                                                      match = self.object
@@ -1482,7 +1458,9 @@ class MatchXGUpdateView(BSModalUpdateView):
 
     def get_initial(self, **kwargs):
         forecast_set_id = self.kwargs['forecast_set']
-        harvest = Harvest.get_xg_harvest(0)
+        period = self.kwargs['period']
+
+        harvest = Harvest.get_xg_harvest(period)
         self.forecast_set_id = forecast_set_id
         self.harvest = harvest
 
@@ -1514,8 +1492,10 @@ class MatchXGUpdateView(BSModalUpdateView):
         context = super().get_context_data(**kwargs)
 
         forecast_set_id = self.kwargs['forecast_set']
+        period = self.kwargs['period']
         context["forecast_set_id"] = forecast_set_id
         context["match_id"] = self.object.pk
+        context["period"] = period
 
         return context    
 

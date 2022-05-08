@@ -381,6 +381,7 @@ class Transaction(models.Model):
         if trans_type == Transaction.TYPE_WIN:
             unsettled_amt = -1*bet_amt
 
+        transaction = None
         if amount != 0:
             transaction = Transaction.objects.create(
                                                     bookie_id=bookie_id,
@@ -648,7 +649,7 @@ class Bet(models.Model):
         win_transaction = None
         win_transaction = Transaction.add(bookie_id=self.bookie_id, trans_type=Transaction.TYPE_WIN, amount=win_amt, bet_amt=self.bet_amt)
         self.status = Bet.FINISHED
-        self.win_time = timezone.now()
+        self.finish_time = timezone.now()
         self.win_amt = win_amt
         self.win_transaction = win_transaction
         self.save()

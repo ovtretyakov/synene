@@ -1,10 +1,14 @@
 import logging
 import traceback
+from datetime import datetime, date, timedelta
 
 from django.views import generic
 from django.http import HttpResponseRedirect
-
 from django.contrib import messages
+from django.db.models import sql, F, Q, Count, Max
+
+from graphos.sources.model import ModelDataSource
+from graphos.renderers import gchart
 
 from rest_framework.generics import ListAPIView
 from bootstrap_modal_forms.generic import (BSModalCreateView,
@@ -20,7 +24,44 @@ from .forms import (LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfi
                    )
 from .serializers import SeasonSerializer, MatchSerializer, MatchStatsSerializer
 
+from project.betting.models import Saldo
+
+
 logger = logging.getLogger(__name__)
+
+
+####################################################
+#  Home
+####################################################
+class HomeView(generic.TemplateView):
+    template_name = "pages/home.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super().get_context_data(**kwargs)
+
+        d = date(2022, 4, 8)
+        queryset = Saldo.objects.filter(saldo_date__gte=d).annotate(real_saldo=F("saldo_amt") + F("unsettled_amt")).order_by("saldo_date")
+
+        fields = ["saldo_date", "real_saldo"]
+        headers = ["Date", "Saldo"]
+        options={'title': "My Saldo",
+                 'colors': ['blue', ],
+                 'chartArea':{'left':50,'width':'75%',}
+                 }
+        chart_width = 650
+        saldo_chart = gchart.LineChart(ModelDataSource(queryset= queryset, 
+                                                       fields=fields,
+                                                       headers=headers,
+                                                       ),
+                                       options=options
+                                       )
+        saldo_chart.width = chart_width
+        context["saldo_chart"] = saldo_chart
+
+        return context    
+
+
 
 
 ####################################################

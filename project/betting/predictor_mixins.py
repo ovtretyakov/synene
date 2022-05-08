@@ -8,18 +8,28 @@ from .models.probability import DistributionData
 ###################################################################
 class StandartExtraction(object):
     def extract_skills(self):
-        self.skill_h_win = self.skill_h.value9
-        self.skill_h_lose = self.skill_h.value10
-        self.skill_a_win = self.skill_a.value9
-        self.skill_a_lose = self.skill_a.value10
+        self.skill_h_win = {}
+        self.skill_h_lose = {}
+        self.skill_a_win = {}
+        self.skill_a_lose = {}
+        for period in [0,1,2,]:
+            self.skill_h_win[period] = self.skill_h[period].value9
+            self.skill_h_lose[period] = self.skill_h[period].value10
+            self.skill_a_win[period] = self.skill_a[period].value9
+            self.skill_a_lose[period] = self.skill_a[period].value10
 
 
 class OriginalDataExtraction(object):
     def extract_skills(self):
-        self.skill_h_win = self.skill_h.value1
-        self.skill_h_lose = self.skill_h.value2
-        self.skill_a_win = self.skill_a.value1
-        self.skill_a_lose = self.skill_a.value2
+        self.skill_h_win = {}
+        self.skill_h_lose = {}
+        self.skill_a_win = {}
+        self.skill_a_lose = {}
+        for period in [0,1,2,]:
+            self.skill_h_win[period] = self.skill_h[period].value1
+            self.skill_h_lose[period] = self.skill_h[period].value2
+            self.skill_a_win[period] = self.skill_a[period].value1
+            self.skill_a_lose[period] = self.skill_a[period].value2
 
 ###################################################################
 #  forecast data
@@ -43,15 +53,15 @@ class PoissonForecasting(object):
 
 class FixedDistributionForecasting(object):
     def get_forecast_data(self):
-        win_value  = float(self.skill_h_win * self.skill_a_lose)
-        lose_value = float(self.skill_a_win * self.skill_h_lose)
 
         min_value, max_value = self.get_value_limit()
-
         distribution_slug = self.get_distribution_slug()
 
         forecast_data = {}
         for period in [0,1,2,]:
+
+            win_value  = float(self.skill_h_win[period] * self.skill_a_lose[period])
+            lose_value = float(self.skill_a_win[period] * self.skill_h_lose[period])
 
             distribution_h = self.get_distribution_data(distribution_slug, win_value, param=f"{period}h")
             distribution_a = self.get_distribution_data(distribution_slug, lose_value, param=f"{period}a")

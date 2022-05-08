@@ -179,8 +179,10 @@ class XBetHandler(CommonHandler):
     def process_league(self, league_url, debug_level, get_from_file, is_debug_path, start_date, number_of_days=2):
         date_pattern = re.compile(r"\d+\.\d+")   #09.04 22:00
         handicap_pattern = re.compile(r"([+-]*)([0-9.,]+)([+-]*)")   #+3.5-
-        match_pattern  = re.compile(r'/([0-9]+)[^/]*/$')  #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
-        league_pattern = re.compile(r'Football/([0-9]+)') #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+        match_pattern1  = re.compile(r'/([0-9]+)[^/]*/$')  #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+        match_pattern2  = re.compile(r'/([0-9]+)[^/]*$')  #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto
+        league_pattern1 = re.compile(r'Football/([0-9]+)') #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
+        league_pattern2 = re.compile(r'football/([0-9]+)') #https://1xstavka.ru/en/line/football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
 
         file_name = '1xbet_league.html'
         if debug_level != 2:
@@ -202,14 +204,14 @@ class XBetHandler(CommonHandler):
             # print('!!! Skip league ' + self.league_name.encode())
             return None, 0
 
-        for active_game in li_active.select('a > span.gname'):
-            a_parent  = active_game.parent
-            mid       = match_pattern.search(a_parent['href'])[1]
-            span_star = a_parent.select_one('span.star')
-            if span_star:
-                data_fav = span_star.get('data-fav',None)
-                if data_fav:
-                    sub_game_ids[mid] = data_fav
+        # for active_game in li_active.select('a > span.gname'):
+        #     a_parent  = active_game.parent
+        #     mid       = match_pattern.search(a_parent['href'])[1]
+        #     span_star = a_parent.select_one('span.star')
+        #     if span_star:
+        #         data_fav = span_star.get('data-fav',None)
+        #         if data_fav:
+        #             sub_game_ids[mid] = data_fav
 
         max_match_date = date.today() + timedelta(number_of_days)
 
@@ -309,8 +311,14 @@ class XBetHandler(CommonHandler):
                 ##############################################################
                 #find fatch id
                 #https://1xstavka.ru/en/line/Football/118587-UEFA-Champions-League/43658291-Liverpool-Porto/
-                match_id  = match_pattern.search(teams_tag['href'])[1]
-                league_id = league_pattern.search(teams_tag['href'])[1]
+                match_search = match_pattern1.search(teams_tag['href'])
+                if not match_search:
+                    match_search = match_pattern2.search(teams_tag['href'])
+                match_id  = match_search[1]
+                league_search = league_pattern1.search(teams_tag['href'])
+                if not league_search:
+                    league_search = league_pattern2.search(teams_tag['href'])
+                league_id = league_search[1]
                 event_cnt_src = event_tag.select_one('a.c-events__more.c-events__more_bets.js-showMoreBets')
                 if event_cnt_src == None:
                     event_cnt_src = event_tag.select_one('button.c-events__more.c-events__more_bets')

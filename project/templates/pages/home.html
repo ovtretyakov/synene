@@ -2,6 +2,12 @@
 {% load static i18n %}
 {% block title %}Home{% endblock %}
 
+{% block extra_head %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+    </script>
+{% endblock %}
 
 
 {% block content %}
@@ -28,6 +34,25 @@
               <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} col-sm">{{ message }}</div>
           {% endfor %}
       {% endif %}
+
+
+
+      <div class="row">
+
+
+            <!--                                          My Saldo                                   -->
+            <div class="col-sm-6 mb-2">
+              <div class="card">
+                <div class="card-body">
+                  {{ saldo_chart.as_html }}
+                </div>
+              </div>
+            </div>
+
+
+      </div>
+
+
 
 
 

@@ -388,34 +388,42 @@ class Predictor(models.Model):
 
                 for match in queryset:
                     print(match, match.match_date, self.period)
-                    if sandbox:
-                        self.skill_h = TeamSkillSandbox.objects.get(forecast_set_id=forecast_set.id,
-                                                                    harvest_id=harvest.id, 
-                                                                    team_id=match.team_h_id, 
-                                                                    event_date=match.match_date, 
-                                                                    param="h")
-                        self.skill_a = TeamSkillSandbox.objects.get(forecast_set_id=forecast_set.id,
-                                                                    harvest_id=harvest.id, 
-                                                                    team_id=match.team_a_id, 
-                                                                    event_date=match.match_date, 
-                                                                    param="a")
-                    else:    
-                        if match.status == Match.FINISHED:
-                            if Forecast.objects.filter(forecast_set_id=forecast_set.id,
-                                                       match_id=match.id,
-                                                       predictor_id=self.id,
-                                                       ).exists():
-                                if not Forecast.objects.filter(forecast_set_id=forecast_set.id,
-                                                               match_id=match.id,
-                                                               predictor_id=self.id,
-                                                               status=Forecast.UNSETTLED
+
+                    self.skill_h = {}
+                    self.skill_a = {}
+                    qs = Harvest.objects.filter(slug__startswith=pattern, status=Harvest.ACTIVE)
+                    for hrvst in qs:
+
+                        if sandbox:
+                            self.skill_h[hrvst.period] = TeamSkillSandbox.objects.get(
+                                                                        forecast_set_id=forecast_set.id,
+                                                                        harvest_id=hrvst.id, 
+                                                                        team_id=match.team_h_id, 
+                                                                        event_date=match.match_date, 
+                                                                        param="h")
+                            self.skill_a[hrvst.period] = TeamSkillSandbox.objects.get(
+                                                                        forecast_set_id=forecast_set.id,
+                                                                        harvest_id=hrvst.id, 
+                                                                        team_id=match.team_a_id, 
+                                                                        event_date=match.match_date, 
+                                                                        param="a")
+                        else:    
+                            if match.status == Match.FINISHED:
+                                if Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                                                           match_id=match.id,
+                                                           predictor_id=self.id,
                                                            ).exists():
-                                    continue
-                        self.skill_h = TeamSkill.get_team_skill(harvest, match.team_h, match.match_date, match, param="h")
-                        self.skill_a = TeamSkill.get_team_skill(harvest, match.team_a, match.match_date, match, param="a")
+                                    if not Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                                                                   match_id=match.id,
+                                                                   predictor_id=self.id,
+                                                                   status=Forecast.UNSETTLED
+                                                               ).exists():
+                                        continue
+                            self.skill_h[hrvst.period] = TeamSkill.get_team_skill(hrvst, match.team_h, match.match_date, match, param="h")
+                            self.skill_a[hrvst.period] = TeamSkill.get_team_skill(hrvst, match.team_a, match.match_date, match, param="a")
 
 
-                    if not self.skill_h or not self.skill_a or self.skill_h.match_cnt <= 3 or self.skill_a.match_cnt <= 3:
+                    if not self.skill_h or not self.skill_a or self.skill_h[0].match_cnt <= 3 or self.skill_a[0].match_cnt <= 3:
                         print("    Skip match")
                         continue
 
@@ -509,7 +517,6 @@ class Predictor(models.Model):
                             Forecast.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
 
 
-
     def forecasting_odd(self, odd):
         from .harvest import TeamSkill
         predictor = self.get_real_predictor()
@@ -518,16 +525,23 @@ class Predictor(models.Model):
         predictor.value_type_slug = odd.value_type.slug
         predictor.value_type = odd.value_type
 
-        predictor.skill_h = TeamSkill.get_team_skill(predictor.harvest, 
-                                                     odd.match.team_h, 
-                                                     odd.match.match_date, 
-                                                     odd.match, 
-                                                     param="h")
-        predictor.skill_a = TeamSkill.get_team_skill(predictor.harvest, 
-                                                     odd.match.team_a, 
-                                                     odd.match.match_date, 
-                                                     odd.match, 
-                                                     param="a")
+        pattern = predictor.harvest.slug[:-1]
+        predictor.skill_h = {}
+        predictor.skill_a = {}
+        qs = Harvest.objects.filter(slug__startswith=pattern, status=Harvest.ACTIVE)
+        for hrvst in qs:
+            predictor.skill_h[hrvst.period] = TeamSkill.get_team_skill(
+                                                        hrvst, 
+                                                        odd.match.team_h, 
+                                                        odd.match.match_date, 
+                                                        odd.match, 
+                                                        param="h")
+            predictor.skill_a[hrvst.period] = TeamSkill.get_team_skill(
+                                                        hrvst, 
+                                                        odd.match.team_a, 
+                                                        odd.match.match_date, 
+                                                        odd.match, 
+                                                        param="a")
         predictor.extract_skills()
         forecast_data = predictor.get_forecast_data()
         real_odd = odd.get_own_object()
@@ -768,12 +782,10 @@ class ForecastSet(models.Model):
 
     def restore_forecast(self, match, harvest):
         TeamSkillSandbox.objects.filter(forecast_set=self, 
-                                        harvest=harvest,
                                         team=match.team_h, 
                                         event_date=match.match_date, 
                                         param='h').delete()
         TeamSkillSandbox.objects.filter(forecast_set=self, 
-                                        harvest=harvest,
                                         team=match.team_a, 
                                         event_date=match.match_date, 
                                         param='a').delete()

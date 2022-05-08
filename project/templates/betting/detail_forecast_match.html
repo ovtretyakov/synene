@@ -21,8 +21,16 @@
 
 
           <div class="btn-group mr-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="recalulate-forecast" 
-            onclick="recalculate_forecast_dlg()">Recalculate the forecast</button >
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="recalulate-forecast0" 
+            onclick="recalculate_forecast_dlg(0)">Recalculate match</button >
+          </div>
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="recalulate-forecast1" 
+            onclick="recalculate_forecast_dlg(1)">Recalculate period 1</button >
+          </div>
+          <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="recalulate-forecast2" 
+            onclick="recalculate_forecast_dlg(2)">Recalculate period 2</button >
           </div>
           <div class="btn-group mr-2">
           <button type="button" class="btn btn-sm btn-outline-secondary" id="restore-forecast" 
@@ -59,22 +67,29 @@
 
                 <!-- Row1 -->
                 <div class="form-row">
-                  <!-- League -->
-                  <div class="input-group input-group-sm mb-3 col-sm-6">
+                  <!-- Match -->
+                  <div class="input-group input-group-sm mb-3 col-sm-4">
                     <div class="input-group-prepend">
-                      <span class="input-group-text " id="label-match-date">League</span>
+                      <span class="input-group-text " id="label-match-date">Match</span>
                     </div>
-                    <input type="text" class="form-control" value="{{object.league.name}}" readonly>
+                    <input type="text" class="form-control" value="{{object.team_h.name}} - {{object.team_a.name}}" readonly>
                   </div>
-                  <!-- score -->
-                  <div class="input-group input-group-sm mb-3 col-sm-3">
+                  <!-- Date -->
+                  <div class="input-group input-group-sm mb-3 col-sm-2">
                     <div class="input-group-prepend">
                       <span class="input-group-text " id="label-match-date">Date</span>
                     </div>
                     <input type="text" class="form-control" value="{{object.match_date}}" readonly>
                   </div>
+                  <!-- League -->
+                  <div class="input-group input-group-sm mb-3 col-sm-4">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text " id="label-match-date">League</span>
+                    </div>
+                    <input type="text" class="form-control" value="{{object.league.name}}" readonly>
+                  </div>
                   <!-- status -->
-                  <div class="input-group input-group-sm mb-3 col-sm-3">
+                  <div class="input-group input-group-sm mb-3 col-sm-2">
                     <div class="input-group-prepend"><span class="input-group-text " id="label-status">Status</span></div>
                     <input type="text" class="form-control" value="{{object.get_status_display}}" readonly>
                   </div>
@@ -555,10 +570,11 @@
   <script>
 
 
-    function recalculate_forecast_dlg() 
+    function recalculate_forecast_dlg(period) 
       {
         
-        var url = "{% url 'betting:forecast_match_xg_update'  forecast_set_id match_id %}";
+        var url = "{% url 'betting:forecast_match_xg_update'  forecast_set_id 0 match_id %}";
+        url = url.replace(new RegExp('/0/', 'g'), '/'+period+'/');
         newForm("#modal",
                 ".modal0-content",
                 "#formUpdateMatchXG",
