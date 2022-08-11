@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models.query import RawQuerySet
 from django.db.models import sql
 
-from project.core.models import LoadSource
+from project.core.models import LoadSource, League
 from project.load.models import ErrorLog
 
 logger = logging.getLogger(__name__)
@@ -75,6 +75,11 @@ class Distribution(models.Model):
 
     def gathering(self):
         self.gathering_data()
+        leagues = ("english-premier-league", "french-ligue-1", "german-bundesliga", "italian-serie-a", "russian-premier-league", "spanish-primera-division")
+        for league in  League.objects.filter(slug__in=leagues): 
+            self.gathering_data(object_id=league.pk)
+        # league = League.objects.get(slug="french-ligue-1")
+        # self.gathering_data(object_id=league.pk)
 
     def get_distribution_by_value(self, value, param="0", object_id=0):
         half_step = Decimal(self.step/2)
@@ -117,6 +122,9 @@ class Distribution(models.Model):
                 distrib_value = value_ceil
             qs = DistributionData.objects.filter(ditribution=self,param=param,object_id=object_id,value=distrib_value)
             distribution_data = {r[0]:r[1] for r in qs.values_list("result_value", "data")}
+            if object_id > 0 and len(distribution_data) <= 1:
+                qs = DistributionData.objects.filter(ditribution=self,param=param,object_id=0,value=distrib_value)
+                distribution_data = {r[0]:r[1] for r in qs.values_list("result_value", "data")}
 
         return distribution_data
 
@@ -165,10 +173,10 @@ class Distribution(models.Model):
 
     def gathering_data(self, object_id=0):
         half_step = self.step/2
-        DistributionData.objects.filter(ditribution=self).delete()
+        DistributionData.objects.filter(ditribution=self, object_id=object_id).delete()
 
         for period in [0,1,2,]:
-            print(f"period {period}")
+            print(f"league:period {object_id}:{period}")
 
             with connection.cursor() as cursor:
 
@@ -178,7 +186,7 @@ class Distribution(models.Model):
                 value = 0
                 print("distribution h")
                 for i in range(1,200):
-                    self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period)
+                    self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, league_id=object_id)
                     exist_data = False
                     print(i)
                     for row in cursor.fetchall():
@@ -204,7 +212,7 @@ class Distribution(models.Model):
                 value = 0
                 print("distribution a")
                 for i in range(1,200):
-                    self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period)
+                    self.prepare_distribution_cursor(cursor, from_value, to_value, team=team, period=period, league_id=object_id)
                     exist_data = False
                     for row in cursor.fetchall():
                         exist_data = True
@@ -347,7 +355,7 @@ class xGGathering(Distribution):
     class Meta:
         proxy = True
 
-    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None, league_id=0):
         from .forecast import Harvest
 
         harvest = Harvest.get_xg_harvest(period)
@@ -369,6 +377,9 @@ class xGGathering(Distribution):
         elif filter_from != None and filter_to != None:
             value_filter = f" AND (h_v1*a_v2 - a_v1*h_v2) >= {filter_from} AND (h_v1*a_v2 - a_v1*h_v2) < {filter_to} "
 
+        league_filter = ""
+        if league_id > 0:
+            league_filter = f" AND m.league_id={league_id}"
 
         sql_select = f""" 
                     SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
@@ -406,6 +417,7 @@ class xGGathering(Distribution):
                                                   sh.event_date < m.match_date AND sh.match_cnt > 3)
                                         WHERE  m.status = 'F'
                                           AND m.match_date BETWEEN %s AND %s
+                                          {league_filter}
                                       ) d
                                     WHERE rn_h = 1
                                   ) d2
@@ -432,7 +444,7 @@ class xGGatheringHStd0(Distribution):
     class Meta:
         proxy = True
 
-    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None, league_id=0):
         from .forecast import Harvest
 
         harvest = Harvest.get_xg_harvest(period)
@@ -452,6 +464,10 @@ class xGGatheringHStd0(Distribution):
             value_filter = f" AND s1_value = {value_h} "
         elif filter_from != None and filter_to != None:
             value_filter = f" AND (h_v9*a_v10 - a_v9*h_v10) >= {filter_from} AND (h_v9*a_v10 - a_v9*h_v10) < {filter_to} "
+
+        league_filter = ""
+        if league_id > 0:
+            league_filter = f" AND m.league_id={league_id}"
 
         sql_select = f""" 
                     SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
@@ -489,6 +505,7 @@ class xGGatheringHStd0(Distribution):
                                                   sh.event_date < m.match_date AND sh.match_cnt > 3)
                                         WHERE  m.status = 'F'
                                           AND m.match_date BETWEEN %s AND %s
+                                          {league_filter}
                                       ) d
                                     WHERE rn_h = 1
                                   ) d2
@@ -516,7 +533,7 @@ class xGGatheringCopy(Distribution):
     class Meta:
         proxy = True
 
-    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None, league_id=0):
         from .forecast import Harvest
 
         harvest = Harvest.get_xg_harvest(period, prefix="xg-copy")
@@ -538,6 +555,9 @@ class xGGatheringCopy(Distribution):
         elif filter_from != None and filter_to != None:
             value_filter = f" AND (h_v1*a_v2 - a_v1*h_v2) >= {filter_from} AND (h_v1*a_v2 - a_v1*h_v2) < {filter_to} "
 
+        league_filter = ""
+        if league_id > 0:
+            league_filter = f" AND m.league_id={league_id}"
 
         sql_select = f""" 
                     SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
@@ -575,6 +595,7 @@ class xGGatheringCopy(Distribution):
                                                   sh.event_date < m.match_date AND sh.match_cnt > 3)
                                         WHERE  m.status = 'F'
                                           AND m.match_date BETWEEN %s AND %s
+                                          {league_filter}
                                       ) d
                                     WHERE rn_h = 1
                                   ) d2
@@ -601,7 +622,7 @@ class xGGatheringHStd0Copy(Distribution):
     class Meta:
         proxy = True
 
-    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None):
+    def prepare_distribution_cursor(self, cursor, from_value, to_value, team="h", value_h=None, period=0, filter_from=None, filter_to=None, league_id=0):
         from .forecast import Harvest
 
         harvest = Harvest.get_xg_harvest(period, prefix="xg-copy")
@@ -621,6 +642,10 @@ class xGGatheringHStd0Copy(Distribution):
             value_filter = f" AND s1_value = {value_h} "
         elif filter_from != None and filter_to != None:
             value_filter = f" AND (h_v9*a_v10 - a_v9*h_v10) >= {filter_from} AND (h_v9*a_v10 - a_v9*h_v10) < {filter_to} "
+
+        league_filter = ""
+        if league_id > 0:
+            league_filter = f" AND m.league_id={league_id}"
 
         sql_select = f""" 
                     SELECT g_value, COUNT(*)/MAX(all_cnt) AS p, COUNT(*) AS cnt 
@@ -658,6 +683,7 @@ class xGGatheringHStd0Copy(Distribution):
                                                   sh.event_date < m.match_date AND sh.match_cnt > 3)
                                         WHERE  m.status = 'F'
                                           AND m.match_date BETWEEN %s AND %s
+                                          {league_filter}
                                       ) d
                                     WHERE rn_h = 1
                                   ) d2

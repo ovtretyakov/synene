@@ -128,10 +128,15 @@ class ForecastMatchesSerializer(serializers.Serializer):
 class ForecastSerializer(serializers.ModelSerializer):
     odd_status = DisplayChoiceField(choices = Odd.RESULT_CHOICES)
     growth = serializers.DecimalField(max_digits=10, decimal_places=3)
+    best = serializers.IntegerField()
+    best_sort = serializers.IntegerField()
     class Meta:
         model = ForecastSandbox
-        fields = ("id", "predictor", "success_chance", "lose_chance", "result_value", "kelly", "odd", "odd_status", "growth", )
+        fields = ("id", "predictor", "success_chance", "lose_chance", "result_value", "kelly", "odd", "odd_status", "growth", 
+                    "odd_level", "best_bet_type", "best_odd", "best", "best_sort")
         depth = 2
+
+
 
 
 class PreviousMatchesSerializer(serializers.Serializer):

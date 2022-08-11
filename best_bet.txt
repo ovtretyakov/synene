@@ -1,0 +1,99 @@
+English Premier League
+1=2
+OR [bet_type] == "At least total over" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.2 AND [odd_value_dim] <= 6.6 //1 success=0.37 avg_profit=0.33   
+OR [bet_type] == "Handicap"            AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 3.6 //2 success=0.38 avg_profit=0.0947   
+OR [bet_type] == "Match/period result" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 3.5 //3 success=0.425 avg_profit=0.11   
+OR [bet_type] == "Both total under"    AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 1.7 //2 success=0.75 avg_profit=0.2   
+OR [bet_type] == "Margin"              AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.6 AND [odd_value_dim] <= 2.1 //3 success=0.7 avg_profit=0.16   
+OR [bet_type] == "Total Under"         AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.5 AND [odd_value_dim] <= 6.4 //2 success=0.35 avg_profit=0.13   
+OR [bet_type] == "Win & total"         AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.3 AND [odd_value_dim] <= 4.5 //3 success=0.33 avg_profit=0.21   
+OR [bet_type] == "Win & total over"    AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.3 AND [odd_value_dim] <= 4.2 //2 success=0.36 avg_profit=0.132   
+OR [bet_type] == "Win or draw & total over"  AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.7 AND [odd_value_dim] <= 2.0 //2 success=0.70 avg_profit=0.31   
+
+OR [bet_type] == "Highest value half" AND [param] == NULL AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.8 AND [odd_value_dim] <= 4.0 //1 success=0.43 avg_profit=0.182   
+
+
+French Ligue 1
+1=2
+OR [predictor] == "xg-std-fix" AND [bet_type] == "At least total over" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 4.3 //2 success=0.38 avg_profit=0.12   
+OR [predictor] == "xg-std-fix" AND [bet_type] == "Handicap"            AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.7 AND [odd_value_dim] <= 2.0 //2 success=0.56 avg_profit=0.09  
+//OR [predictor] == "xg-std-fix" AND [bet_type] == "Match/period result" AND [period] in(1,2) AND [yes] == "Y" AND [odd_value_dim] >= 1.8 AND [odd_value_dim] <= 3.2 //3 success=0.5 avg_profit=0.24   
+//OR [predictor] == "xg-std-fix" AND [bet_type] == "Total Under"         AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.0 AND [odd_value_dim] <= 2.9 //3 success=0.53 avg_profit=0.07   
+
+OR [predictor] == "xg-orig-fix" AND [bet_type] == "Win & team total under"     AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 3.2 AND [odd_value_dim] <= 8.5 //3 success=0.244 avg_profit=0.35  
+
+
+
+German Bundesliga
+1=2
+OR [bet_type] == "Both score in 1 and 2 halves" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 5.6 //2 success=0.352 avg_profit=0.541   
+OR [bet_type] == "Both total over"     AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.0 AND [odd_value_dim] <= 5.3 //2 success=0.35 avg_profit=0.47   
+OR [bet_type] == "Handicap"            AND [period] in(0,1) AND [yes] == "Y" AND [odd_value_dim] >= 1.9 AND [odd_value_dim] <= 7.0 //3 success=0.37 avg_profit=0.098   
+OR [bet_type] == "Match/period result" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.3 AND [odd_value_dim] <= 6.6 //1 success=0.34 avg_profit=0.20   
+OR [bet_type] == "Total Under"         AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.0 AND [odd_value_dim] <= 7.0 //3 success=0.41 avg_profit=0.065   
+OR [bet_type] == "Win & team total over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.9 AND [odd_value_dim] <= 7.0 //2 success=0.46 avg_profit=0.17   
+OR [bet_type] == "Win & total under"   AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 6.0 //2 success=0.45 avg_profit=0.10   
+OR [bet_type] == "Win or draw & team total over"  AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 6.0 //1 success=0.45 avg_profit=0.31   
+OR [bet_type] == "Win or draw & total under"  AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 2.3 AND [odd_value_dim] <= 4.3 //3 success=0.37 avg_profit=0.0533   
+
+
+Italian Serie A
+1=2
+OR [bet_type] == "At least total over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.7 AND [odd_value_dim] <= 4.1 //2 success=0.5 avg_profit=0.374   
+OR [bet_type] == "Both total under"    AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 5.0 //1 success=0.46 avg_profit=0.35   
+OR [bet_type] == "Both total under"    AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 5.0 //1 success=0.46 avg_profit=0.35   
+OR [bet_type] == "Exact total" AND [param] != "2,3" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.4 AND [odd_value_dim] <= 3.9 //1 success=0.53 avg_profit=0.246  
+OR [bet_type] == "Exact total"         AND [period] in(1,2) AND [yes] == "Y" AND [odd_value_dim] >= 1.4 AND [odd_value_dim] <= 3.9 //1 success=0.53 avg_profit=0.59   
+OR [bet_type] == "Handicap" AND [team] == "a" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.6 AND [odd_value_dim] <= 2.9 //1 success=0.60 avg_profit=0.193  
+OR [bet_type] == "Match/period result" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.4 AND [odd_value_dim] <= 1.7 //3 success=0.76 avg_profit=0.178   
+OR [bet_type] == "Match/period result" AND [period] == 1 AND [yes] == "Y" AND [odd_value_dim] >= 1.4 AND [odd_value_dim] <= 6.0 //1 success=0.48 avg_profit=0.365   
+OR [bet_type] == "Total Both Halves Under" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.8 AND [odd_value_dim] <= 3.7 //2 success=0.48 avg_profit=0.12   
+OR [bet_type] == "Total Over"          AND [period] == 2 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 3.0 //3 success=0.4 avg_profit=0.13   
+OR [bet_type] == "Total Under"         AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.7 AND [odd_value_dim] <= 3.3 //1 success=0.63 avg_profit=0.25   
+//OR [bet_type] == "WDL & both score" AND [param] in("wd","dl") AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.9 AND [odd_value_dim] <= 6.5 //2 success=0.36 avg_profit=0.34   
+OR [bet_type] == "Win & team total over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 3.5 //1 success=0.6 avg_profit=0.182   
+OR [bet_type] == "Win & total over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.3 AND [odd_value_dim] <= 3.9 //1 success=0.69 avg_profit=0.15   
+OR [bet_type] == "Win or draw & total over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 2.1 //2 success=0.66 avg_profit=0.176   
+OR [bet_type] == "Win or draw & total under" AND [param] == "3.5" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 2.2 //3 success=0.71 avg_profit=0.264   
+
+Russian Premier League
+1=2
+OR [bet_type] == "At least total over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 2.4 AND [odd_value_dim] <= 3.6 //2 success=0.5 avg_profit=0.336   
+OR [bet_type] == "Exact total"         AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.4 AND [odd_value_dim] <= 2.3 //1 success=0.72 avg_profit=0.3  
+OR [bet_type] == "Handicap"            AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.6 AND [odd_value_dim] <= 4.1 //3 success=0.467 avg_profit=0.073  
+OR [bet_type] == "Match/period result" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 4.4 //2 success=0.44 avg_profit=0.18   
+OR [bet_type] == "Total Over"          AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.4 AND [odd_value_dim] <= 3.4 //2 success=0.56 avg_profit=0.14   
+OR [bet_type] == "WDL & both score"    AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.9 AND [odd_value_dim] <= 5.6 //3 success=0.5 avg_profit=0.828   
+OR [bet_type] == "Win & total under"   AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.4 AND [odd_value_dim] <= 2.7 //3 success=0.627 avg_profit=0.13   
+OR [bet_type] == "Win & total under"   AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 2.8 //3 success=0.53 avg_profit=0.19   
+OR [bet_type] == "Win or draw & total under" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 2.0 AND [odd_value_dim] <= 6.6 //3 success=0.4 avg_profit=0.113   
+OR [bet_type] == "Win to nil"          AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 3.5 //2 success=0.76 avg_profit=0.29   
+
+Spanish Primera Division
+1=2
+OR [predictor] == "xg-std-fix"  AND [bet_type] == "At least total over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.8 AND [odd_value_dim] <= 3.1 //2 success=0.54 avg_profit=0.19   
+OR [predictor] == "xg-std-fix"  AND [bet_type] == "At least total over" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.6 AND [odd_value_dim] <= 3.1 //3 success=0.61 avg_profit=0.175   
+OR [predictor] == "xg-std-fix"  AND [bet_type] == "Both total under"    AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.6 AND [odd_value_dim] <= 6.3 //1 success=0.51 avg_profit=0.21   
+//OR [predictor] == "xg-std-fix"  AND [bet_type] == "Correct Score" AND [param] == "0:0" AND [period] == 1 AND [yes] == "Y" AND [odd_value_dim] >= 2.1 AND [odd_value_dim] <= 5.5 //3 success=0.47 avg_profit=0.52   
+OR [predictor] == "xg-orig-fix" AND [bet_type] == "Exact total" AND [param] != "0,1" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 2.9 //3 success=0.7 avg_profit=0.245   
+//OR [predictor] == "xg-std-fix" AND [bet_type] == "Total Both Halves Over" AND [period] == 0 AND [yes] == "N" AND [odd_value_dim] >= 1.5 AND [odd_value_dim] <= 3.0 //3 success=0.6 avg_profit=0.43   
+OR [predictor] == "xg-std-fix" AND [bet_type] == "Total Both Halves Under" AND [period] == 0 AND [yes] == "Y" AND [odd_value_dim] >= 1.7 AND [odd_value_dim] <= 3.9 //2 success=0.5 avg_profit=0.31   
+OR [predictor] == "xg-orig-fix" AND [bet_type] == "Total Over" AND [param] == "0.50" AND [period] == 2 AND [yes] == "Y" AND [odd_value_dim] >= 1.6 AND [odd_value_dim] <= 2.9 //3 success=0.545 avg_profit=0.236   
+
+
+        OR [bet_type] == 'At least total over' AND [yes] == 'N' 
+        OR [bet_type] == 'Both score & total over' AND [yes] == 'Y' 
+        OR [bet_type] == 'Both score & total under' AND [yes] == 'Y' 
+        OR [bet_type] == 'Handicap' AND [period] in(1,2)
+        OR [bet_type] == 'Total Over' AND [period] in(1,2)
+        OR [bet_type] == 'Total Under'
+        OR [bet_type] == 'Win & team total over' AND [yes] == 'N' AND [period] IN(1,2)
+        OR [bet_type] == 'Win & total'
+        OR [bet_type] == 'Win & total over' AND [yes] == 'N' AND [period] == 0
+        OR [bet_type] == 'Win & total over' AND [yes] == 'Y' AND [period] in(1,2)
+        OR [bet_type] == 'Win & total under' AND [yes] == 'Y' AND [period] in (1,2)
+        OR [bet_type] == 'Win or draw & team total under' AND [yes] == 'Y' AND [period] == 0
+        OR [bet_type] == 'Win or draw & total over' AND [yes] == 'N' AND [period] == 0
+        OR [bet_type] == 'Win or draw & total under' AND [yes] == 'Y'
+        OR [bet_type] == 'Win to nil' AND [yes] == 'Y' AND [period] IN(1,2)
+

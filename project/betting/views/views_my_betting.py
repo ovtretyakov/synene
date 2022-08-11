@@ -396,6 +396,9 @@ class MyBetView(generic.TemplateView):
         context = super(MyBetView, self).get_context_data(**kwargs)
         context["bookies"] = LoadSource.objects.filter(is_betting=True).order_by("pk")
 
+        statuses = (("a", "All"),) + Bet.STATUS_CHOICES
+        context["statuses"] = statuses
+
         date_to = self.request.GET.get("date_to", None)
         if date_to:
             context["date_to"] = date_to
@@ -406,6 +409,11 @@ class MyBetView(generic.TemplateView):
         selected_bookie = self.request.GET.get("bookie", None)
         if selected_bookie:
             context["selected_bookie"] = int(selected_bookie)
+        selected_status = self.request.GET.get("status", None)
+        if selected_status:
+            context["selected_status"] = selected_status
+        else:
+            context["selected_status"] = "a"
 
         return context    
 
@@ -426,6 +434,9 @@ class MyBetAPI(ListAPIView):
         bookie = self.request.query_params.get("selected_bookie", None)
         if bookie and int(bookie) > 0:
             queryset = queryset.filter(bookie=bookie)
+        status = self.request.query_params.get("selected_status", None)
+        if status and status != "a":
+            queryset = queryset.filter(status=status)
 
         return queryset
 

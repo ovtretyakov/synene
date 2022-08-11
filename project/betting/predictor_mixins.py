@@ -35,7 +35,7 @@ class OriginalDataExtraction(object):
 #  forecast data
 ###################################################################
 class PoissonForecasting(object):
-    def get_forecast_data(self):
+    def get_forecast_data(self, object_id=0):
         win_value  = float(self.skill_h_win * self.skill_a_lose)
         lose_value = float(self.skill_a_win * self.skill_h_lose)
 
@@ -52,7 +52,7 @@ class PoissonForecasting(object):
 
 
 class FixedDistributionForecasting(object):
-    def get_forecast_data(self):
+    def get_forecast_data(self, object_id=0):
 
         min_value, max_value = self.get_value_limit()
         distribution_slug = self.get_distribution_slug()
@@ -63,8 +63,8 @@ class FixedDistributionForecasting(object):
             win_value  = float(self.skill_h_win[period] * self.skill_a_lose[period])
             lose_value = float(self.skill_a_win[period] * self.skill_h_lose[period])
 
-            distribution_h = self.get_distribution_data(distribution_slug, win_value, param=f"{period}h")
-            distribution_a = self.get_distribution_data(distribution_slug, lose_value, param=f"{period}a")
+            distribution_h = self.get_distribution_data(distribution_slug, win_value, param=f"{period}h", object_id=object_id)
+            distribution_a = self.get_distribution_data(distribution_slug, lose_value, param=f"{period}a", object_id=object_id)
 
             fdata = []
             if max_value != None:
@@ -82,7 +82,7 @@ class FixedDistributionForecasting(object):
 
 
 class FixedDistributionForecastingEx(object):
-    def get_forecast_data(self):
+    def get_forecast_data(self, object_id=0):
         forecast_data = {}
         win_value  = float(self.skill_h_win * self.skill_a_lose)
         lose_value = float(self.skill_a_win * self.skill_h_lose)
@@ -92,8 +92,8 @@ class FixedDistributionForecastingEx(object):
         distribution_slug = self.get_distribution_slug()
 
         #simple
-        distribution_h = self.get_distribution_data(distribution_slug, win_value, param="0h")
-        distribution_a = self.get_distribution_data(distribution_slug, lose_value, param="0a")
+        distribution_h = self.get_distribution_data(distribution_slug, win_value, param="0h", object_id=object_id)
+        distribution_a = self.get_distribution_data(distribution_slug, lose_value, param="0a", object_id=object_id)
 
         fdata = []
         if max_value != None:

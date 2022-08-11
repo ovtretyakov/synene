@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from bootstrap_modal_forms.forms import BSModalForm
 
-from .models import League, Team, Referee
+from .models import League, Team, Referee, Season
 
 ######################################################################
 class LeagueForm(BSModalForm):
@@ -184,3 +184,9 @@ class RefereesConfirmForm(BSModalForm):
         if not referees_id:
             raise ValidationError(_("No referees to confirm"))
 
+
+######################################################################
+class SeasonForm(BSModalForm):
+    class Meta:
+        model = Season
+        fields = ["name", "league", "start_date", "end_date", "load_source",]

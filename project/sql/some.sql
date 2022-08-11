@@ -1,3 +1,97 @@
+WITH d AS (
+SELECT p.slug AS predictor, b.name AS bookie,
+       bo.match_id, m.match_date, th.name || ' - ' || ta.name AS match_name, m.score,
+       l.name AS league_name, bt.name AS bet_type, 
+       o.period, o.yes, o.team, o.param, o.result, o.odd_value, o.result_value,
+       bo.success_chance, bo.lose_chance, bo.result_value AS expect_value, bo.kelly, 
+       o.result_value-1 AS win,
+       1 - bo.kelly + bo.kelly*bo.result_value AS growth,
+       CASE WHEN o.odd_value < 1.15 THEN 1.1 
+            WHEN o.odd_value < 1.25 THEN 1.2 
+            WHEN o.odd_value < 1.4  THEN 1.3 
+            WHEN o.odd_value < 1.65 THEN 1.5 
+            WHEN o.odd_value < 1.9  THEN 1.7 
+            WHEN o.odd_value < 2.2  THEN 2.0 
+            WHEN o.odd_value < 3.0  THEN 3.0 
+            ELSE 4.0
+       END odd_rnd,
+       CASE WHEN bo.success_chance < 0.4 THEN 0.2 
+            WHEN bo.success_chance < 0.6 THEN 0.5 
+            WHEN bo.success_chance < 0.7 THEN 0.6 
+            WHEN bo.success_chance < 0.8 THEN 0.7 
+            WHEN bo.success_chance < 0.9 THEN 0.8 
+            ELSE 0.9
+       END success_rnd,
+       CASE WHEN bo.kelly = 0.0  THEN 0.0 
+            WHEN bo.kelly < 0.07 THEN 0.05 
+            WHEN bo.kelly < 0.16 THEN 0.1 
+            WHEN bo.kelly < 0.25 THEN 0.2 
+            WHEN bo.kelly < 0.4  THEN 0.3 
+            ELSE 0.5
+       END kelly_rnd
+  FROM synene.betting_forecast bo,
+       synene.betting_predictor p,
+       synene.core_match m,
+       synene.core_team th,
+       synene.core_team ta,
+       synene.core_league l,
+       synene.betting_odd o,
+       synene.betting_bettype bt,
+       synene.core_loadsource b
+  WHERE bo.status = 's' AND bo.forecast_set_id = 2
+    AND bo.predictor_id = p.id
+    AND bo.match_id = m.id
+    AND m.team_h_id = th.id
+    AND m.team_a_id = ta.id
+    AND m.league_id = l.id
+    AND bo.odd_id = o.id
+    AND o.bet_type_id = bt.id
+    AND o.bookie_id = b.id
+)
+SELECT d.*,
+       --kelly
+       row_number() OVER(PARTITION BY predictor, bookie, match_id ORDER BY kelly DESC, expect_value DESC) AS kelly_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, odd_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_odd_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, success_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_success_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, kelly_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_kelly_rn,
+
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, odd_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_odd_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, success_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_success_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, kelly_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_kelly_rn,
+       
+       
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_period_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period, odd_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_period_odd_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period, success_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_period_success_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period, kelly_rnd ORDER BY kelly DESC, expect_value DESC) AS kelly_btype_period_kelly_rn,
+
+       
+       
+       --growth
+       row_number() OVER(PARTITION BY predictor, bookie, match_id ORDER BY growth DESC, expect_value DESC) AS growth_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, odd_rnd ORDER BY growth DESC, expect_value DESC) AS growth_odd_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, success_rnd ORDER BY growth DESC, expect_value DESC) AS growth_success_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, kelly_rnd ORDER BY growth DESC, expect_value DESC) AS growth_kelly_rn,
+       
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes ORDER BY growth DESC, expect_value DESC) AS growth_btype_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, odd_rnd ORDER BY growth DESC, expect_value DESC) AS growth_btype_odd_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, success_rnd ORDER BY growth DESC, expect_value DESC) AS growth_btype_success_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, kelly_rnd ORDER BY growth DESC, expect_value DESC) AS growth_btype_kelly_rn,
+       
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period ORDER BY growth DESC, expect_value DESC) AS growth_btype_period_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period, odd_rnd ORDER BY growth DESC, expect_value DESC) AS growth_btype_period_odd_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period, success_rnd ORDER BY growth DESC, expect_value DESC) AS growth_btype_period_success_rn,
+       row_number() OVER(PARTITION BY predictor, bookie, match_id, bet_type, yes, period, kelly_rnd ORDER BY growth DESC, expect_value DESC) AS growth_btype_period_kelly_rn
+  FROM d  
+  WHERE kelly > 0  
+  ORDER BY match_id DESC, period DESC
+  LIMIT 1000
+;  
+
+
+
+
 SELECT *
   FROM 
     (

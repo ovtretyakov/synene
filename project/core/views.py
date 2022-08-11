@@ -17,10 +17,11 @@ from bootstrap_modal_forms.generic import (BSModalCreateView,
                                            BSModalDeleteView)
 
 from .utils import get_date_from_string
-from .models import League, Match, MatchStats, Team, Referee
+from .models import League, Match, MatchStats, Team, Referee, Season
 from .forms import (LeagueForm, LeadueMergeForm, LeaguesDeleteForm, LeaguesConfirmForm,
                     TeamForm, TeamMergeForm, TeamsDeleteForm, TeamsConfirmForm,
                     RefereeForm, RefereeMergeForm, RefereesDeleteForm, RefereesConfirmForm,
+                    SeasonForm
                    )
 from .serializers import SeasonSerializer, MatchSerializer, MatchStatsSerializer
 
@@ -206,6 +207,25 @@ class SeasonAPI(ListAPIView):
             queryset = queryset.filter(league=selected_league_id)
 
         return queryset
+
+class SeasonCreateView(BSModalCreateView):
+    model = Season
+    form_class = SeasonForm
+    template_name = 'core/create_season.html'
+    success_message = "Success: Season was created."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+
+class SeasonUpdateView(BSModalUpdateView):
+    model = Season
+    form_class = SeasonForm
+    template_name = 'core/update_season.html'
+    success_message = "Success: Season was updated."
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
 
 
 ####################################################

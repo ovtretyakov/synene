@@ -3,13 +3,13 @@ from decimal import Decimal
 from datetime import datetime, date, timedelta
 import logging
 
-from django.db import models, transaction
+from django.db import models, transaction, connection
 from django.utils import timezone
 from django.db.models import sql, F, Q, Count, Max
 
 from .betting import ValueType
 from .probability import Distribution
-from project.core.models import Sport, Match, League, Country, Team, LoadSource
+from project.core.models import Sport, Match, League, Country, Team, LoadSource, Season
 from project.load.models import ErrorLog
 from project.betting.models import Odd
 from .. import predictor_mixins as Mixins
@@ -362,86 +362,151 @@ class Predictor(models.Model):
         if not start_date:
             start_date = date(2015, 1, 1)
 
-        pattern = self.harvest.slug[:-1]
-        print("!!! pattern", pattern)
-        queryset = Harvest.objects.filter(slug__startswith=pattern, status=Harvest.ACTIVE)
-        if period != None:
-            queryset = queryset.filter(period=period)
-        for harvest in queryset:
-
-            self.period = harvest.period
-            self.value_type_slug = harvest.value_type.slug
-            self.value_type = harvest.value_type
-
-            only_finished = forecast_set.only_finished
-            keep_only_best = forecast_set.keep_only_best
-            print("!!!", harvest, self.period)
-            for harvest_league in HarvestLeague.objects.filter(harvest_group__harvest=harvest, harvest_group__status=HarvestGroup.ACTIVE):
-                print(harvest_league)
-                queryset = Match.objects.filter(season__league = harvest_league.league, 
-                                                match_date__gte = start_date)
-                if only_finished:
-                    queryset = queryset.exclude(status=Match.FINISHED)
-                if match_id:
-                    queryset = queryset.filter(pk=match_id)
-                queryset = queryset.order_by("match_date","pk")
-
-                for match in queryset:
-                    print(match, match.match_date, self.period)
-
-                    self.skill_h = {}
-                    self.skill_a = {}
-                    qs = Harvest.objects.filter(slug__startswith=pattern, status=Harvest.ACTIVE)
-                    for hrvst in qs:
-
-                        if sandbox:
-                            self.skill_h[hrvst.period] = TeamSkillSandbox.objects.get(
-                                                                        forecast_set_id=forecast_set.id,
-                                                                        harvest_id=hrvst.id, 
-                                                                        team_id=match.team_h_id, 
-                                                                        event_date=match.match_date, 
-                                                                        param="h")
-                            self.skill_a[hrvst.period] = TeamSkillSandbox.objects.get(
-                                                                        forecast_set_id=forecast_set.id,
-                                                                        harvest_id=hrvst.id, 
-                                                                        team_id=match.team_a_id, 
-                                                                        event_date=match.match_date, 
-                                                                        param="a")
-                        else:    
-                            if match.status == Match.FINISHED:
-                                if Forecast.objects.filter(forecast_set_id=forecast_set.id,
-                                                           match_id=match.id,
-                                                           predictor_id=self.id,
-                                                           ).exists():
-                                    if not Forecast.objects.filter(forecast_set_id=forecast_set.id,
-                                                                   match_id=match.id,
-                                                                   predictor_id=self.id,
-                                                                   status=Forecast.UNSETTLED
-                                                               ).exists():
-                                        continue
-                            self.skill_h[hrvst.period] = TeamSkill.get_team_skill(hrvst, match.team_h, match.match_date, match, param="h")
-                            self.skill_a[hrvst.period] = TeamSkill.get_team_skill(hrvst, match.team_a, match.match_date, match, param="a")
+        status_field = "" if sandbox else "status, "
+        table_dst = "betting_forecastsandbox" if sandbox else "betting_forecast"
+        sql_insert_match_forecast = f"""
+            INSERT INTO {table_dst}(
+                forecast_set_id, match_id, odd_id, predictor_id, match_date, harvest_id,
+                success_chance, lose_chance, result_value, kelly, {status_field} growth, odd_level, best_bet_type,
+                best_odd)
+            SELECT forecast_set_id, match_id, odd_id, predictor_id, match_date, harvest_id,
+                   success_chance, lose_chance, result_value, kelly, {status_field} growth, odd_level, best_bet_type,
+                   CASE WHEN best_bet_type = 0 THEN 0
+                   ELSE ROW_NUMBER() OVER(PARTITION BY forecast_set_id, match_id, bookie_id
+                                          ORDER BY CASE WHEN best_bet_type = 0 THEN 1 ELSE 0 END, odd_level, growth DESC, kelly DESC) 
+                   END AS best_odd
+                FROM 
+                (
+                SELECT t.*, o.bookie_id,
+                       CASE WHEN t.odd_level = 0 THEN 0
+                       ELSE ROW_NUMBER() OVER(PARTITION BY o.bookie_id, t.forecast_set_id, t.match_id, t.bet_type_slug, t.period, t.yes 
+                                              ORDER BY CASE WHEN t.odd_level = 0 THEN 1 ELSE 0 END, t.growth DESC, t.kelly DESC) 
+                       END AS best_bet_type
+                  FROM betting_forecasttemp t, betting_odd o
+                  WHERE t.forecast_set_id = %s AND t.match_id = %s
+                    AND t.odd_id = o.id
+                ) d
+            """
 
 
-                    if not self.skill_h or not self.skill_a or self.skill_h[0].match_cnt <= 3 or self.skill_a[0].match_cnt <= 3:
-                        print("    Skip match")
-                        continue
+        only_finished = forecast_set.only_finished
+        keep_only_best = forecast_set.keep_only_best
+        for harvest_league in HarvestLeague.objects.filter(harvest_group__harvest=self.harvest, harvest_group__status=HarvestGroup.ACTIVE):
+            print(harvest_league)
+            queryset = Match.objects.filter(league = harvest_league.league, 
+                                            match_date__gte = start_date).select_related("league")
+            if only_finished:
+                queryset = queryset.exclude(status=Match.FINISHED)
+            if match_id:
+                queryset = queryset.filter(pk=match_id)
+            queryset = queryset.order_by("match_date","pk")
+
+            for match in queryset:
+                print(match, match.match_date)
+
+                if match.status == Match.FINISHED:
+                    if Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                                               match_id=match.id,
+                                               predictor_id=self.id,
+                                               harvest_id=self.harvest.id, 
+                                               ).exists():
+                        if not Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                                                       match_id=match.id,
+                                                       predictor_id=self.id,
+                                                       harvest_id=self.harvest.id, 
+                                                       status=Forecast.UNSETTLED
+                                                   ).exists():
+                            continue
+
+                if not match.season or match.season.name == Season.UNKNOWN:
+                    continue
+
+                self.skill_h = {}
+                self.skill_a = {}
+                pattern = self.harvest.slug[:-1]
+                qs = Harvest.objects.filter(slug__startswith=pattern, status=Harvest.ACTIVE)
+                for hrvst in qs:
+
+                    if sandbox:
+                        self.skill_h[hrvst.period] = TeamSkillSandbox.objects.get(
+                                                                    forecast_set_id=forecast_set.id,
+                                                                    harvest_id=hrvst.id, 
+                                                                    team_id=match.team_h_id, 
+                                                                    event_date=match.match_date, 
+                                                                    param="h")
+                        self.skill_a[hrvst.period] = TeamSkillSandbox.objects.get(
+                                                                    forecast_set_id=forecast_set.id,
+                                                                    harvest_id=hrvst.id, 
+                                                                    team_id=match.team_a_id, 
+                                                                    event_date=match.match_date, 
+                                                                    param="a")
+                    else:    
+                        self.skill_h[hrvst.period] = TeamSkill.get_team_skill(hrvst, match.team_h, match.match_date, match, param="h")
+                        self.skill_a[hrvst.period] = TeamSkill.get_team_skill(hrvst, match.team_a, match.match_date, match, param="a")
+
+
+                if not self.skill_h or not self.skill_a or self.skill_h[self.harvest.period].match_cnt <= 3 or self.skill_a[self.harvest.period].match_cnt <= 3:
+                    continue
+
+
+
+                #save forecast to temp table
+                forecasts_tmp = []
+                if sandbox:
+                    qs_forecasts_tmp = ForecastSandbox.objects.filter(forecast_set_id=forecast_set.id, match_id=match.id,).select_related("odd", "odd__bet_type")
+                else:
+                    qs_forecasts_tmp = Forecast.objects.filter(forecast_set_id=forecast_set.id, match_id=match.id,).select_related("odd", "odd__bet_type")
+                for f in qs_forecasts_tmp:
+                    forecasts_tmp.append(ForecastTemp(forecast_set = f.forecast_set,
+                                                      match = f.match,
+                                                      odd = f.odd,
+                                                      predictor = f.predictor,
+                                                      match_date = f.match_date,
+                                                      harvest = f.harvest,
+                                                      success_chance = f.success_chance,
+                                                      lose_chance = f.lose_chance,
+                                                      result_value = f.result_value,
+                                                      kelly = f.kelly,
+                                                      status = "u" if sandbox else f.status,
+                                                      growth = f.growth,
+                                                      odd_level = f.odd_level,
+                                                      bet_type_slug = f.odd.bet_type.slug,
+                                                      period = f.odd.period,
+                                                      yes = f.odd.yes,
+                                                      team = f.odd.team,
+                                                      param = f.odd.param,
+                                                      odd_value = f.odd.odd_value,
+                                                     )
+                                        )
+                ForecastTemp.objects.filter(forecast_set_id=forecast_set.id, match_id=match.id,).delete()
+                ForecastTemp.objects.bulk_create(forecasts_tmp)
+
+
+                queryset = Harvest.objects.filter(slug__startswith=pattern, status=Harvest.ACTIVE)
+                if period != None:
+                    queryset = queryset.filter(period=period)
+                for harvest in queryset:
+
+                    self.period = harvest.period
+                    self.value_type_slug = harvest.value_type.slug
+                    self.value_type = harvest.value_type
 
                     self.extract_skills()
-                    forecast_data = self.get_forecast_data()
+                    forecast_data = self.get_forecast_data(object_id=harvest_league.league.id)
+
 
                     # print("dl", sum([d[2] for d in forecast_data if d[0] <= d[1]]))
                     # print("wl", sum([d[2] for d in forecast_data if d[0] != d[1]]))
                     forecast_ins = []
                     forecast_upd = []
                     i = 0
-                    for odd in Odd.objects.filter(match=match, value_type=self.value_type, period=self.period):
+                    for odd in Odd.objects.filter(match=match, value_type=self.value_type, period=self.period).select_related("bet_type"):
                         i += 1
                         forecast_old = None
                         ins = False
                         upd = False
                         if sandbox:
-                            forecast_old = ForecastSandbox.objects.filter(forecast_set_id=forecast_set.id,
+                            forecast_old = ForecastTemp.objects.filter(forecast_set_id=forecast_set.id,
                                                                           match_id=match.id,
                                                                           odd_id=odd.id,
                                                                           predictor_id=self.id).first()
@@ -449,7 +514,7 @@ class Predictor(models.Model):
                                 continue
                             ins = True
                         else:
-                            forecast_old = Forecast.objects.filter(forecast_set_id=forecast_set.id,
+                            forecast_old = ForecastTemp.objects.filter(forecast_set_id=forecast_set.id,
                                                                    match_id=match.id,
                                                                    odd_id=odd.id,
                                                                    predictor_id=self.id).first()
@@ -465,57 +530,61 @@ class Predictor(models.Model):
                         success_chance, lose_chance, result_value = real_odd.forecasting(forecast_data)
                         if success_chance != None:
                             kelly = 0
+                            growth = 0
                             if result_value > 1.001:
                                 kelly = (result_value - Decimal(1.0)) / (odd.odd_value - Decimal(1.0))
-                            if sandbox:
-                                forecast_ins.append(ForecastSandbox(
-                                                                    forecast_set_id=forecast_set.id,
-                                                                    match_id=match.id,
-                                                                    odd_id=odd.id,
-                                                                    predictor_id=self.id,
-                                                                    match_date=match.match_date,
-                                                                    harvest_id=harvest.id,
-                                                                    success_chance=success_chance,
-                                                                    lose_chance=lose_chance,
-                                                                    result_value=result_value,
-                                                                    kelly=kelly)
-                                                )
-                            else:
-                                if ins:
-                                    forecast_ins.append(Forecast(
-                                                                forecast_set_id=forecast_set.id,
-                                                                match_id=match.id,
-                                                                odd_id=odd.id,
-                                                                predictor_id=self.id,
-                                                                match_date=match.match_date,
-                                                                harvest_id=harvest.id,
-                                                                success_chance=success_chance,
-                                                                lose_chance=lose_chance,
-                                                                result_value=result_value,
-                                                                kelly=kelly,
-                                                                status=Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED
-                                                                )
-                                                    )
-                                elif upd:
-                                    forecast_old.success_chance=success_chance
-                                    forecast_old.lose_chance=lose_chance
-                                    forecast_old.result_value=result_value
-                                    forecast_old.kelly=kelly
-                                    forecast_old.status=Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED
-                                    forecast_upd.append(forecast_old)
+                                growth = Decimal(1.0) - kelly + kelly*result_value
+                            if ins:
+                                forecast_temp = ForecastTemp(
+                                                                forecast_set = forecast_set,
+                                                                match = match,
+                                                                odd = odd,
+                                                                predictor = self,
+                                                                match_date = match.match_date,
+                                                                harvest = harvest,
+                                                                success_chance = success_chance,
+                                                                lose_chance = lose_chance,
+                                                                result_value = result_value,
+                                                                kelly = kelly,
+                                                                status = Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED,
+                                                                growth = growth,
+                                                                odd_level = 0,
+                                                                bet_type_slug = odd.bet_type.slug,
+                                                                period = odd.period,
+                                                                yes = odd.yes,
+                                                                team = odd.team,
+                                                                param = odd.param,
+                                                                odd_value = odd.odd_value,
+                                                            )
+                                forecast_temp.set_odd_level()
+                                forecast_ins.append(forecast_temp)
+                            elif upd:
+                                forecast_old.success_chance=success_chance
+                                forecast_old.lose_chance=lose_chance
+                                forecast_old.result_value=result_value
+                                forecast_old.kelly=kelly
+                                forecast_old.status=Forecast.SETTLED if odd.status==Odd.FINISHED else Forecast.UNSETTLED
+                                forecast_old.growth=growth
+                                forecast_old.odd_level=0
+                                forecast_old.set_odd_level()
+                                forecast_upd.append(forecast_old)
 
-                    print("    Result", len(forecast_ins), len(forecast_upd))
+
                     if forecast_ins:
-                        if sandbox:
-                            ForecastSandbox.objects.bulk_create(forecast_ins)
-                        else:
-                            Forecast.objects.bulk_create(forecast_ins)
+                        ForecastTemp.objects.bulk_create(forecast_ins)
                     if forecast_upd:
-                        if sandbox:
-                            ForecastSandbox.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
-                        else:
-                            Forecast.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status"])
+                        ForecastTemp.objects.bulk_update(forecast_upd, ["success_chance","lose_chance","result_value","kelly","status","growth","odd_level"])
 
+                # Save prepared match forecasting to table
+                if sandbox:
+                    ForecastSandbox.objects.filter(forecast_set_id=forecast_set.id, match_id=match.id).delete()
+                else:
+                    Forecast.objects.filter(forecast_set_id=forecast_set.id, match_id=match.id).delete()
+                with connection.cursor() as cursor:
+                    cursor.execute(sql_insert_match_forecast, [forecast_set.id, match.id, ])
+                ForecastTemp.objects.filter(forecast_set_id=forecast_set.id, match_id=match.id).delete()
+
+                
 
     def forecasting_odd(self, odd):
         from .harvest import TeamSkill
@@ -560,7 +629,7 @@ class ForecastSet(models.Model):
     ERROR = 'e'
 
     STATUS_CHOICES = (
-        (PREPARED, 'Preapred'),
+        (PREPARED, 'Prepared'),
         (SUCCESS, 'Success'),
         (ERROR, 'Error'),
     )
@@ -761,7 +830,7 @@ class ForecastSet(models.Model):
                                                 )
 
 
-    def preapre_sandbox(self, match, harvest):
+    def prepare_sandbox(self, match, harvest):
         self._add_teamskill_sandbox(harvest=harvest, team=match.team_h, event_date=match.match_date, param='h')
         self._add_teamskill_sandbox(harvest=harvest, team=match.team_a, event_date=match.match_date, param='a')
         if not ForecastSandbox.objects.filter(forecast_set=self, match=match).exists():
@@ -774,7 +843,11 @@ class ForecastSet(models.Model):
                                             success_chance  = f.success_chance,
                                             lose_chance  = f.lose_chance,
                                             result_value = f.result_value,
-                                            kelly = f.kelly
+                                            kelly = f.kelly,
+                                            growth = f.growth,
+                                            odd_level = f.odd_level, 
+                                            best_bet_type = f.best_bet_type, 
+                                            best_odd = f.best_odd 
                                         ) for f in Forecast.objects.filter(forecast_set_id=self.id, match_id=match.id)]
             ForecastSandbox.objects.bulk_create(forecasts)
             
@@ -790,7 +863,7 @@ class ForecastSet(models.Model):
                                         event_date=match.match_date, 
                                         param='a').delete()
         ForecastSandbox.objects.filter(forecast_set=self, match=match).delete()
-        self.preapre_sandbox(match, harvest)
+        self.prepare_sandbox(match, harvest)
 
 
     def forecasting(self, delete_old=False):
@@ -808,9 +881,10 @@ class ForecastSet(models.Model):
         if delete_old:
             Forecast.objects.filter(forecast_set=self).delete()
         for predictor in Predictor.objects.filter(status=Predictor.ACTIVE).order_by("priority", "pk"):
-            print("predictor", predictor)
+            print("<<<predictor>>>", predictor)
             real_predictor = predictor.get_real_predictor()
             real_predictor.forecasting(self)
+        print("<<<finish>>>")
 
         odd_cnt = Forecast.objects.filter(forecast_set=self).count()
         match_cnt = Forecast.objects.filter(forecast_set=self).distinct('match').count()
@@ -854,6 +928,10 @@ class Forecast(models.Model):
     kelly = models.DecimalField('kelly', max_digits=10, decimal_places=3)
     status = models.CharField('Status', max_length=5, choices=STATUS_CHOICES, default='u')
 
+    growth = models.DecimalField('growth', max_digits=10, decimal_places=6, null=True)
+    odd_level = models.IntegerField('Odd Level', null=True) 
+    best_bet_type = models.IntegerField('Best Bet Type', null=True) 
+    best_odd = models.IntegerField('Best Odd', null=True) 
 
     class Meta:
         constraints = [
@@ -877,6 +955,11 @@ class ForecastSandbox(models.Model):
     result_value = models.DecimalField('Result value', max_digits=10, decimal_places=3)
     kelly = models.DecimalField('kelly', max_digits=10, decimal_places=3)
 
+    growth = models.DecimalField('growth', max_digits=10, decimal_places=6, null=True)
+    odd_level = models.IntegerField('Odd Level', null=True) 
+    best_bet_type = models.IntegerField('Best Bet Type', null=True) 
+    best_odd = models.IntegerField('Best Odd', null=True) 
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["forecast_set", "match", "odd", "predictor" ], name='unique_forecast_sandbox'),
@@ -886,6 +969,320 @@ class ForecastSandbox(models.Model):
         return f'Set:{self.forecast_set},M:<{self.match},{self.match_date}>,Odd:<{self.odd}>,P:{self.predictor},R:{round(self.result_value,4)},S:{round(self.success_chance,4)}'
 
 
+class ForecastTemp(models.Model):
+
+    forecast_set = models.ForeignKey(ForecastSet, on_delete=models.CASCADE, verbose_name='Forecast set')
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, verbose_name='Match')
+    odd = models.ForeignKey(Odd, on_delete=models.CASCADE, verbose_name='Odd')
+    predictor = models.ForeignKey(Predictor, on_delete=models.CASCADE, verbose_name='Predictor')
+    match_date = models.DateField('Match date', null=True, blank=True)
+    harvest = models.ForeignKey(Harvest, on_delete=models.CASCADE, verbose_name='Harvest')
+    success_chance  = models.DecimalField('Success chance', max_digits=10, decimal_places=3)
+    lose_chance  = models.DecimalField('Lose chance', max_digits=10, decimal_places=3)
+    result_value = models.DecimalField('Result value', max_digits=10, decimal_places=3)
+    kelly = models.DecimalField('kelly', max_digits=10, decimal_places=3)
+    status = models.CharField('Status', max_length=5, default='u')
+
+    growth = models.DecimalField('growth', max_digits=10, decimal_places=6, null=True)
+    odd_level = models.IntegerField('Odd Level', null=True) 
+
+    bet_type_slug = models.CharField('Bet_Type Slug', max_length=100)
+    period = models.IntegerField('Period')
+    yes = models.CharField(r'Yes\No', max_length=1)
+    team = models.CharField('Team', max_length=10, blank=True)
+    param = models.CharField('Param', max_length=255, blank=True)
+    odd_value = models.DecimalField('Odd', max_digits=10, decimal_places=3)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["forecast_set", "match", "odd", "predictor" ], name='unique_forecasttest'),
+        ]
+
+    def __str__(self):
+        return f'Set:{self.forecast_set},M:<{self.match},{self.match_date}>,Odd:<{self.bet_type_slug},{self.period},{self.team},{self.param},{self.odd_value}>'
+
+    def set_odd_level(self):
+        if self.growth <= 0:
+            return
+        if self.match.league.slug == "english-premier-league":
+            if self.predictor.slug == "xg-std-fix":
+                if (self.bet_type_slug == "itotal_at_least_over" and self.period == 0 and self.yes == "Y" and 
+                    self.odd_value >= Decimal(2.2) and self.odd_value <= Decimal(6.6)
+                    ):
+                    # 1 success=0.37 avg_profit=0.33
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "handicap" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(3.6)
+                        ):
+                    # 2 success=0.38 avg_profit=0.0947
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "wdl" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(3.5)
+                        ):
+                    # 3 success=0.425 avg_profit=0.11
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "itotal_both_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(1.7)
+                        ):
+                    # 2 success=0.75 avg_profit=0.2
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "margin" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(2.1)
+                        ):
+                    # 3 success=0.7 avg_profit=0.16
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "total_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.5) and self.odd_value <= Decimal(6.4)
+                        ):
+                    # 2 success=0.35 avg_profit=0.13
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "w_and_total" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.3) and self.odd_value <= Decimal(4.5)
+                        ):
+                    # 3 success=0.33 avg_profit=0.21
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "w_and_total_over" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.3) and self.odd_value <= Decimal(4.2)
+                        ):
+                    # 2 success=0.36 avg_profit=0.132
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "wd_and_total_over" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.7) and self.odd_value <= Decimal(2.0)
+                        ):
+                    # 2 success=0.70 avg_profit=0.31
+                    self.odd_level = 2
+
+        elif self.match.league.slug == "french-ligue-1":
+            if self.predictor.slug == "xg-std-fix":
+                if (self.bet_type_slug == "itotal_at_least_over" and self.period == 0 and self.yes == "Y" and 
+                    self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(4.3)
+                    ):
+                    # 2 success=0.38 avg_profit=0.12
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "handicap" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.7) and self.odd_value <= Decimal(2.0)
+                        ):
+                    # 1 success=0.56 avg_profit=0.09
+                    self.odd_level = 1
+            elif self.predictor.slug == "xg-orig-fix":
+                if (self.bet_type_slug == "w_and_itotal_under" and self.period == 0 and self.yes == "Y" and 
+                    self.odd_value >= Decimal(3.2) and self.odd_value <= Decimal(8.5)
+                    ):
+                    # 3 success=0.244 avg_profit=0.35
+                    self.odd_level = 3
+
+        elif self.match.league.slug == "german-bundesliga":
+            if self.predictor.slug == "xg-std-fix":
+                if (self.bet_type_slug == "both_to_score_at_1_2" and self.period == 0 and self.yes == "Y" and 
+                    self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(5.6)
+                    ):
+                    # 2 success=0.352 avg_profit=0.541
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "itotal_both_over" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.0) and self.odd_value <= Decimal(5.3)
+                        ):
+                    # 2 success=0.35 avg_profit=0.47
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "handicap" and self.period in(0,1,) and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.9) and self.odd_value <= Decimal(7.0)
+                        ):
+                    # 3 success=0.37 avg_profit=0.098
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "wdl" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.3) and self.odd_value <= Decimal(6.6)
+                        ):
+                    # 1 success=0.34 avg_profit=0.20
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "total_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.0) and self.odd_value <= Decimal(7.0)
+                        ):
+                    # 3 success=0.41 avg_profit=0.065
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "w_and_itotal_over" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(1.9) and self.odd_value <= Decimal(7.0)
+                        ):
+                    # 2 success=0.46 avg_profit=0.17
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "w_and_total_under" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(6.0)
+                        ):
+                    # 2 success=0.45 avg_profit=0.10
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "wd_and_itotal_over" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(6.0)
+                        ):
+                    # 1 success=0.45 avg_profit=0.31
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "wd_and_total_under" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(2.3) and self.odd_value <= Decimal(4.3)
+                        ):
+                    # 3 success=0.37 avg_profit=0.0533
+                    self.odd_level = 3
+
+        elif self.match.league.slug == "italian-serie-a":
+            if self.predictor.slug == "xg-std-fix":
+                if (self.bet_type_slug == "itotal_at_least_over" and self.period == 0 and self.yes == "N" and 
+                    self.odd_value >= Decimal(1.7) and self.odd_value <= Decimal(4.1)
+                    ):
+                    # 2 success=0.5 avg_profit=0.374
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "itotal_both_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(5.0)
+                        ):
+                    # 1 success=0.46 avg_profit=0.35
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "total" and self.period == 0 and self.yes == "Y" and 
+                        self.param != "2,3" and
+                        self.odd_value >= Decimal(1.4) and self.odd_value <= Decimal(3.9)
+                        ):
+                    # 1 success=0.53 avg_profit=0.246
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "total" and self.period in(1,2,) and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.4) and self.odd_value <= Decimal(3.9)
+                        ):
+                    # 1 success=0.53 avg_profit=0.59
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "handicap" and self.period == 0 and self.yes == "Y" and 
+                        self.team == "a" and
+                        self.odd_value >= Decimal(1.6) and self.odd_value <= Decimal(2.9)
+                        ):
+                    # 1 success=0.60 avg_profit=0.193
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "wdl" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.4) and self.odd_value <= Decimal(1.7)
+                        ):
+                    # 3 success=0.76 avg_profit=0.178
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "wdl" and self.period == 1 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.4) and self.odd_value <= Decimal(6.0)
+                        ):
+                    # 1 success=0.48 avg_profit=0.365
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "total_both_halves_under" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(1.8) and self.odd_value <= Decimal(3.7)
+                        ):
+                    # 2 success=0.48 avg_profit=0.12
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "total_over" and self.period == 2 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.1) and self.odd_value <= Decimal(3.0)
+                        ):
+                    # 3 success=0.4 avg_profit=0.13
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "total_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.7) and self.odd_value <= Decimal(3.3)
+                        ):
+                    # 1 success=0.63 avg_profit=0.25
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "w_and_itotal_over" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(3.5)
+                        ):
+                    # 1 success=0.6 avg_profit=0.182
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "w_and_total_over" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(1.3) and self.odd_value <= Decimal(3.9)
+                        ):
+                    # 1 success=0.69 avg_profit=0.15
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "wd_and_total_over" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(2.1)
+                        ):
+                    # 2 success=0.66 avg_profit=0.176
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "wd_and_total_under" and self.period == 0 and self.yes == "Y" and 
+                        self.param == "3.5" and
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(2.2)
+                        ):
+                    # 3 success=0.71 avg_profit=0.264
+                    self.odd_level = 3
+
+        elif self.match.league.slug == "russian-premier-league":
+            if self.predictor.slug == "xg-std-fix":
+                if (self.bet_type_slug == "itotal_at_least_over" and self.period == 0 and self.yes == "N" and 
+                    self.odd_value >= Decimal(2.4) and self.odd_value <= Decimal(3.6)
+                    ):
+                    # 2 success=0.5 avg_profit=0.336
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "total" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.4) and self.odd_value <= Decimal(2.3)
+                        ):
+                    # 1 success=0.72 avg_profit=0.3
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "handicap" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.6) and self.odd_value <= Decimal(4.1)
+                        ):
+                    # 3 success=0.467 avg_profit=0.073
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "wdl" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(4.4)
+                        ):
+                    # 2 success=0.44 avg_profit=0.18
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "total_over" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.4) and self.odd_value <= Decimal(3.4)
+                        ):
+                    # 2 success=0.56 avg_profit=0.14
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "wdl_and_both_teams_score" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.9) and self.odd_value <= Decimal(5.6)
+                        ):
+                    # 3 success=0.5 avg_profit=0.828
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "w_and_total_under" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(1.4) and self.odd_value <= Decimal(2.7)
+                        ):
+                    # 3 success=0.627 avg_profit=0.13
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "w_and_total_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(2.8)
+                        ):
+                    # 3 success=0.53 avg_profit=0.19
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "wd_and_total_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(2.0) and self.odd_value <= Decimal(6.6)
+                        ):
+                    # 3 success=0.4 avg_profit=0.113
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "win_to_nil" and self.period == 0 and self.yes == "N" and 
+                        self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(3.5)
+                        ):
+                    # 2 success=0.76 avg_profit=0.29
+                    self.odd_level = 2
+
+        elif self.match.league.slug == "spanish-primera-division":
+            if self.predictor.slug == "xg-std-fix":
+                if (self.bet_type_slug == "itotal_at_least_over" and self.period == 0 and self.yes == "N" and 
+                    self.odd_value >= Decimal(1.8) and self.odd_value <= Decimal(3.1)
+                    ):
+                    # 2 success=0.54 avg_profit=0.19
+                    self.odd_level = 2
+                elif (  self.bet_type_slug == "itotal_at_least_over" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.6) and self.odd_value <= Decimal(3.1)
+                        ):
+                    # 3 success=0.61 avg_profit=0.175
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "itotal_both_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.6) and self.odd_value <= Decimal(6.3)
+                        ):
+                    # 1 success=0.51 avg_profit=0.21
+                    self.odd_level = 1
+                elif (  self.bet_type_slug == "total_both_halves_under" and self.period == 0 and self.yes == "Y" and 
+                        self.odd_value >= Decimal(1.7) and self.odd_value <= Decimal(3.9)
+                        ):
+                    # 2 success=0.5 avg_profit=0.31
+                    self.odd_level = 2
+            if self.predictor.slug == "xg-orig-fix":
+                if (self.bet_type_slug == "total" and self.period == 0 and self.yes == "N" and 
+                    self.param != "0,1" and
+                    self.odd_value >= Decimal(1.5) and self.odd_value <= Decimal(2.9)
+                    ):
+                    # 3 success=0.7 avg_profit=0.245
+                    self.odd_level = 3
+                elif (  self.bet_type_slug == "total_over" and self.period == 2 and self.yes == "Y" and 
+                        self.param == "0.50" and
+                        self.odd_value >= Decimal(1.6) and self.odd_value <= Decimal(2.9)
+                        ):
+                    # 3 success=0.545 avg_profit=0.236
+                    self.odd_level = 3
 
 
 class TeamSkillSandbox(models.Model):

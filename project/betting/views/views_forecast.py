@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.db.models.query import RawQuerySet
-from django.db.models import sql, F, Q, Count, Max
+from django.db.models import sql, F, Q, Count, Max, Case, When, Value, fields
 from django.db.models.expressions import Window
 from django.db.models.functions import RowNumber
 
@@ -925,9 +925,9 @@ class ForecastMatchDetail(BSModalReadView):
         harvest0 = Harvest.get_xg_harvest(0)
         harvest1 = Harvest.get_xg_harvest(1)
         harvest2 = Harvest.get_xg_harvest(2)
-        forecast_set.preapre_sandbox(match=self.object, harvest=harvest0)
-        forecast_set.preapre_sandbox(match=self.object, harvest=harvest1)
-        forecast_set.preapre_sandbox(match=self.object, harvest=harvest2)
+        forecast_set.prepare_sandbox(match=self.object, harvest=harvest0)
+        forecast_set.prepare_sandbox(match=self.object, harvest=harvest1)
+        forecast_set.prepare_sandbox(match=self.object, harvest=harvest2)
         xG_h0_skill = TeamSkillSandbox.objects.get(forecast_set_id = forecast_set_id,
                                                    harvest_id=harvest0.id, 
                                                    team_id=self.object.team_h_id, 
@@ -1083,8 +1083,10 @@ class ForecastMatchDetail(BSModalReadView):
             context["odd_order"] = odd_order
             context["odd_order_init"] = urllib.parse.unquote(odd_order_init) 
         else:
-            context["odd_order"] = "4,desc,2,desc"
-            context["odd_order_init"] = [[ 4,'desc' ], [2,'desc']]
+            # context["odd_order"] = "4,desc,2,desc"
+            # context["odd_order_init"] = [[ 4,'desc' ], [2,'desc']]
+            context["odd_order"] = "18,asc"
+            context["odd_order_init"] = [[ 18,'asc' ]]
 
         harvest_id = 0
         # harvest = Harvest.get_xg_harvest()
@@ -1200,7 +1202,9 @@ class ForecastAPI(ListAPIView):
 
         queryset = (ForecastSandbox.objects
                             .filter(forecast_set=forecast_set_id, match=match_id)
-                            .annotate(growth=(1-F("kelly")+F("kelly")*F("result_value")))
+                            .annotate(best=Case(When(best_odd__gt=0, then=F("best_odd"))))
+                            .annotate(best_sort=Case(When(best_odd__gt=0, then=F("best_odd") ), default=Value(1000000), output_field=fields.IntegerField() ))
+                            # .annotate(growth=(1-F("kelly")+F("kelly")*F("result_value")))
                     )
         # queryset = Forecast.objects.filter(forecast_set=forecast_set_id, match=match_id)
 
