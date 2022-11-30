@@ -261,7 +261,7 @@ class FootballDataHandler(CommonHandler):
         '''
 
         #date
-        match_date_str = match_data['Date']
+        match_date_str = match_data.get('Date', '')
         if len(match_date_str) == 8:
             match_date=datetime.strptime(match_date_str, "%d/%m/%y").date()
         elif len(match_date_str) == 10:

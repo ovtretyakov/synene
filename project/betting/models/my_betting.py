@@ -373,13 +373,17 @@ class Transaction(models.Model):
 
 
     @classmethod
-    def add(cls, bookie_id, trans_type, amount, comment="", trans_date=date.today(), bet_amt=0):
+    def add(cls, bookie_id, trans_type, amount, comment="", trans_date=None, bet_amt=0):
         unsettled_amt = 0
         if trans_type == Transaction.TYPE_BID:
             unsettled_amt = amount
             amount = -1*amount
         if trans_type == Transaction.TYPE_WIN:
             unsettled_amt = -1*bet_amt
+
+        if not trans_date:
+            trans_date = timezone.now().date()
+        print("!!! Create transaction with date " + str(trans_date))
 
         transaction = None
         if amount != 0:

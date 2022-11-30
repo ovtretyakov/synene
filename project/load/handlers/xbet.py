@@ -323,8 +323,15 @@ class XBetHandler(CommonHandler):
                 if event_cnt_src == None:
                     event_cnt_src = event_tag.select_one('button.c-events__more.c-events__more_bets')
                 event_cnt = event_cnt_src.get_text().strip()
-                if event_cnt: event_cnt = int(event_cnt)
-                else: event_cnt = 0
+
+                if event_cnt: 
+                    try:
+                        event_cnt = int(event_cnt)
+                    except Exception as e:
+                        event_cnt = 0
+                else: 
+                    event_cnt = 0
+
                 if event_cnt <= 250: event_cnt = 250
                 elif event_cnt <= 500: event_cnt = 500
                 elif event_cnt <= 750: event_cnt = 750
